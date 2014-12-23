@@ -3,41 +3,32 @@ package control;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import socket.Message;
 import socket.ServerThread;
 
-public class LogicControl {
-	
-	private static final short  CMDID_MAIN_CONTROL = 5000;
+public class LogicControl {	
 
-	private static final short SYN_ROOM_PROFILE			=	5101;
-	private static final short SWITCH_ROOM_PROFILE		=	5102;
+	private static final short SYN_ROOM_PROFILE			=	0x1601;
+	private static final short SWITCH_ROOM_PROFILE		=	0x1602;
 	
-	private static final short SYN_COM_RROFILE			=	5201;
-	private static final short SWITCH_COM_RROFILE		=	5202;	
+	private static final short SYN_COM_RROFILE			=	0x1701;
+	private static final short SWITCH_COM_RROFILE		=	0x1702;	
 	
-	private static final short SYN_APP_LIST				=	5301;
-	private static final short SWITCH_APP_S_TATE		=	5302;
+	private static final short SYN_APP_LIST				=	0x1801;
+	private static final short SWITCH_APP_S_TATE		=	0x1802;
 	
-	private static final short WARNING_MSG			=	5401;
-	private static final short EMERGENCY			=	5402;
-	
-	private static final int headerLength=16;
+	private static final short WARNING_MSG			=	0x1901;
+	private static final short EMERGENCY			=	0x1902;
 
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 
-	}
+
 	
-	public void decodeCommand(String inCommand){
+	public void decodeCommand(Message msg){		
+		int commandID=msg.header.commandID;
+		//int len=msg.header.msgLen-msg.header.cookieLen;		
+		//JSONObject jsonComm=getJason(inCommand, len);
 		
-		//while(!ServerThread.receiveCommandQueue.isEmpty()){		
-		//}
-		
-		int subCommand=getSubCommand(inCommand);
-		int len=getCommandLength(inCommand);
-		JSONObject jsonComm=getJason(inCommand, len);
-		
-		switch (subCommand)
+		switch (commandID)
 		{
 		case SYN_ROOM_PROFILE:	
 			String plate=new String("utf-8");
@@ -60,22 +51,7 @@ public class LogicControl {
 		
 	}
 	
-	public String getCommandHeader(String inComm){		
-		return inComm.substring(0, headerLength);		
-	}
-	
-	
-	public String getCommand(String inComm){		
-		return null;		
-	}
-	
-	public int getSubCommand(String inComm){		
-		return 0;		
-	}
-	
-	public int getCommandLength(String inComm){		
-		return 0;		
-	}
+
 	
 	public JSONObject getJason(String inComm,int len){			
 		if(inComm==null) return null;
@@ -93,6 +69,9 @@ public class LogicControl {
 	
 
 
-	
+	public static void main(String[] args) {
+		// TODO Auto-generated method stub
+
+	}	
 	
 }

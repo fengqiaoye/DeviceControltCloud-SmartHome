@@ -2,6 +2,7 @@ package socket;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
@@ -24,13 +25,12 @@ public class ServerThread extends Thread  {
     Socket clientRequest;// 用户连接的通信套接字  
     BufferedReader input;// 输入流  
     PrintWriter output;// 输出流  
-    ObjectOutputStream os;
     Message msg = null;
     String str = null;  
     public static BlockingQueue<Message> receiveCommandQueue= new ArrayBlockingQueue<Message>(10000);
     public static BlockingQueue<Message> sendCommandQueue= new ArrayBlockingQueue<Message>(10000);
     
-    public static Logger LOG = Logger.getLogger(ServerThread.class);   
+    public static Logger log = Logger.getLogger(ServerThread.class);   
     
     
   
@@ -46,8 +46,9 @@ public class ServerThread extends Thread  {
         { // 初始化输入、输出流              
             writer = new OutputStreamWriter(clientRequest.getOutputStream());   
             output = new PrintWriter(writer, true); 
-            reader = new InputStreamReader(this.clientRequest.getInputStream(),"utf-8");  
+            reader = new InputStreamReader(clientRequest.getInputStream(),"utf-8");  
             input = new BufferedReader(reader); 
+            //dataout=new DataOutputStream(clientRequest.getOutputStream());
         } catch (IOException e)  
         {  
             System.out.println(e.getMessage());  
@@ -67,33 +68,66 @@ public class ServerThread extends Thread  {
         		Message outMsg=null;
 				try {
 					outMsg = sendCommandQueue.poll(200, TimeUnit.MICROSECONDS);
-					os.writeObject(outMsg);
-					writeToClient(outMsg.MessageToString());  
+					outMsg.writeToSock(clientRequest);
 
-				} catch (InterruptedException | IOException e) {
+				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}       		     		
         	}
         	
             try {
-            	msg= readFromClient();
-			} catch (IOException | JSONException e) {
+				msg= readFromClient();
+				//readTest();
+			} catch (UnsupportedEncodingException | JSONException e) {
 				e.printStackTrace();
-			}
-			//System.out.println("message received from client:"+msgLine);  
-			if(msg.isValid()){
-				if(receiveCommandQueue.offer(msg))
-				receiveCommandQueue.add(msg);
-				sendCommandQueue.add(msg);
-			}else{
-				System.out.println("Error: Cant't add Message to Receive Message Queue ! please confirm the queue have enough capacity!");
-			}
-  
+			} 
+            if(msg.isValid()){
+            	if(receiveCommandQueue.offer(msg)==false){
+            		log.error("can't add message to the receiving queue. SequeeceID:"+msg.header.sequeeceNo);
+            	}
+            }else{
+            	log.info("Invalid command receive. SequeeceID:"+msg.header.sequeeceNo+" command ID :"+msg.header.commandID);
+            	Message errMsg=msg;
+            	errMsg.header.commandID+=0x8000;
+            	sendCommandQueue.add(errMsg);
+            }
         }   
     } 
     
+/*	private void readTest() 
+    {  
+		byte[] b2=new byte[50]; 
+		try {
+			clientRequest.getInputStream().read(b2,0,2);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		System.out.println("B2: "+b2[0]+","+b2[1]);
+		//byte[] b2={b2[0],b2[1]};
+		System.out.println("B2 int: "+BytesUtil.getShort(b2) );
+		System.out.println("B2 int: "+BytesUtil.bytesToShort(b2) );
+		System.out.println("String:"+new String(b2));
+		
+		byte[] b50=new byte[50]; 
+		try {
+			//clientRequest.getInputStream().read(b50,0,50);
+			System.out.println(new String(b2,"UTF-8"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 
+		
+		try {
+			Thread.sleep(5000);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+    }*/
 
 	private Message readFromClient() throws UnsupportedEncodingException, JSONException    
     {  
@@ -103,6 +137,7 @@ public class ServerThread extends Thread  {
     	try {
 			clientRequest.getInputStream().read(b23,0,23);
 			head=new Header(b23);
+			head.printHeader();
 		} catch (IOException e) {
 			e.printStackTrace();
 			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress());  
@@ -134,10 +169,6 @@ public class ServerThread extends Thread  {
     
 
     
-	private void writeToClient(String command)  
-    {  
-        output.println(command);            
-    } 
     
 /*    
  private void validateCommand(Message msg) {

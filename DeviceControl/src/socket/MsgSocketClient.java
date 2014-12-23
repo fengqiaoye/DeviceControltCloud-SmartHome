@@ -4,10 +4,13 @@ package socket;
  * @version Created：2014年12月15日 下午3:03:30 
  */
 
+import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.text.DecimalFormat;
@@ -35,6 +38,8 @@ public class MsgSocketClient {
 	public static Socket msgSk =null;
 	PrintWriter pw;
 	static OutputStream os = null;
+	ObjectOutputStream objout;
+	DataOutputStream dataout;
 
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub		
@@ -43,16 +48,32 @@ public class MsgSocketClient {
 	}
 
 	
-	MsgSocketClient(String serverIP,int serverpot)
+	MsgSocketClient(String serverIP,int serverpot) 
 	{
         OutputStreamWriter writer;  
 			if(msgSk==null){
 				try {
 					msgSk=new Socket(serverIP,serverpot);
-		            writer = new OutputStreamWriter(msgSk.getOutputStream()); 
-		            pw = new PrintWriter(writer, true); 
-			        pw.println("Connect from DeviceControl client 1 !\n");  
-			        pw.println("Connect from DeviceControl client 2 !\n"); 
+				    //OutputStream outs=msgSk.getOutputStream();
+
+//		            writer = new OutputStreamWriter(msgSk.getOutputStream()); 
+//		            pw = new PrintWriter(writer, true);
+//			        pw.write(243); 
+//			        pw.println("This is  PrintWriter !\n\n"); 
+
+		            
+		            dataout=new DataOutputStream(msgSk.getOutputStream());
+		            //dataout.writeInt(243);
+		            dataout.writeShort((int)243);
+		            //dataout.writeByte(282);
+		            dataout.writeBytes("This is  DataOutputStream !\n\n");
+		            dataout.flush();
+//		            
+//		            objout=new ObjectOutputStream(outs);
+//		            objout.writeObject(getHeader());
+//		            objout.writeObject("This is  ObjectOutputStream !\n\n");
+//		            objout.flush();
+
 				} catch (UnknownHostException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -73,6 +94,19 @@ public class MsgSocketClient {
 			}
 
 	 
+	}
+	
+	public Header getHeader() {
+		byte[] b23={35, 88, 82, 80, 67, 35, 1, 2, 0, -13, 3, -21, 0, 1, -122, -92, 5, 0, 4, 0, 1, -122, -89};
+		Header head;
+		try {
+			head = new Header(b23);
+			return head;
+		} catch (UnsupportedEncodingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}		
+		return null;
 	}
 	
 

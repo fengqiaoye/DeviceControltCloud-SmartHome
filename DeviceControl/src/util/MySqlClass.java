@@ -15,7 +15,7 @@ public class MySqlClass {
    public Connection conn=null;
    private Statement st=null;
    private ResultSet rs=null;
-   static final Logger logger = Logger.getLogger("global");
+   static final Logger logger = Logger.getLogger(MySqlClass.class);
    
    public MySqlClass(String host, String port,String databaseName,String userName,String password){
        try{
@@ -104,17 +104,7 @@ public class MySqlClass {
 	   String ss=mysql.select("select * from HIS_Mobile_Operation_1507;");
 	   System.out.println(ss);
 	   
-	   /*String nowtime="2013-04-12 14:28:30";
-	   String roadId="10000";
-	   int avgSpd=1;
-	   int count=1;
-	   int rs=mysql.query("insert into realTimeTraffic.roadSpeed(time,roadID,speed,count) values('"+nowtime
-	    		+"','"+roadId+"',"+avgSpd+","+count+" );");
-
-		mysql.query("delete from realTimeTraffic.roadSpeed");
-	   rs=mysql.query("insert into realTimeTraffic.roadSpeed(time,roadID,speed,count) values('"+nowtime
-	    		+"','"+roadId+"',"+avgSpd+","+count+" );");
-      System.out.println(rs);*/ 	   
+ 	   
    }
 }
 

@@ -1,6 +1,10 @@
 package socket;
 
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.Socket;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -9,9 +13,9 @@ import util.BytesUtil;
 public class Message {
 	
 
-	 Header header;
-	 int cookie;
-	 JSONObject json;
+	 public Header header;
+	 public int cookie;
+	 public JSONObject json;
 
 	Message(){}
 	Message(Message msg){
@@ -82,19 +86,85 @@ public class Message {
     
    public String MessageToString(){
 	   String out=new String();
-	   out+=  		this.header.headTag			;
-	   out+=		this.header.mainVersion	;
-	   out+=		this.header.subVersion	;
-	   out+=		this.header.msgLen		;
-	   out+=		this.header.commandID	;
-	   out+=		this.header.sequeeceNo	;
-	   out+=		this.header.encType		;
-	   out+=		this.header.cookieLen	;
-	   out+=		this.header.reserve		;    	
+	   out+=  		this.header.headTag		+",";
+	   out+=		this.header.mainVersion	+",";
+	   out+=		this.header.subVersion	+",";
+	   out+=		this.header.msgLen		+",";
+	   out+=		this.header.commandID	+",";
+	   out+=		this.header.sequeeceNo	+",";
+	   out+=		this.header.encType		+",";
+	   out+=		this.header.cookieLen	+",";
+	   out+=		this.header.reserve		+",";  
+	   out+=		this.cookie		+","; 
+	   out+=		this.json.toString()	+","; 
 	   return out;
     }
+   
+   /*public String MessageToBytes(){
+	   byte[] out =new byte[this.header.msgLen+23];
+	   out=  	BytesUtil.getBytes(this.header.headTag, "UTF-8");
+	   out+=	BytesUtil.getBytes(	this.header.mainVersion)	;
+	   out+=	BytesUtil.getBytes(	this.header.subVersion)   ;
+	   out+=	BytesUtil.getBytes(	this.header.msgLen)		;
+	   out+=	BytesUtil.getBytes(	this.header.commandID)	;
+	   out+=	BytesUtil.getBytes(	this.header.sequeeceNo)	;
+	   out+=	BytesUtil.getBytes(	this.header.encType)		;
+	   out+=	BytesUtil.getBytes(	this.header.cookieLen)	;
+	   out+=	BytesUtil.getBytes(	this.header.reserve	)	;  
+	   out+=	BytesUtil.getBytes(	this.cookie)		; 
+	   out+=	BytesUtil.getBytes(	this.json.toString(),"UTF-8")	; 
+	   return out;
+    }*/
+   
+   
+    public void writeBytesToSock(Socket sock){
+    	try {
+			DataOutputStream dataout= new DataOutputStream(sock.getOutputStream());
+			   dataout.write(  	BytesUtil.getBytes(this.header.headTag, "UTF-8")  );
+			   dataout.write(	BytesUtil.getBytes(	this.header.mainVersion)	  );
+			   dataout.write(	BytesUtil.getBytes(	this.header.subVersion)       );
+			   dataout.write(	BytesUtil.getBytes(	this.header.msgLen)		      );
+			   dataout.write(	BytesUtil.getBytes(	this.header.commandID)	      );
+			   dataout.write(	BytesUtil.getBytes(	this.header.sequeeceNo)	      );
+			   dataout.write(	BytesUtil.getBytes(	this.header.encType)		  );
+			   dataout.write(	BytesUtil.getBytes(	this.header.cookieLen)	      );
+			   dataout.write(	BytesUtil.getBytes(	this.header.reserve	)	      ) ;  
+			   dataout.write(	BytesUtil.getBytes(	this.cookie)		          )   ; 
+			   dataout.write(	BytesUtil.getBytes(	this.json.toString(),"UTF-8") )	; 
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}    	
+    }
+    
+    public void writeToSock(Socket sock){
+    	try {
+			DataOutputStream dataout= new DataOutputStream(sock.getOutputStream());
+			   dataout.writeUTF(  	this.header.headTag            )  ;
+			   dataout.writeByte(		this.header.mainVersion)	  ;
+			   dataout.writeByte(		this.header.subVersion)       ;
+			   dataout.writeShort(		(int)this.header.msgLen)		      ;
+			   dataout.writeShort(		(int)this.header.commandID)	      ;
+			   dataout.writeInt(		this.header.sequeeceNo)	      ;
+			   dataout.writeByte(		this.header.encType)		  ;
+			   dataout.writeByte(		this.header.cookieLen)	      ;	   
+			   dataout.writeInt(		this.header.reserve	)	       ;  
+			   dataout.writeInt(		this.cookie)		             ; 
+			   dataout.writeUTF(		this.json.toString()   ) 	;
+			  
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}    	
+    }
 	    
-	
+	public static void main(String[] args) throws JSONException {
+		JSONObject jo= new JSONObject("{\"key\":\"value\"}");
+		
+		System.out.println(jo.toString());
+	}
 
 		
 

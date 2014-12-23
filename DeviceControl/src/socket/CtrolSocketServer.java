@@ -21,6 +21,8 @@ public class CtrolSocketServer {
 	public static Map<String,Thread> threadMap= new HashMap<String,Thread>();
 	
 	
+	
+	
 	public CtrolSocketServer(int localPort) {
 		// TODO Auto-generated constructor stub
         try{
@@ -76,10 +78,8 @@ public class CtrolSocketServer {
         try {
 			new CtrolSocketServer(64415).listen();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}  
     }

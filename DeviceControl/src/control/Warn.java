@@ -9,6 +9,8 @@ package control;
 import java.util.Date;
 
 public class Warn {	
+	
+
 	int  warnID       ;  
 	String  warnName     ; 
 	String warnContent;

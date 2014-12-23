@@ -10,19 +10,19 @@ public class Header{
 	/*** 6字节  默认：#XRPC#*/
 	String headTag; 
 	/***协议主版本号*/
-    short mainVersion ;
+    byte mainVersion ;
 	/***协议子版本号*/
-    short subVersion ;
+    byte subVersion ;
 	/***包体总长度，cookie+消息体+包尾*/
-	short msgLen ;
+    public short msgLen ;
 	/***命令号*/
-	short commandID;	
+	public short commandID;	
 	/***序列号*/
-	int sequeeceNo ;
+	public int sequeeceNo ;
 	/***加密方式: 0不加密, 其他值为约定的加密方式*/
  	short encType; 
  	/***cookie长度,cookie从包头结束位置开始*/
- 	short cookieLen; 
+ 	public short cookieLen; 
  	/*保留字段*/	
  	int reserve; 
  	
@@ -47,8 +47,8 @@ public class Header{
 	 * @throws UnsupportedEncodingException */
 	 Header(byte[] header) throws UnsupportedEncodingException{   
 		     byte[] headTag     ={header[0],header[1],header[2],header[3],header[4],header[5]};	
-			 short mainVersion	=header[6];
-			 short subVersion	=header[7];
+			 byte mainVersion	=header[6];
+			 byte subVersion	=header[7];
 			 byte[] msgLen		= {header[8],header[9]};	
 			 byte[] commandID	= {header[10],header[11]};
 			 byte[] sequeeceNo	={header[12],header[13],header[14],header[15]} ;
