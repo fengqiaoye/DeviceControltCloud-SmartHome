@@ -1,4 +1,8 @@
 package device;
+/** 
+ * @author Chen Guanghua E-mail: richard@cooxm.com
+ * @version Created：2014年12月15日 下午3:03:30 
+ */
 
 import java.util.*;
 import java.sql.SQLException;

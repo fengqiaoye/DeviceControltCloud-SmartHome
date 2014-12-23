@@ -1,4 +1,8 @@
 package socket;
+/** 
+ * @author Chen Guanghua E-mail: richard@cooxm.com
+ * @version Created：2014年12月15日 下午3:03:30 
+ */
 
 import java.io.IOException;
 import java.io.OutputStream;
