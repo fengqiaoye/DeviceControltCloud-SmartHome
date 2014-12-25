@@ -27,10 +27,9 @@ public class ServerThread extends Thread  {
     PrintWriter output;// Êä³öÁ÷  
     Message msg = null;
     String str = null;  
-    public static BlockingQueue<Message> receiveCommandQueue= new ArrayBlockingQueue<Message>(10000);
-    public static BlockingQueue<Message> sendCommandQueue= new ArrayBlockingQueue<Message>(10000);
+
     
-    public static Logger log = Logger.getLogger(ServerThread.class);   
+    public static Logger log = Logger.getLogger(CtrolSocketServer.class);   
     
     
   
@@ -64,10 +63,10 @@ public class ServerThread extends Thread  {
 
         while (true)  
         { 
-        	if(!sendCommandQueue.isEmpty()){
+        	if(!CtrolSocketServer.sendCommandQueue.isEmpty()){
         		Message outMsg=null;
 				try {
-					outMsg = sendCommandQueue.poll(200, TimeUnit.MICROSECONDS);
+					outMsg = CtrolSocketServer.sendCommandQueue.poll(200, TimeUnit.MICROSECONDS);
 					outMsg.writeToSock(clientRequest);
 
 				} catch (InterruptedException e) {
@@ -83,14 +82,14 @@ public class ServerThread extends Thread  {
 				e.printStackTrace();
 			} 
             if(msg.isValid()){
-            	if(receiveCommandQueue.offer(msg)==false){
+            	if(CtrolSocketServer.receiveCommandQueue.offer(msg)==false){
             		log.error("can't add message to the receiving queue. SequeeceID:"+msg.header.sequeeceNo);
             	}
             }else{
             	log.info("Invalid command receive. SequeeceID:"+msg.header.sequeeceNo+" command ID :"+msg.header.commandID);
             	Message errMsg=msg;
             	errMsg.header.commandID+=0x8000;
-            	sendCommandQueue.add(errMsg);
+            	CtrolSocketServer.sendCommandQueue.add(errMsg);
             }
         }   
     } 
@@ -151,8 +150,9 @@ public class ServerThread extends Thread  {
 			e.printStackTrace();
 			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress()); 
 		}
-    	int cookieInt=BytesUtil.getInt(cookie);
-    	System.out.println("cookie: "+cookieInt);    
+    	//int cookieInt=BytesUtil.getInt(cookie);
+    	String cookieStr=new String(cookie);
+    	System.out.println("cookie: "+cookieStr);    
     	
     	byte[] commnad=new byte[head.msgLen-head.cookieLen];
     	try {
@@ -163,7 +163,7 @@ public class ServerThread extends Thread  {
 		}  
     	String comString=new String(commnad);
     	System.out.println("command: "+comString);
-    	msg=new Message(head, cookieInt, comString);
+    	msg=new Message(head, cookieStr, comString);
         return msg; 
     } 
     

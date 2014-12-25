@@ -6,7 +6,12 @@
  */
 package control;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class Warn {	
 	
@@ -20,8 +25,8 @@ public class Warn {
 	 * ¸æ¾¯ÇþµÀ£º 0£ºÍøÂç£» 1£ºSMS; 2 :both
 	 * */
 	int  channel    ;  
-	Date  createtime ;  
-	Date  modifytime ;   
+	Date  createTime ;  
+	Date  modifyTime ;   
 
 	Warn(
 		int  warnID       ,  
@@ -29,18 +34,35 @@ public class Warn {
 		String  warnContent,  
 		int  type       ,  
 		int  channel    ,  
-		Date  createtime ,  
-		Date  modifytime )
+		Date  createTime ,  
+		Date  modifyTime )
 	{
 		this.warnID     = warnID       ;  
 		this.warnName   = warnName       ;  
 		this.warnContent= warnContent;  
 		this.type       = type       ;  
 		this.channel    = channel    ;  
-		this.createtime = createtime ;  
-		this.modifytime = modifytime ;		
+		this.createTime = createTime ;  
+		this.modifyTime = modifyTime ;		
 	}
 	
+	public JSONObject toJsonObject(){
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	    JSONObject warnJson = new JSONObject();  
+	    try {
+			warnJson.put("warnID",         this.warnID      );
+		    warnJson.put("warnName",        this.warnName      );
+		    warnJson.put("warnContent",        this.warnContent       );
+		    warnJson.put("type",     		   this.type        );
+		    warnJson.put("channel",            this.channel    );
+		    warnJson.put("createTime",      sdf.format(this.createTime  )  );
+		    warnJson.put("modifyTime",      sdf.format(this.modifyTime  )  );
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}	    
+	    return warnJson;
+	}
 
 	/*** 
 	 * @Title: main 

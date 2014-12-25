@@ -21,10 +21,7 @@ import util.MySqlClass;
 public class DeviceMap {
 	
 	/*** Map<ctrolID_deviceID,Device>*/
-	static Map<String, Device> deviceMap=new HashMap<String, Device>(); 
-
-
-	
+	static Map<String, Device> deviceMap=new HashMap<String, Device>(); 	
 
    /*** 
    * 从入MYSQL读取device列表

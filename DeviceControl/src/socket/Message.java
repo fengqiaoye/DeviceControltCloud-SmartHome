@@ -10,16 +10,16 @@ import org.json.JSONObject;
 
 import util.BytesUtil;
 
-public class Message {
+public class Message  {
 	
 
 	 public Header header;
-	 public int cookie;
+	 public String cookie;
 	 public JSONObject json;
 
-	Message(){}
-	Message(Message msg){
-		this.header=msg.header;
+	public Message(){}
+	Message(Message msg){	
+		this.header=msg.header; 
 		this.cookie=msg.cookie;
 		this.json=msg.json;
 	}
@@ -28,14 +28,14 @@ public class Message {
 		this.header=header;
 	}
 	
-	Message(Header header,int cookie,  byte[] command) throws UnsupportedEncodingException, JSONException{
+	Message(Header header,String cookie,  byte[] command) throws UnsupportedEncodingException, JSONException{
 		this.header=header;	
 		this.cookie=cookie;
 		String jsonStr=new String(command,"utf-8");
 		this.json=new JSONObject(jsonStr);
 	}
 	
-	Message(Header header,int cookie, String command) throws UnsupportedEncodingException, JSONException{
+	Message(Header header,String cookie, String command) throws UnsupportedEncodingException, JSONException{
 		this.header=header;	
 		this.cookie=cookie;
 		//String jsonStr=new String(command,"utf-8");
@@ -72,7 +72,7 @@ public class Message {
 		 for(int i=0;i<this.header.cookieLen;i++){
 			 cookieByte[i]	    = msg[23+i] ;
 		 }
-		 this.cookie=BytesUtil.bytesToInt(cookieByte);
+		 this.cookie=new String(cookieByte);
 
 		 
 		String jsonStr=new String();
@@ -129,7 +129,7 @@ public class Message {
 			   dataout.write(	BytesUtil.getBytes(	this.header.encType)		  );
 			   dataout.write(	BytesUtil.getBytes(	this.header.cookieLen)	      );
 			   dataout.write(	BytesUtil.getBytes(	this.header.reserve	)	      ) ;  
-			   dataout.write(	BytesUtil.getBytes(	this.cookie)		          )   ; 
+			   dataout.write(	BytesUtil.getBytes(	this.cookie,"UTF-8")		          )   ; 
 			   dataout.write(	BytesUtil.getBytes(	this.json.toString(),"UTF-8") )	; 
 			
 		} catch (IOException e) {
@@ -150,7 +150,7 @@ public class Message {
 			   dataout.writeByte(		this.header.encType)		  ;
 			   dataout.writeByte(		this.header.cookieLen)	      ;	   
 			   dataout.writeInt(		this.header.reserve	)	       ;  
-			   dataout.writeInt(		this.cookie)		             ; 
+			   dataout.writeUTF(		this.cookie)		             ; 
 			   dataout.writeUTF(		this.json.toString()   ) 	;
 			  
 			

@@ -12,25 +12,46 @@ import java.net.Socket;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
+
+import org.apache.log4j.Logger;
+import org.apache.log4j.spi.LoggerFactory;
 
 public class CtrolSocketServer {
 
     ServerSocket severSock = null;
-	static OutputStream output = null;	
+	static OutputStream output = null;
+	
+    /**
+     * Map   < IP,Socket >
+     * @key IP
+     * @value Socket
+     */
 	public static Map<String,Socket> sockMap= new HashMap<String,Socket>();
+	
+    /**
+     * Map   < IP,thread >
+     * @key IP
+     * @value thread
+     */
 	public static Map<String,Thread> threadMap= new HashMap<String,Thread>();
 	
+    public static BlockingQueue<Message> receiveCommandQueue= new ArrayBlockingQueue<Message>(10000);
+    public static BlockingQueue<Message> sendCommandQueue= new ArrayBlockingQueue<Message>(10000);
+    
+	static Logger log =Logger.getLogger(CtrolSocketServer.class);	
 	
 	
-	
-	public CtrolSocketServer(int localPort) {
-		// TODO Auto-generated constructor stub
+	/***@param serverPort: 从配置文件中读取: ./conf/control.conf */
+	public CtrolSocketServer(int serverPort) {
         try{
-        	severSock= new ServerSocket(localPort);
+        	severSock= new ServerSocket(serverPort);
         }
         catch(IOException e)
         {
             System.out.println(e);
+        	//log.error(e);
             System.exit(1);
         }
 	}
@@ -40,20 +61,17 @@ public class CtrolSocketServer {
         while(true)
         {
         	Date now = new Date(); 
-        	System.out.println(now + " Listenning at port:"+severSock.getLocalPort()+"...");
+        	log.info(" Listening at port:"+severSock.getLocalPort()+"...");
         	Socket sock = severSock.accept();
         	 InetAddress clientAdress=sock.getInetAddress();
-        	System.out.println(now+" Accept connection from client:"+clientAdress.getHostAddress()+"("+clientAdress.getHostName()+")");  
+        	log.info(" Accept connection from client:"+clientAdress.getHostAddress()+"("+clientAdress.getHostName()+")");  
         	sockMap.put(clientAdress.getHostAddress(), sock);
-        	
-//        	String msg=readMsgFromScok(sock);
-//        	System.out.println(msg);
 
             ServerThread th = new ServerThread(sock);    
        		th.start(); 
        		threadMap.put(clientAdress.getHostAddress(), th);
 			//Thread.sleep(200);  
-			System.out.println(now+" Started the "+threadMap.size()+"th thread!");
+       		log.info(" Started the "+threadMap.size()+"th thread!");
         }
 	}
 	
@@ -65,7 +83,7 @@ public class CtrolSocketServer {
     }
     
     
-    public static String readMsgFromScok(Socket sock) throws IOException   
+    public static String readLineFromScok(Socket sock) throws IOException   
     {
     	InputStreamReader reader = new InputStreamReader(sock.getInputStream()); 
     	BufferedReader input=new BufferedReader(reader) ;// 输入流  

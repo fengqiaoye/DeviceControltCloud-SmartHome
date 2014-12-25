@@ -11,8 +11,17 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import util.MySqlClass;
 
+
+/***
+ * 一个房间的情景模式，可能包含多个情景因素(家电、环境等)
+ * */
 public class Profile {
 	
 	int profileID;
@@ -45,6 +54,43 @@ public class Profile {
 		this.modifyTime=pf.modifyTime;		
 	}
 	
+	/**
+	 * 将情景模式对象 转换为一个JSONObject 存储
+	 * @return JSONObject
+	 * */
+	public JSONObject toJsonObj(){	
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	    JSONObject profileJson = new JSONObject();  
+        JSONObject factorJson ; //= new JSONObject();  
+        try {
+		    profileJson.put("profileID",this.profileID);
+		    profileJson.put("profileName",this.profileName);
+		    profileJson.put("CtrolID",this.CtrolID); 
+		    profileJson.put("roomID",this.roomID);
+		    profileJson.put("roomType",this.roomType);
+		    profileJson.put("profileTemplateID",this.profileTemplateID);
+		    profileJson.put("profileSetID",this.profileSetID);
+		    for(Factor factor: this.factorList){
+		    	factorJson= new JSONObject(); 
+		    	factorJson.put("factorID", factor.factorID);
+		    	factorJson.put("minValue", factor.minValue);
+		    	factorJson.put("maxValue", factor.maxValue);
+		    	factorJson.put("compareWay", factor.compareWay);
+		    	factorJson.put("validFlag", factor.validFlag);
+		    	factorJson.put("createTime", sdf.format(factor.createTime));
+		    	factorJson.put("modifyTime", sdf.format(factor.modifyTime));
+		    	profileJson.accumulate("factorList",factorJson); 
+		    }
+		    
+		    profileJson.put("createTime",sdf.format(this.createTime));
+		    profileJson.put("modifyTime",sdf.format(this.createTime));
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}  		
+		return profileJson;
+	}
+	
 	public Factor getFactor(int factorID){		
 		for (int i = 0; i < this.factorList.size(); i++) {
 			if(this.factorList.get(i).factorID==factorID){
@@ -61,6 +107,7 @@ public class Profile {
 		}		
 		return false;		
 	}
+
 	
 	/*** 
 	 * Save Profile info to Mysql:
@@ -149,7 +196,6 @@ public class Profile {
 	    */
 	public	static Profile getOneProfileFromDB(MySqlClass mysql,int CtrolID,int profileID) throws SQLException
 		{
-		    String tablename="info_user_room_st_factor";
 			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			mysql.conn.setAutoCommit(false);
 			String sql="select "
@@ -163,7 +209,7 @@ public class Profile {
 					+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
 					+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 					+ "  from  "				
-					+tablename
+					+profileDetailTable
 					+" where ctr_id="+CtrolID
 					+" and userroomstid="+profileID
 					+ ";";
@@ -178,21 +224,19 @@ public class Profile {
 				return null;
 			}
 			String[] resArray=res.split("\n");
-			Profile profile=null;
-			List<Factor> factorList=null;//new ArrayList<Factor>();
+			Profile profile=new Profile();
+			List<Factor> factorList=new ArrayList<Factor>();
 			Factor ft=null;
 			String[] cells=null;
 			for(String line:resArray){
 				cells=line.split(",");
 				if(cells.length==9){				
 					ft=new Factor();			
-					ft.factorID=Integer.parseInt(cells[3]);
-					//ft.factorType=Integer.parseInt(cells[1]);
-					//ft.factorName=cells[2];
+					ft.factorID=Integer.parseInt(cells[2]);
 					ft.minValue=Integer.parseInt(cells[3]);
 					ft.maxValue=Integer.parseInt(cells[4]);
 					ft.compareWay=Integer.parseInt(cells[5]);
-					ft.validFlag=Boolean.parseBoolean(cells[6]);
+					ft.validFlag=Integer.parseInt(cells[6]);
 					try {
 						ft.createTime=sdf.parse(cells[7]);
 						ft.modifyTime=sdf.parse(cells[8]);
@@ -200,14 +244,13 @@ public class Profile {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-					profile=new Profile();
-					factorList=new ArrayList<Factor>();
+					
 					factorList.add(ft);
 					profile.factorList=factorList;
 					profile.profileID=Integer.parseInt(cells[0]);
 					profile.CtrolID=Integer.parseInt(cells[1]);		
 				}else {
-					System.out.println("ERROR:Columns mismatch between class Profile  and table  "+ tablename);
+					System.out.println("ERROR:Columns mismatch between class Profile  and table  "+ profileDetailTable);
 					return null;				
 				}
 			}
@@ -253,8 +296,8 @@ public class Profile {
 				
 			}		
 	mysql.conn.commit();			
-			return profile;			
-		}
+	return profile;			
+	}
 	
 	
 	   /*** 
@@ -307,7 +350,7 @@ public class Profile {
 					ft.minValue=Integer.parseInt(cells[3]);
 					ft.maxValue=Integer.parseInt(cells[4]);
 					ft.compareWay=Integer.parseInt(cells[5]);
-					ft.validFlag=Boolean.parseBoolean(cells[6]);
+					ft.validFlag=Integer.parseInt(cells[6]);
 					try {
 						ft.createTime=sdf.parse(cells[7]);
 						ft.modifyTime=sdf.parse(cells[8]);
@@ -405,14 +448,21 @@ public class Profile {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		Profile p =new Profile();
 		p=Profile.getOneProfileFromDB(mysql, 12345677, 123456789);
-		p.profileID++;
+	    JSONObject jo=p.toJsonObj();
 		
-		try {
-			p.saveProfileToDB(mysql);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		String str = "[{\"id\":\"\",\"num\":\"\",\"dt\":\"2010-07-21T17:29:28\",\"consignee\":\"aaaa\",\"bank\":\"001\",\"ems\":\"0\"}]";
+		String str2="{\"student\":[{\"name\":\"leilei\",\"age\":23},{\"name\":\"leilei02\",\"age\":23}]}";
+		
+
+
+//		p.profileID++;
+//		
+//		try {
+//			p.saveProfileToDB(mysql);
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 	}
 
 }

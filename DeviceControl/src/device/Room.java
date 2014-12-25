@@ -6,17 +6,27 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+
 import util.MySqlClass;
+
 import  org.apache.log4j.*;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 public class Room {
 	int roomID;
 	String roomName;
 	int CtrolID;
-	int roomType; //1：客厅；	2：卧室	3：厨房	4：卫生间
-	List<Profile> profileList;
-	List<Device> deviceList;
+	
+	/***1：客厅；	2：卧室;	  3：厨房;	 4：卫生间*/
+	int roomType;
+	
+	/***这个房间所有的情景模式ID 列表 */
+	List<Integer> profileList; 
+	
+	/***这个房间所有的设备ID 列表 */
+	List<Integer> deviceList;
 	Date createTime;
 	Date modifyTime;
 	
@@ -31,14 +41,67 @@ public class Room {
 		this.roomName      =    room.roomName    ;
 		this.CtrolID      =     room.CtrolID     ;
 		this.roomType      =    room.roomType    ;
-		this.currProfile      = room.currProfile ;
+		//this.currProfile      = room.currProfile ;
 		this.profileList      = room.profileList ;
 		this.deviceList      =  room.deviceList  ;
 		this.createTime      =  room.createTime  ;
 		this.modifyTime      =  room.modifyTime  ;
 	}
 	
-	public Profile getProfileByProfileID(int profileID){		
+	public JSONObject toJsonObject(){
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	    JSONObject roomJson = new JSONObject(); 
+        JSONObject profileJson ; 
+        JSONObject deviceJson ; 
+	    try {
+		    roomJson.put("roomID",        this.roomID       );
+			roomJson.put("roomName",    this.roomName      );
+		    roomJson.put("CtrolID",        this.CtrolID      );
+		    roomJson.put("roomType",      this.roomType        );
+		    for(Integer profileID: this.profileList){
+		    	profileJson= new JSONObject(); 		    	
+		    	profileJson.put("profileID",profileID); 
+		    	roomJson.accumulate("profileList", profileJson);
+		    }
+		    for(Integer deviceID: this.profileList){
+		    	deviceJson= new JSONObject(); 
+		    	deviceJson.put("deviceID",deviceID); 
+		    	roomJson.accumulate("deviceList", deviceJson);
+		    }
+		    roomJson.put("createTime",sdf.format(this.createTime));
+		    roomJson.put("modifyTime",sdf.format(this.createTime));
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		
+		return roomJson;
+	}
+
+	/*** 判断这个房间是否存在某个设备 */
+	public boolean isDeviceExist(int deviceID){
+		for (int i = 0; i < this.deviceList.size(); i++) {
+			if(this.deviceList.get(i)==deviceID){
+				return true;
+			}			
+		}		
+		return false;		
+	}
+	
+	/*** 判断这个房间是否存在某个情景模式 */
+	public boolean isProfileExist(int profileID){
+		for (int i = 0; i < this.profileList.size(); i++) {
+			if(this.profileList.get(i)==profileID){
+				return true;
+			}			
+		}
+		return false;		
+	}
+	
+	
+	
+/*	public Profile getProfileByProfileID(int profileID){		
 		for (int i = 0; i < this.profileList.size(); i++) {
 			if(this.profileList.get(i).profileID==profileID){
 				return this.profileList.get(i);
@@ -54,7 +117,7 @@ public class Room {
 			}			
 		}
 		return null;
-	}
+	}*/
 	
 	/***@deviceType
 	0-10：保留

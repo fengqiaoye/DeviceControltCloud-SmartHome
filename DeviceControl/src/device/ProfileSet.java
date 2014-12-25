@@ -1,5 +1,9 @@
 package device;
 
+/** 
+ * @author Chen Guanghua E-mail: richard@cooxm.com
+ * @version Created：2014年12月15日 下午2:48:17 
+ */
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -8,13 +12,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import util.MySqlClass;
 
-/** 
- * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created：2014年12月15日 下午2:48:17 
- */
 
+/***情景模式集：
+ * <p>涉及到多个房间的情景模式，这里只列出多个房间的情景模式ID，具体情景模式定义要根据ID去情景模式里查找</p>*/
 public class ProfileSet {
 	int CtrolID;
 	int profileSetID;
@@ -39,6 +44,29 @@ public class ProfileSet {
 		 this.createTime=pc.createTime;
 		 this.modifyTime=pc.modifyTime;		 
 	 }
+	 
+	public JSONObject toJsonObj(){
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	    JSONObject profileSetJson = new JSONObject(); 
+        JSONObject profileJson ; 
+	    try {
+		    profileSetJson.put("deviceSN",        this.CtrolID       );
+			profileSetJson.put("profileSetID",         this.profileSetID      );
+		    profileSetJson.put("deviceID",        this.profileSetName      );
+		    profileSetJson.put("profileSetTemplateID",      this.profileSetTemplateID        );
+		    for(Integer profileID: this.profileList){
+		    	profileJson= new JSONObject(); 
+		    	profileJson.put("profileID",profileID); 
+		    	profileSetJson.accumulate("profileList", profileJson);
+		    }
+		    profileSetJson.put("createTime",sdf.format(this.createTime));
+		    profileSetJson.put("modifyTime",sdf.format(this.createTime));
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}	    
+	    return profileSetJson;
+	}
 	 
 	 
 	 ProfileSet generateProfileSet(List<Integer> profileList){

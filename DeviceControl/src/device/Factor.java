@@ -2,9 +2,10 @@ package device;
 
 import java.util.*;
 
+/*** 情景模式所包含的情景因素*/
 public class Factor {
  
-	/*0-10：保留
+	/***<pre>0-10：保留
 	10：灯
 	20：电视
 	40: 空调
@@ -30,7 +31,7 @@ public class Factor {
 	int minValue;
 	int maxValue;
 	int compareWay;
-	boolean validFlag;
+	int validFlag;
 	Date createTime;
 	Date modifyTime;
 	
@@ -45,7 +46,7 @@ public class Factor {
 			int minValue,
 			int maxValue,
 			int compareWay,
-			boolean validFlag,
+			int validFlag,
 			Date createTime,
 			Date modifyTime )
 	{
@@ -66,7 +67,7 @@ public class Factor {
 			int minValue,
 			int maxValue,
 			int compareWay,
-			boolean validFlag
+			int validFlag
 			)
 	{
 		this.factorID=factorID;

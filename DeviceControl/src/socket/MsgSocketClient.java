@@ -86,7 +86,7 @@ public class MsgSocketClient {
 
 
 	        try {
-				String msg=CtrolSocketServer.readMsgFromScok(msgSk);
+				String msg=CtrolSocketServer.readLineFromScok(msgSk);
 				System.out.println(msg); 
 			} catch (IOException e) {
 				// TODO Auto-generated catch block

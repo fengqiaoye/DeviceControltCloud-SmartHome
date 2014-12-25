@@ -1,21 +1,28 @@
 package device;
+/** 
+ * @author Chen Guanghua E-mail: richard@cooxm.com
+ * @version Created：2014年12月15日 下午3:03:30 
+ */
 
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import util.*;
 
-/** 
- * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created：2014年12月15日 下午3:03:30 
- */
 
+/** 
+ * 整个家庭家电、传感器列表 
+ */
 public class Device {	
 	int deviceID;
-	String deviceSN;
 	int CtrolID;
+	String deviceSN;
 	int roomID;
 	/***deviceType
 	0-10：保留
@@ -103,6 +110,27 @@ public class Device {
 		this.relatedDevType          = dev.relatedDevType;
 		this.createTime              = dev.createTime    ;
 		this.modifyTime              = dev.modifyTime    ;
+	}
+	
+	public JSONObject toJsonObj(){
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	    JSONObject deviceJson = new JSONObject();  
+	    try {
+			deviceJson.put("CtrolID",         this.deviceID      );
+		    deviceJson.put("deviceID",        this.deviceSN      );
+		    deviceJson.put("deviceSN",        this.CtrolID       );
+		    deviceJson.put("deviceType",      this.roomID        );
+		    deviceJson.put("type",            this.deviceType    );
+		    deviceJson.put("roomID",          this.type          );
+		    deviceJson.put("wall",            this.wall          );
+		    deviceJson.put("relatedDevType",  this.relatedDevType);
+		    deviceJson.put("createTime",      sdf.format(this.createTime    ));
+		    deviceJson.put("modifyTime",      sdf.format(this.modifyTime    ));
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}	    
+	    return deviceJson;
 	}
 	
 	/*** 

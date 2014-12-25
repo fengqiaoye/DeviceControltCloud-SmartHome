@@ -1,8 +1,1 @@
-2014-12-23 10:23:17[INFO ] util.LogUtil.main(LogUtil.java:39): info 2
-2014-12-23 10:23:17[WARN ] util.LogUtil.main(LogUtil.java:40): warn 3
-2014-12-23 10:23:17[ERROR] util.LogUtil.main(LogUtil.java:41): error 4
-2014-12-23 10:23:17[FATAL] util.LogUtil.main(LogUtil.java:42): fatal 2
-2014-12-23 10:26:03[INFO ] util.LogUtil.main(LogUtil.java:39): info 2
-2014-12-23 10:26:03[WARN ] util.LogUtil.main(LogUtil.java:40): warn 3
-2014-12-23 10:26:03[ERROR] util.LogUtil.main(LogUtil.java:41): error 4
-2014-12-23 10:26:03[FATAL] util.LogUtil.main(LogUtil.java:42): fatal 2
+2014-12-24 15:41:20[INFO ] control.Config.<init>(Config.java:41): configure file ./conf/control.conf doesn't exist! A new configure file ./conf/control.conf have been generate by system.
