@@ -43,7 +43,7 @@ public class Profile {
 	Profile (Profile pf){
 		this.profileID=pf.profileID;
 		this.profileName=pf.profileName;
-		this.profileID=pf.CtrolID;
+		this.profileID=pf.profileID;
 		this.CtrolID=pf.CtrolID;
 		this.roomID=pf.roomID;
 		this.roomType=pf.roomType;
@@ -52,6 +52,41 @@ public class Profile {
 		this.factorList=pf.factorList;
 		this.createTime=pf.createTime;
 		this.modifyTime=pf.modifyTime;		
+	}
+	
+
+	Profile (JSONObject profileJson){
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		try {
+			this.profileID=profileJson.getInt("profileID");
+			this.profileName=profileJson.getString("profileName");
+			this.profileID=profileJson.getInt("profileID");
+			this.CtrolID=profileJson.getInt("CtrolID");
+			this.roomID=profileJson.getInt("roomID");
+			this.roomType=profileJson.getInt("roomType");
+			this.profileTemplateID=profileJson.getInt("profileTemplateID");
+			this.profileSetID=profileJson.getInt("profileSetID");
+			JSONArray factorListJSON= profileJson.getJSONArray("factorList");
+			List<Factor> factorList = new ArrayList<Factor>() ;
+			for(int i=0;i<factorListJSON.length();i++){
+				JSONObject factorJson=factorListJSON.getJSONObject(i);
+				Factor factor= new Factor();
+				factor.factorID=factorJson.getInt("factorID");
+				factor.minValue=factorJson.getInt("minValue");
+				factor.maxValue=factorJson.getInt("maxValue");
+				factor.compareWay=factorJson.getInt("compareWay");
+				factor.validFlag=factorJson.getInt("validFlag");
+				factor.createTime=sdf.parse(factorJson.getString("createTime"));
+				factor.modifyTime=sdf.parse(factorJson.getString("modifyTime"));	
+				factorList.add(factor);		
+			}		
+			this.factorList=factorList;
+			this.createTime=sdf.parse(profileJson.getString("createTime"));
+			this.modifyTime=sdf.parse(profileJson.getString("createTime"));	
+		} catch (JSONException | ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	/**

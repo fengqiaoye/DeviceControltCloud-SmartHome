@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -26,7 +27,8 @@ public class ProfileSet {
 	String profileSetName;
 	/***<br>0：完全用户全新创建；<br>1：系统模版ID；*/
 	int profileSetTemplateID;
-	/*** List of profileID*/
+	
+	/*** 所包含的情景模式ID 列表*/
 	List<Integer> profileList;	
 	Date createTime;
 	Date modifyTime;
@@ -44,6 +46,30 @@ public class ProfileSet {
 		 this.createTime=pc.createTime;
 		 this.modifyTime=pc.modifyTime;		 
 	 }
+	 
+	ProfileSet (JSONObject profileSetJson){
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		try {
+			this.CtrolID=profileSetJson.getInt("CtrolID");
+			this.profileSetID=profileSetJson.getInt("profileSetID");
+			this.profileSetName=profileSetJson.getString("profileSetName");
+			this.profileSetTemplateID=profileSetJson.getInt("profileSetTemplateID");
+			
+			JSONArray profileListJSON= profileSetJson.getJSONArray("profileList");
+			List<Integer> profileList = new ArrayList<Integer>() ;
+			for(int i=0;i<profileListJSON.length();i++){
+				JSONObject profileJson=profileListJSON.getJSONObject(i);
+				Integer profileID= profileJson.getInt("profileID");	
+				profileList.add(profileID);		
+			}		
+			this.profileList=profileList;
+			this.createTime=sdf.parse(profileSetJson.getString("createTime"));
+			this.modifyTime=sdf.parse(profileSetJson.getString("createTime"));	
+		} catch (JSONException | ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 	 
 	public JSONObject toJsonObj(){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
