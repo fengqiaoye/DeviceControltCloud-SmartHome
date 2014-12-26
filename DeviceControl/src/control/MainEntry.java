@@ -32,8 +32,6 @@ public class MainEntry {
 				if(msg!=null){
 					
 				}
-
-
 		}
 		
 		

@@ -47,7 +47,7 @@ public class ServerThread extends Thread  {
             output = new PrintWriter(writer, true); 
             reader = new InputStreamReader(clientRequest.getInputStream(),"utf-8");  
             input = new BufferedReader(reader); 
-            //dataout=new DataOutputStream(clientRequest.getOutputStream());
+            //dataOut=new DataOutputStream(clientRequest.getOutputStream());
         } catch (IOException e)  
         {  
             System.out.println(e.getMessage());  

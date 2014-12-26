@@ -10,6 +10,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -110,6 +111,25 @@ public class Device {
 		this.relatedDevType          = dev.relatedDevType;
 		this.createTime              = dev.createTime    ;
 		this.modifyTime              = dev.modifyTime    ;
+	}
+	
+	Device (JSONObject deviceJson){
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		try {
+			this.deviceID=deviceJson.getInt("deviceID");
+			this.deviceSN=deviceJson.getString("deviceSN");
+			this.CtrolID=deviceJson.getInt("CtrolID");	
+			this.roomID=deviceJson.getInt("roomID");	
+			this.deviceType=deviceJson.getInt("deviceType");
+			this.type=deviceJson.getInt("type");
+			this.wall=deviceJson.getInt("wall");
+			this.relatedDevType=deviceJson.getInt("relatedDevType");
+			this.createTime=sdf.parse(deviceJson.getString("createTime"));
+			this.modifyTime=sdf.parse(deviceJson.getString("createTime"));	
+		} catch (JSONException | ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public JSONObject toJsonObj(){

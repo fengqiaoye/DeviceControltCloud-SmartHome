@@ -10,6 +10,7 @@ import java.text.SimpleDateFormat;
 import util.MySqlClass;
 
 import  org.apache.log4j.*;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -46,6 +47,40 @@ public class Room {
 		this.deviceList      =  room.deviceList  ;
 		this.createTime      =  room.createTime  ;
 		this.modifyTime      =  room.modifyTime  ;
+	}
+	
+	Room (JSONObject roomJson){
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		try {
+			this.roomID=roomJson.getInt("roomID");
+			this.roomName=roomJson.getString("roomName");
+			this.CtrolID=roomJson.getInt("CtrolID");			
+			this.roomType=roomJson.getInt("roomType");
+			
+			JSONArray profileListJSON= roomJson.getJSONArray("profileList");
+			List<Integer> profileList = new ArrayList<Integer>() ;
+			for(int i=0;i<profileListJSON.length();i++){
+				JSONObject profileJson=profileListJSON.getJSONObject(i);
+				Integer profileID= profileJson.getInt("profileID");	
+				profileList.add(profileID);		
+			}	
+			this.profileList=profileList;
+			
+			JSONArray deviceListJSON= roomJson.getJSONArray("deviceList");
+			List<Integer> deviceList = new ArrayList<Integer>() ;
+			for(int i=0;i<deviceListJSON.length();i++){
+				JSONObject deviceJson=deviceListJSON.getJSONObject(i);
+				Integer deviceID= deviceJson.getInt("deviceID");	
+				deviceList.add(deviceID);		
+			}
+			this.deviceList=deviceList;			
+
+			this.createTime=sdf.parse(roomJson.getString("createTime"));
+			this.modifyTime=sdf.parse(roomJson.getString("createTime"));	
+		} catch (JSONException | ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public JSONObject toJsonObject(){

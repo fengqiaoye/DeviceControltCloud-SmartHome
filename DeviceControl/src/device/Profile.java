@@ -33,14 +33,14 @@ public class Profile {
 	int profileSetID;
 	List<Factor> factorList;
 	Date createTime;
-	Date modifyTime;
+	public Date modifyTime;
 	
 	static final String  profileDetailTable="info_user_room_st_factor";
 	static final String  profileIndexTable="info_user_room_st";
 	
 
-	Profile (){}
-	Profile (Profile pf){
+	public Profile (){}
+	public Profile (Profile pf){
 		this.profileID=pf.profileID;
 		this.profileName=pf.profileName;
 		this.profileID=pf.profileID;
@@ -55,7 +55,7 @@ public class Profile {
 	}
 	
 
-	Profile (JSONObject profileJson){
+	public Profile (JSONObject profileJson){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		try {
 			this.profileID=profileJson.getInt("profileID");
@@ -149,16 +149,17 @@ public class Profile {
 	 * @param  Mysql:				MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 	 * @table profileDetailTable :  info_user_room_st_factor
 	 * @table profileIndexTable  :	info_user_room_st
-	 * @throws SQLException 
+	 * @throws SQLException
+	 * @returns 0 :profile为空；
+	 * 			1   ：保存成功
 	 * */
 	public int saveProfileToDB(MySqlClass mysql) throws SQLException{
 		if(this.isEmpty()){
 			System.out.println("ERROR:object is empty,can't save to mysql");
-			return -1;
+			return 0;
 		}
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		mysql.conn.setAutoCommit(false);
-		int resultCount=0;
 		for (Factor ft:this.factorList) {
 			String sql="insert into "+profileDetailTable
 					+" (userroomstid       ,"     
@@ -185,8 +186,7 @@ public class Profile {
 					+"')";
 			System.out.println(sql);
 			int count=mysql.query(sql);
-			if(count>0) System.out.println("insert success");
-			resultCount+=count; 	
+			if(count>0) System.out.println("insert success"); 	
 		}
 		
 		
@@ -216,11 +216,10 @@ public class Profile {
 				+sdf.format(this.modifyTime)
 				+"')";
 		System.out.println(sql);		
-		resultCount+= mysql.query(sql);			
 		mysql.conn.commit();
 		
 		
-		return resultCount;	
+		return 1;	
 	}
 
 	   /*** 
@@ -265,7 +264,7 @@ public class Profile {
 			String[] cells=null;
 			for(String line:resArray){
 				cells=line.split(",");
-				if(cells.length==9){				
+				if(cells.length>0){				
 					ft=new Factor();			
 					ft.factorID=Integer.parseInt(cells[2]);
 					ft.minValue=Integer.parseInt(cells[3]);

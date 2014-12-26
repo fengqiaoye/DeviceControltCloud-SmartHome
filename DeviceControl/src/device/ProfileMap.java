@@ -24,22 +24,32 @@ import java.util.Map.Entry;
 
 
 
+
+
+import util.BytesUtil;
 import util.MySqlClass;
 
 /**
- * @author Chen Guanghua (richard@cooxm.com)
- *
+ * <pre>Map < CtrolID+profileID,Profile >
+ * @key CtrolID+profileID字符串
+ * @value 对应的情景模式
  */
-public class ProfileMap {
-	
+public class ProfileMap extends HashMap<String, Profile>{
+
+	private static final long serialVersionUID = 1L;
+
 	/***Map<CtrolID+profileID,Profile>*/
-	static Map<String, Profile> profileMap=new HashMap<String, Profile>();  
+	//public static Map<String, Profile> profileMap=new HashMap<String, Profile>();  
 	//static final String  profileIndexTable="info_user_room_st";
 	
 	
 	ProfileMap(){}
 	ProfileMap(Map<String, Profile> profileMap){
-		ProfileMap.profileMap=profileMap;	
+		super(profileMap);
+	}
+	
+	public ProfileMap(MySqlClass mysql) throws SQLException{
+		super(getProfileMapFromDB(mysql));
 	}
 	
    /*** 
@@ -48,8 +58,10 @@ public class ProfileMap {
    * @table  info_user_room_st_factor
    * @throws SQLException 
     */
-	ProfileMap(MySqlClass mysql) throws SQLException	
-	{   Profile profile= null;//new Profile();
+	public static HashMap<String, Profile> getProfileMapFromDB(MySqlClass mysql) throws SQLException		
+	{   
+		HashMap<String, Profile> profileMap=new HashMap<String, Profile>();
+		Profile profile= null;//new Profile();
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String sql2="select  "
 		+" userroomstid       ,"
@@ -70,7 +82,7 @@ public class ProfileMap {
 		System.out.println("get from mysql:\n"+res2);
 		if(res2==null|| res2==""){
 			System.out.println("ERROR:empty query by : "+sql2);
-			return ;
+			return null;
 		} 
 		String[] records=res2.split("\n");
 		for(String line:records){			
@@ -91,16 +103,32 @@ public class ProfileMap {
 			}			
 			profile.factorList=Profile.getProFactorsFromDB(mysql, profile.CtrolID, profile.profileID);
 			if(!profile.isEmpty())
-			ProfileMap.profileMap.put(profile.CtrolID+"_"+profile.profileID, profile);		
-		}	
+			profileMap.put(profile.CtrolID+"_"+profile.profileID, profile);		
+		}
+		return profileMap;		
 	}
+	
+	public void saveOneProfileToDB(){
+		
+	}
+	
+	
+	/**
+	 *重写父类的方法，当向这个map添加一个情景模式时，自动把这个情景模式写入数据库
+	 *  */
+	public Profile put(String key,Profile profile) {
+		return profile;		
+	}
+	
+	
 
 	/*** 获取一个家庭所有情景模式
-	 * @param: roomID	 * 
+	 * @param CtrolID
+	 * @return  List < Profile > 情景模式列表	 * 
 	 * */
 	public List<Profile> getProfilesByCtrolID(int CtrolID){	
 		List<Profile> profileList=new ArrayList<Profile>();
-		for (Entry<String, Profile> entry : profileMap.entrySet()) {
+		for (Entry<String, Profile> entry : this.entrySet()) {
 			if(entry.getKey().split("_")[0]==CtrolID+""){
 				profileList.add(entry.getValue());
 			}			
@@ -115,7 +143,7 @@ public class ProfileMap {
 	 * */
 	public List<Profile> getProfilesByRoomID(int roomID){	
 		List<Profile> profileList=new ArrayList<Profile>();
-		for (Entry<String, Profile> entry : profileMap.entrySet()) {
+		for (Entry<String, Profile> entry : this.entrySet()) {
 			if(entry.getValue().roomID==roomID){
 				profileList.add(entry.getValue());
 			}			
@@ -126,10 +154,17 @@ public class ProfileMap {
 
 
 	public static void main(String[] args) throws SQLException {
-		// TODO Auto-generated method stub
+		
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		ProfileMap pm=new ProfileMap(mysql);
-		System.out.println(ProfileMap.profileMap.size());
+		System.out.println(pm.size());
+
+		
+//		ProfileMap pm=new ProfileMap();
+//		Profile p =new Profile();
+//		pm.put("test", p);
+//		ProfileMap pm2=new ProfileMap(pm);
+//		System.out.println(pm2.keySet().toString());
 	}
 	
 	
