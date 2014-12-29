@@ -18,18 +18,30 @@ import java.util.Map.Entry;
 
 import util.MySqlClass;
 
-public class DeviceMap {
+public class DeviceMap extends HashMap<String, Device> {
 	
 	/*** Map<ctrolID_deviceID,Device>*/
-	static Map<String, Device> deviceMap=new HashMap<String, Device>(); 	
+	//static Map<String, Device> deviceMap=new HashMap<String, Device>(); 	
 
-   /*** 
+	private static final long serialVersionUID = 1L;
+	
+	public DeviceMap(){}
+	public DeviceMap(Map<String, Device> profileSetMap){
+		super(profileSetMap);	
+	}
+	
+	public DeviceMap(MySqlClass mysql) throws SQLException{
+		super(getDeviceMapFromDB(mysql));
+	}
+
+/*** 
    * 从入MYSQL读取device列表
    * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
-	public DeviceMap(MySqlClass mysql ){
+	public static HashMap<String, Device> getDeviceMapFromDB(MySqlClass mysql )throws SQLException	{
+		HashMap<String, Device> deviceMap=new HashMap<String, Device>();
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String sql="select  "
 				+" ctr_id       ,"     
@@ -52,7 +64,7 @@ public class DeviceMap {
 		System.out.println("get from mysql:\n"+res);
 		if(res==null|| res==""){
 			System.out.println("ERROR:empty query by : "+sql);
-			return ;
+			return null ;
 		} 
 		
 		String[] resArray=res.split("\n");
@@ -75,14 +87,15 @@ public class DeviceMap {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			DeviceMap.deviceMap.put(device.CtrolID+"_"+device.deviceID, device);
-		}		
+			deviceMap.put(device.CtrolID+"_"+device.deviceID, device);
+		}
+		return deviceMap;
 	}
 	
 	
 	public List<Device> getDevicesByCtrolID(int CtrolID){
 		List<Device> deviceList= new ArrayList<Device>();
-		for (Entry<String, Device> entry : deviceMap.entrySet()) {
+		for (Entry<String, Device> entry : this.entrySet()) {
 			if(Integer.parseInt(entry.getKey().split("_")[0])==CtrolID){
 				deviceList.add(entry.getValue());
 			}			
@@ -90,17 +103,18 @@ public class DeviceMap {
 		return deviceList;
 	}
 
-	/*** 
+	/**
+	 * @throws SQLException * 
 	 * @Title: main 
 	 * @Description: TODO
 	 * @param  args    
 	 * @return void    
 	 * @throws 
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws SQLException {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
-		DeviceMap pm=new DeviceMap(mysql);
-		System.out.println(DeviceMap.deviceMap.size());
+		DeviceMap dm=new DeviceMap(mysql);
+		System.out.println(dm.size());
 
 	}
 

@@ -19,16 +19,21 @@ import java.util.Map.Entry;
 
 import util.MySqlClass;
 
-public class ProfileSetMap {
+public class ProfileSetMap extends HashMap<String, ProfileSet> {
 	
-	/***Map<CtrolID+profileID,Profile>*/
-	static Map<String, ProfileSet> profileSetMap=new HashMap<String, ProfileSet>();  
+	private static final long serialVersionUID = 1L;
+	///***Map<CtrolID+profileID,Profile>*/
+	//static Map<String, ProfileSet> profileSetMap=new HashMap<String, ProfileSet>();  
 	//static final String  profileIndexTable="info_user_room_st";
 	
 	
-	ProfileSetMap(){}
-	ProfileSetMap(Map<String, ProfileSet> profileSetMap){
-		ProfileSetMap.profileSetMap=profileSetMap;	
+	public ProfileSetMap(){}
+	public ProfileSetMap(Map<String, ProfileSet> profileSetMap){
+		super(profileSetMap);	
+	}
+	
+	public ProfileSetMap(MySqlClass mysql) throws SQLException{
+		super(getProfileSetMapFromDB(mysql));
 	}
 	
    /*** 
@@ -37,8 +42,10 @@ public class ProfileSetMap {
    * @table  info_user_room_st_set
    * @throws SQLException 
     */
-	ProfileSetMap(MySqlClass mysql) throws SQLException	
-	{   ProfileSet profileSet= null;//new ProfileSet();
+	public static HashMap<String, ProfileSet> getProfileSetMapFromDB(MySqlClass mysql) throws SQLException	
+	{   
+		HashMap<String, ProfileSet> profileSetMap=new HashMap<String, ProfileSet>();
+		ProfileSet profileSet=null; 		
 	    List<Integer> profileIDList=new ArrayList<Integer>();
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String sql2="select "
@@ -57,7 +64,7 @@ public class ProfileSetMap {
 		System.out.println("get from mysql:\n"+res2);
 		if(res2==null|| res2==""){
 			System.out.println("ERROR:empty query by : "+sql2);
-			return ;
+			return  null;
 		} 
 		Integer profileID=null;
 		String[] records=res2.split("\n");
@@ -81,7 +88,8 @@ public class ProfileSetMap {
 		profileSet.profileList=profileIDList;
 		
 		if(!profileSet.isEmpty())
-		ProfileSetMap.profileSetMap.put(profileSet.CtrolID+"_"+profileSet.profileSetID, profileSet);		
+		profileSetMap.put(profileSet.CtrolID+"_"+profileSet.profileSetID, profileSet);
+		return profileSetMap;
 	}
 
 	/*** 获取一个家庭所有情景模式
@@ -89,7 +97,7 @@ public class ProfileSetMap {
 	 * */
 	public List<ProfileSet> getProfileSetsByCtrolID(int CtrolID){	
 		List<ProfileSet> profileList=new ArrayList<ProfileSet>();
-		for (Entry<String, ProfileSet> entry : profileSetMap.entrySet()) {
+		for (Entry<String, ProfileSet> entry : this.entrySet()) {
 			if(entry.getKey().split("_")[0]==CtrolID+""){
 				profileList.add(entry.getValue());
 			}			
@@ -105,7 +113,7 @@ public class ProfileSetMap {
 		// TODO Auto-generated method stub
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		ProfileSetMap pm=new ProfileSetMap(mysql);
-		System.out.println(ProfileSetMap.profileSetMap.size());
+		System.out.println(pm.size());
 	}
 	
 	

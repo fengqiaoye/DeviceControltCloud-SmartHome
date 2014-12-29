@@ -19,6 +19,8 @@ import org.json.JSONObject;
 
 import device.Profile;
 import device.ProfileMap;
+import device.ProfileSet;
+import device.ProfileSetMap;
 import socket.CtrolSocketServer;
 import socket.Message;
 import util.MySqlClass;
@@ -39,16 +41,9 @@ public class LogicControl {
 	private static final short SET_ROOM_PROFILE_ACK	    		=	COMMAND_START+2+COMMAND_ACK_OFFSET;
 	
 	/*** 中控切换情景模式命令 */
-	private static final short CONTROL_SWITCH_ROOM_PROFILE		=	COMMAND_START+3;
+	private static final short SWITCH_ROOM_PROFILE		=	COMMAND_START+3;
 	/*** 中控切换情景模式命令 的回复 */
-	private static final short CONTROL_SWITCH_ROOM_PROFILE_ACK	=	COMMAND_START+3+COMMAND_ACK_OFFSET;
-
-	
-	/*** 中控切换情景模式命令 */
-	private static final short MOBILE_SWITCH_ROOM_PROFILE		=	COMMAND_START+4;
-	/*** 手机情景模式命令 的回复 */
-	private static final short MOBILE_SWITCH_ROOM_PROFILE_ACK	=	COMMAND_START+4+COMMAND_ACK_OFFSET;
-	
+	private static final short SWITCH_ROOM_PROFILE_ACK	=	COMMAND_START+3+COMMAND_ACK_OFFSET;
 	
 	/*** 请求 情景模式集 */	
 	private static final short GET_RROFILE_SET					=	COMMAND_START+21;
@@ -61,14 +56,10 @@ public class LogicControl {
 	private static final short SET_RROFILE_SET_ACK				=	COMMAND_START+22+COMMAND_ACK_OFFSET;
 	
 	/*** 情景模式集切换 */
-	private static final short CONTROL_SWITCH_RROFILE_SET		=	COMMAND_START+23;	
+	private static final short SWITCH_RROFILE_SET		=	COMMAND_START+23;	
 	/*** 情景模式集切换 的回复*/
-	private static final short CONTROL_SWITCH_RROFILE_SET_ACK	=	COMMAND_START+23+COMMAND_ACK_OFFSET;
-	
-	/*** 情景模式集切换 */
-	private static final short MOBILE_SWITCH_RROFILE_SET		=	COMMAND_START+24;	
-	/*** 情景模式集切换 的回复*/
-	private static final short MOBILE_SWITCH_RROFILE_SET_ACK	=	COMMAND_START+24+COMMAND_ACK_OFFSET;
+	private static final short SWITCH_RROFILE_SET_ACK	=	COMMAND_START+23+COMMAND_ACK_OFFSET;
+
 	
 	/*** 请求家电列表*/
 	private static final short GET_APP_LIST						=	COMMAND_START+41;
@@ -81,15 +72,10 @@ public class LogicControl {
 	private static final short SET_APP_LIST_ACK					=	COMMAND_START+42+COMMAND_ACK_OFFSET;	
 	
 	/*** 切换某个家电状态*/
-	private static final short CONTROL_SWITCH_APP_STATE		    		 =	COMMAND_START+43;
+	private static final short SWITCH_APP_STATE		    		 =	COMMAND_START+43;
 	/*** 切换某个家电状态 的回复*/
-	private static final short CONTROL_SWITCH_APP_STATE_ACK		    	=	COMMAND_START+43+COMMAND_ACK_OFFSET;
-	
-	/*** 切换某个家电状态*/
-	private static final short MOBILE_SWITCH_APP_STATE		    		=	COMMAND_START+43;
-	/*** 切换某个家电状态 的回复*/
-	private static final short MOBILE_SWITCH_APP_STATE_ACK		    	=	COMMAND_START+43+COMMAND_ACK_OFFSET;
-	
+	private static final short SWITCH_APP_STATE_ACK		    	=	COMMAND_START+43+COMMAND_ACK_OFFSET;
+		
     /*** 告警消息   */
 	private static final short WARNING_MSG				 		=	COMMAND_START+61;
     /*** 告警消息  的回复  */
@@ -100,6 +86,8 @@ public class LogicControl {
 	private static final int SUCCESS                  =	0;
 	private static final int PROFILE_OBSOLETE         =	-50001;	
 	private static final int PROFILE_NOT_EXIST        = -50002;		
+	private static final int PROFILE_SET_OBSOLETE     =	-50003;	
+	private static final int PROFILE_SET_NOT_EXIST    = -50004;	
 
 	
 
@@ -107,6 +95,7 @@ public class LogicControl {
 	static Logger log= Logger.getLogger(LogicControl.class);
 	MySqlClass mysql=null;
 	ProfileMap profileMap =null;
+	ProfileSetMap profileSetMap =null;	
 	
     public LogicControl() {
 		// TODO Auto-generated constructor stub
@@ -116,6 +105,7 @@ public class LogicControl {
 		this.mysql=mysql;
 		try {
 			this.profileMap= new ProfileMap(mysql);
+			this.profileSetMap= new ProfileSetMap(mysql);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -161,8 +151,6 @@ public class LogicControl {
 			String plate6=new String("utf-8");
 		case WARNING_MSG:	
 			String plate7=new String("utf-8");
-		case EMERGENCY:	
-			String plate8=new String("utf-8");
 			
 		}		
 	}
@@ -201,8 +189,7 @@ public class LogicControl {
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		}
-    	
+		}    	
     }
      
     /*** 保存或者上传一个情景模式
@@ -244,57 +231,72 @@ public class LogicControl {
     	int profileID=json.getInt("profileID");
     	Date jsonModifyTime=sdf.parse(json.getString("modifyTime"));
     	String key=CtrolID+"_"+profileID;
-    	if(!profileMap.containsKey(key)){
-    		profile=new Profile(json);
-    		profile.saveProfileToDB(mysql);
-    		return true;
-    	}else {
-    		profile= profileMap.get(key);
-    	}
     	
-    	if(profile.modifyTime.after(jsonModifyTime)){
-    		return false;    		
+    	if( profileMap.containsKey(key) && profile.modifyTime.after(jsonModifyTime)){	//云端较新  
+			msg.json=null;
+			msg.json.put("errorCode",PROFILE_OBSOLETE);    		
     	}else{
-    		return true;
-    	}
+			msg.json=null;
+			msg.json.put("errorCode",SUCCESS);   		
+    	}    	
+  		msg.header.commandID=SET_ROOM_PROFILE_ACK;
+    	try {
+			CtrolSocketServer.sendCommandQueue.put(msg);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}     	
     }
 	
     
-   /***  中控请求切换情景模式
-    * <pre>传入的json格式为：
-   * { 
-   *   comand:SWITCH_ROOM_PROFILE 
-   *   CtrolID:1234567
-   *   profileID:7654321
-   * }
-	 * */
-    public void control_switch_room_profile(){
-    	
-    }
-    
-    /*** 手机请求切换情景模式
+    /*** 请求切换情景模式,根据命令的发送方有不同的响应方式
      * <pre>传入的json格式为：
     * { 
-    *   comand:SWITCH_ROOM_PROFILE 
+    *   senderRole:"control"/"mobile"/"cloud"
     *   CtrolID:1234567
     *   profileID:7654321
     * }
  	* */
-    public void mobile_switch_room_profile(){
+    public void switch_room_profile(){
     	
     }
     
-	/*** 请求 情景模式集 
-     *json格式和请求为： <pre>
+    /*** 查询情景模式集
+     * <pre>传入的json格式为：
      * { 
-     *   GET_RROFILE_SET 
      *   CtrolID:1234567
      *   profileSetID:7654321
      * }
-	 * */	
-	public void GET_RROFILE_SET(){
-		
-	}
+     * @throws JSONException 
+     * @return message 的json格式：
+     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50004}
+     *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
+     */
+    public void get_profile_set(Message msg,MySqlClass mysql) throws JSONException, SQLException{
+    	JSONObject json=msg.json;
+    	ProfileSet profileSet=null;
+    	int CtrolID=json.getInt("CtrolID");
+    	int profileSetID=json.getInt("profileSetID");
+    	String key=CtrolID+"_"+profileSetID;
+    	if(profileSetMap.containsKey(key)){
+    		profileSet= profileSetMap.get(key);
+    		msg.json=profileSet.toJsonObj();
+    	}else if(( profileSet=ProfileSet.getProfileSetFromDB(mysql, CtrolID, profileSetID))!=null){
+    		msg.json=profileSet.toJsonObj();;
+    	}else {
+			log.warn("Can't get_profile_set, CtrolID:"+CtrolID+" profileSetID:"+profileSetID+" from profileMap or Mysql.");
+			msg.json=null;
+			msg.json.put("errorCode",PROFILE_SET_NOT_EXIST);
+    	}
+    	msg.header.commandID+=  GET_RROFILE_SET_ACK;
+    	try {
+			CtrolSocketServer.sendCommandQueue.put(msg);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}    	
+    }
+    
+
 	
 	/*** 设置 情景模式集
 	 * <pre>Json格式和 设置情景模式 和 {@link control.LogicControl#SET_ROOM_RROFILE SET_ROOM_RROFILE} 类似：
@@ -304,8 +306,28 @@ public class LogicControl {
      *   ]  
      * }
 	 * */
-	public void SET_RROFILE_SET(){
-		
+	public void set_profile_set(Message msg,MySqlClass mysql) throws JSONException, SQLException, ParseException{
+    	JSONObject json=msg.json;
+    	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    	ProfileSet profileSet=null;
+    	int CtrolID=json.getInt("CtrolID");
+    	int profileSetID=json.getInt("profileSetID");
+    	Date jsonModifyTime=sdf.parse(json.getString("modifyTime"));
+    	String key=CtrolID+"_"+profileSetID;
+    	
+    	if( profileSetMap.containsKey(key) && profileSet.modifyTime.after(jsonModifyTime)){	//云端较新  
+			msg.json=null;
+			msg.json.put("errorCode",PROFILE_SET_OBSOLETE);    		
+    	}else{
+			msg.json=null;
+			msg.json.put("errorCode",SUCCESS);   		
+    	}    	
+  		msg.header.commandID= SET_RROFILE_SET_ACK;
+    	try {
+			CtrolSocketServer.sendCommandQueue.put(msg);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} 	
 	}
 	
 	/*** 情景模式集切换 
@@ -335,7 +357,9 @@ public class LogicControl {
 	 *   {
 	 *     将每一个家电转一个json对象，将整个房屋多个家电组成一个json数组
      *   }*/
-	public void SET_APP_LIST()
+	public void SET_APP_LIST(){
+		
+	}
 	
 	
 	/*** 切换某个家电状态
@@ -345,7 +369,9 @@ public class LogicControl {
 	 *     CtrolID:1234567
 	 *     deviceID:7654321
      *   }*/
-	public void SWITCH_APP_STATE()		  
+	public void SWITCH_APP_STATE(){
+		
+	}
 	
   /*** 告警消息
   <pre>例如对应json消息体如下格式 ：
@@ -359,7 +385,9 @@ public class LogicControl {
     "modifyTime","2014-12-25 12:13:14"  
   }
   */
-	public void warn()				=	COMMAND_START+61;
+	public void warn(){
+		
+	}
 
     
 

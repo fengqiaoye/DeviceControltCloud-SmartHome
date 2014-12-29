@@ -31,7 +31,7 @@ public class ProfileSet {
 	/*** 所包含的情景模式ID 列表*/
 	List<Integer> profileList;	
 	Date createTime;
-	Date modifyTime;
+	public Date modifyTime;
 	ProfileSet currProfileSet;
 	static final String  profileSetTable="info_user_st_set";
 	

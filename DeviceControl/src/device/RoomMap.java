@@ -1,4 +1,8 @@
 package device;
+/** 
+ * @author Chen Guanghua E-mail: richard@cooxm.com
+ * @version Created：2014年12月15日 下午4:32:50 
+ */
 
 import java.sql.SQLException;
 import java.text.DateFormat;
@@ -12,21 +16,24 @@ import java.util.Map.Entry;
 
 import util.MySqlClass;
 
-/** 
- * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created：2014年12月15日 下午4:32:50 
- */
 
-public class RoomMap {
+/*** Map< ctrolID_RoomID,Room >*/
+public class RoomMap  extends HashMap<String, Room>{
+
+	private static final long serialVersionUID = 1L;
+
+	RoomMap(){}
+	RoomMap(Map<String, Room> roomMap){
+		super(roomMap);
+	}
 	
-	/*** Map<ctrolID_RoomID,Room>*/
-	static Map<String, Room> roomMap=new HashMap<String, Room>(); 
-
-
+	public RoomMap(MySqlClass mysql) throws SQLException{
+		super(getRoomMapFromDB(mysql));
+	}
 	
 	public List<Room> getRoomsByCtrolID(int CtrolID){
 		List<Room> roomList= new ArrayList<Room>();
-		for (Entry<String, Room> entry : roomMap.entrySet()) {
+		for (Entry<String, Room> entry : this.entrySet()) {
 			if(Integer.parseInt(entry.getKey().split("_")[0])==CtrolID){
 				roomList.add(entry.getValue());
 			}			
@@ -40,8 +47,10 @@ public class RoomMap {
 	   * @table  info_user_room_st_factor
 	   * @throws SQLException 
 	    */
-		RoomMap(MySqlClass mysql) throws SQLException	
-		{   Room room= null;//new Room();
+	public static HashMap<String, Room> getRoomMapFromDB(MySqlClass mysql) throws SQLException	
+		{   
+		    HashMap<String, Room> roomMap=new HashMap<String, Room>(); 
+		    Room room= null;//new Room();
 			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			String sql2="select  "
 			+"ctr_id        ,"
@@ -58,7 +67,7 @@ public class RoomMap {
 			System.out.println("get from mysql:\n"+res2);
 			if(res2==null|| res2==""){
 				System.out.println("ERROR:empty query by : "+sql2);
-				return ;
+				return null;
 			} 
 			String[] records=res2.split("\n");
 			for(String line:records){			
@@ -75,8 +84,9 @@ public class RoomMap {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}			
-				RoomMap.roomMap.put(room.CtrolID+"_"+room.roomID, room);		
+				roomMap.put(room.CtrolID+"_"+room.roomID, room);		
 			}	
+			return roomMap;
 		}
 		
 	
