@@ -26,6 +26,9 @@ import java.util.Map.Entry;
 
 
 
+
+import org.apache.log4j.Logger;
+
 import util.BytesUtil;
 import util.MySqlClass;
 
@@ -41,15 +44,17 @@ public class ProfileMap extends HashMap<String, Profile>{
 	/***Map<CtrolID+profileID,Profile>*/
 	//public static Map<String, Profile> profileMap=new HashMap<String, Profile>();  
 	//static final String  profileIndexTable="info_user_room_st";
+	MySqlClass mysql;
 	
 	
 	ProfileMap(){}
 	ProfileMap(Map<String, Profile> profileMap){
-		super(profileMap);
+		super(profileMap);		
 	}
 	
 	public ProfileMap(MySqlClass mysql) throws SQLException{
 		super(getProfileMapFromDB(mysql));
+		this.mysql=mysql;
 	}
 	
    /*** 
@@ -108,18 +113,39 @@ public class ProfileMap extends HashMap<String, Profile>{
 		return profileMap;		
 	}
 	
-	public void saveOneProfileToDB(){
-		
-	}
-	
+
 	
 	/**
 	 *重写父类的方法，当向这个map添加一个情景模式时，自动把这个情景模式写入数据库
 	 *  */
 	public Profile put(String key,Profile profile) {
+		if(null==this.mysql)
+			return null;
+		try {
+			profile.saveProfileToDB(this.mysql)	;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+		this.put(key, profile);
 		return profile;		
-	}
+	}	
 	
+	/**
+	 *重写父类的方法，当向这个map删除一个情景模式时，自动把这个情景模式从数据库删除
+	 *  */
+	public Profile remove(String key,Profile profile) {
+		if(null==this.mysql)
+			return null;
+		try {
+			profile.saveProfileToDB(this.mysql)	;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+		this.put(key, profile);
+		return profile;
+	}
 	
 
 	/*** 获取一个家庭所有情景模式

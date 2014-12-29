@@ -222,12 +222,12 @@ public class Profile {
 		return 1;	
 	}
 
-	   /*** 
-	   * 从入MYSQL读取profile
-	   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
-	   * @table  info_user_room_st_factor
-	   * @throws SQLException 
-	    */
+   /*** 
+   * 从入MYSQL读取profile
+   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+   * @table  info_user_room_st_factor
+   * @throws SQLException 
+   */
 	public	static Profile getOneProfileFromDB(MySqlClass mysql,int CtrolID,int profileID) throws SQLException
 		{
 			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -324,22 +324,60 @@ public class Profile {
 					profile.createTime=sdf.parse(index[7]);
 					profile.modifyTime=sdf.parse(index[8]);
 				} catch (ParseException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
-				}
-				
+				}				
 			}		
 	mysql.conn.commit();			
 	return profile;			
 	}
 	
+   /*** 
+   * 从入MYSQL读取profile
+   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+   * @table  info_user_room_st_factor
+   * @throws SQLException 
+   */
+	public	static int deleteProfileFromDB(MySqlClass mysql,int CtrolID,int profileID) throws SQLException
+		{
+			mysql.conn.setAutoCommit(false);
+			String sql="delete * "
+					+ "  from  "				
+					+profileDetailTable
+					+" where ctr_id="+CtrolID
+					+" and userroomstid="+profileID
+					+ ";";
+			System.out.println("query:"+sql);
+			int res=mysql.query(sql);
+			System.out.println("deleted "+ res + " rows of records from table:"+profileDetailTable);
+			if(res<0 ) {
+				System.out.println("ERROR:exception happened: "+sql);
+				return 0;
+			}
+			
+			String sql2="delete *  "
+			+ "  from "				
+			+profileIndexTable
+			+" where ctr_id="+CtrolID
+			+" and userroomstid="+profileID
+			+ ";";
+			System.out.println("query:"+sql2);
+			int res2=mysql.query(sql2);
+			System.out.println("deleted "+ res + " rows of records from table:"+profileIndexTable);
+			if(res2<0){
+				System.out.println("ERROR:exception happened: "+sql2);
+				return 0;
+			} 
+		mysql.conn.commit();			
+		return 1;			
+	}
 	
-	   /*** 
-	   * 从入MYSQL读取profile的 情景详情
-	   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
-	   * @table  info_user_room_st_factor
-	   * @throws SQLException 
-	    */
+	
+   /*** 
+   * 从入MYSQL读取profile的 情景详情
+   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+   * @table  info_user_room_st_factor
+   * @throws SQLException 
+   */
 	public	static List<Factor>  getProFactorsFromDB(MySqlClass mysql,int CtrolID,int profileID) throws SQLException
 		{
 		    String tablename="info_user_room_st_factor";

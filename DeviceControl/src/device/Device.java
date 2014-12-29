@@ -154,44 +154,6 @@ public class Device {
 	}
 	
 	/*** 
-	 * Save device info to Mysql:
-	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
-	 * table Name:info_user_room_bind
-	 * */
-	public int saveToDB(MySqlClass mysql){
-		String tablename="info_user_room_bind";
-		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		String sql="insert into "+tablename
-				+" (ctr_id       ,"     
-				+"devid        ,"
-				+"devsn        ,"
-				+"devtype      ,"
-				+"type         ,"
-				+"roomid       ,"
-				+"wall         ,"
-				+"relateddevid ,"
-				+"createtime   ,"
-				+"modifytime   "
-				+ ")"				
-				+"values "
-				+ "("
-				+CtrolID+","
-				+deviceID+",'"
-				+deviceSN+"',"
-				+deviceType+","
-				+type+","
-				+roomID+","
-				+wall+","
-				+relatedDevType+",'"
-				+sdf.format(createTime)+"','"
-				+sdf.format(createTime)
-				+"')";
-		System.out.println(sql);
-		return mysql.query(sql);		
-	}
-	
-
-	/*** 
 	 * get device name:
 	 * @return deviceName : a string name of a device depends on device ID
 	 * <br> deviceType: <br>	
@@ -263,10 +225,46 @@ public class Device {
 			return "infrared";
 		default:
 			return  "unknown";
-		} 
-		
+		} 		
 	}
 	
+	/*** 
+	 * Save device info to Mysql:
+	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	 * table Name:info_user_room_bind
+	 */
+	public int saveToDB(MySqlClass mysql){
+		String tablename="info_user_room_bind";
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		String sql="insert into "+tablename
+				+" (ctr_id       ,"     
+				+"devid        ,"
+				+"devsn        ,"
+				+"devtype      ,"
+				+"type         ,"
+				+"roomid       ,"
+				+"wall         ,"
+				+"relateddevid ,"
+				+"createtime   ,"
+				+"modifytime   "
+				+ ")"				
+				+"values "
+				+ "("
+				+CtrolID+","
+				+deviceID+",'"
+				+deviceSN+"',"
+				+deviceType+","
+				+type+","
+				+roomID+","
+				+wall+","
+				+relatedDevType+",'"
+				+sdf.format(createTime)+"','"
+				+sdf.format(createTime)
+				+"')";
+		System.out.println(sql);
+		return mysql.query(sql);		
+	}
+
 	/*** 
 	 * Save device info to Mysql:
 	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
@@ -319,6 +317,28 @@ public class Device {
 			}
 		}
 		return device;
+	}
+	
+	/*** 
+	 * Save device info to Mysql:
+	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	 * table Name:info_user_room_bind
+	 * */
+	public int DeleteOneDeviceFromDB(MySqlClass mysql,int CtrolID,int deviceID ){
+		String sql="delete  * "
+				+ " from "				
+				+Device.deviceBindTable
+				+" where ctr_id="+CtrolID
+				+" and deviceid="+deviceID
+				+ ";";
+		System.out.println("query:"+sql);
+		int res2=mysql.query(sql);
+		System.out.println("deleted "+ res2 + "rows of recodes");
+		if(res2<0){
+			System.out.println("ERROR:  "+sql);
+			return 0;
+		} 
+		return 1;
 	}
 	
 	

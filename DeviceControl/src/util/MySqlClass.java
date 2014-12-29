@@ -55,7 +55,8 @@ public class MySqlClass {
        }
    }
    
-  
+ 
+   /***执行SQL语句，失败返回-1，成功则返回成功执行的记录条数 */
    public int query(String sqlStatement){
        int row=-1;
        try{

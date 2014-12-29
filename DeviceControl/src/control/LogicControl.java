@@ -35,15 +35,21 @@ public class LogicControl {
     /*** 请求 情景模式的回复    @see get_room_profile_ack() */
 	private static final short GET_ROOM_PROFILE_ACK     		=   COMMAND_START+1 + COMMAND_ACK_OFFSET;
 	
+	
     /*** 设置 情景模式   @see set_room_profile()  */
 	private static final short SET_ROOM_PROFILE					=	COMMAND_START+2;	
     /*** 设置 情景模式的回复   @see set_room_profile_ack()  */
 	private static final short SET_ROOM_PROFILE_ACK	    		=	COMMAND_START+2+COMMAND_ACK_OFFSET;
+
+    /*** 删除 情景模式   @see delete_room_profile()  */
+	private static final short DELETE_ROOM_PROFILE				=	COMMAND_START+3;	
+    /*** 删除 情景模式的回复   @see set_room_profile_ack()  */
+	private static final short DELETE_ROOM_PROFILE_ACK	    	=	COMMAND_START+3+COMMAND_ACK_OFFSET;
 	
 	/*** 中控切换情景模式命令 */
-	private static final short SWITCH_ROOM_PROFILE		=	COMMAND_START+3;
+	private static final short SWITCH_ROOM_PROFILE				=	COMMAND_START+4;
 	/*** 中控切换情景模式命令 的回复 */
-	private static final short SWITCH_ROOM_PROFILE_ACK	=	COMMAND_START+3+COMMAND_ACK_OFFSET;
+	private static final short SWITCH_ROOM_PROFILE_ACK			=	COMMAND_START+4+COMMAND_ACK_OFFSET;
 	
 	/*** 请求 情景模式集 */	
 	private static final short GET_RROFILE_SET					=	COMMAND_START+21;
@@ -54,11 +60,16 @@ public class LogicControl {
 	private static final short SET_RROFILE_SET					=	COMMAND_START+22;
 	/*** 设置 情景模式集 的回复*/
 	private static final short SET_RROFILE_SET_ACK				=	COMMAND_START+22+COMMAND_ACK_OFFSET;
+
+	/*** 删除 情景模式集*/
+	private static final short DELETE_RROFILE_SET				=	COMMAND_START+23;
+	/*** 删除 情景模式集 的回复*/
+	private static final short DELETE_RROFILE_SET_ACK			=	COMMAND_START+23+COMMAND_ACK_OFFSET;
 	
 	/*** 情景模式集切换 */
-	private static final short SWITCH_RROFILE_SET		=	COMMAND_START+23;	
+	private static final short SWITCH_RROFILE_SET				=	COMMAND_START+24;	
 	/*** 情景模式集切换 的回复*/
-	private static final short SWITCH_RROFILE_SET_ACK	=	COMMAND_START+23+COMMAND_ACK_OFFSET;
+	private static final short SWITCH_RROFILE_SET_ACK			=	COMMAND_START+24+COMMAND_ACK_OFFSET;
 
 	
 	/*** 请求家电列表*/
@@ -70,11 +81,16 @@ public class LogicControl {
 	private static final short SET_APP_LIST						=	COMMAND_START+42;
 	/*** 设置 家电列表 的回复*/
 	private static final short SET_APP_LIST_ACK					=	COMMAND_START+42+COMMAND_ACK_OFFSET;	
+
+	/*** 删除某一个 家电*/
+	private static final short DELETE_ONE_APPLIANCE				=	COMMAND_START+43;
+	/*** 删除某一个 家电*/
+	private static final short DELETE_ONE_APPLIANCE_ACK			=	COMMAND_START+43+COMMAND_ACK_OFFSET;
 	
 	/*** 切换某个家电状态*/
-	private static final short SWITCH_APP_STATE		    		 =	COMMAND_START+43;
+	private static final short SWITCH_APP_STATE		    		 =	COMMAND_START+44;
 	/*** 切换某个家电状态 的回复*/
-	private static final short SWITCH_APP_STATE_ACK		    	=	COMMAND_START+43+COMMAND_ACK_OFFSET;
+	private static final short SWITCH_APP_STATE_ACK		    	=	COMMAND_START+44+COMMAND_ACK_OFFSET;
 		
     /*** 告警消息   */
 	private static final short WARNING_MSG				 		=	COMMAND_START+61;
@@ -133,14 +149,37 @@ public class LogicControl {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			break;
-			
+			break;			
 		case SWITCH_ROOM_PROFILE:	
-			String plate2=new String("utf-8");
+			try {
+				switch_room_profile(msg,mysql);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			break;
 		case GET_RROFILE_SET:	
-			String plate3=new String("utf-8");
+			try {
+				get_profile_set(msg,mysql);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			break;
 		case SET_RROFILE_SET:	
-			String plate12=new String("utf-8");			
+			try {
+				set_profile_set(msg,mysql);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;		
 		case SWITCH_RROFILE_SET:	
 			String plate4=new String("utf-8");
 		case GET_APP_LIST:	
@@ -226,19 +265,20 @@ public class LogicControl {
     public void set_room_profile(Message msg,MySqlClass mysql) throws JSONException, SQLException, ParseException{
     	JSONObject json=msg.json;
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    	Profile profile=null;
+    	Profile profile=new Profile(msg.json);
     	int CtrolID=json.getInt("CtrolID");
     	int profileID=json.getInt("profileID");
     	Date jsonModifyTime=sdf.parse(json.getString("modifyTime"));
     	String key=CtrolID+"_"+profileID;
     	
-    	if( profileMap.containsKey(key) && profile.modifyTime.after(jsonModifyTime)){	//云端较新  
+    	if( this.profileMap.containsKey(key) && this.profileMap.get(key).modifyTime.after(jsonModifyTime)){	//云端较新  
 			msg.json=null;
 			msg.json.put("errorCode",PROFILE_OBSOLETE);    		
-    	}else{
+    	}else{ //云端较旧，则保存
+    		this.profileMap.put(key, profile);
 			msg.json=null;
-			msg.json.put("errorCode",SUCCESS);   		
-    	}    	
+			msg.json.put("errorCode",SUCCESS);   
+			}    	
   		msg.header.commandID=SET_ROOM_PROFILE_ACK;
     	try {
 			CtrolSocketServer.sendCommandQueue.put(msg);
@@ -256,7 +296,7 @@ public class LogicControl {
     *   profileID:7654321
     * }
  	* */
-    public void switch_room_profile(){
+    public void switch_room_profile(Message msg,MySqlClass mysql)throws JSONException, SQLException{
     	
     }
     
