@@ -29,16 +29,18 @@ public class Config extends Properties {
 	
 	Config(){		
 	    try {
-	    	checkExist(configFile);
-	        pps.load(new FileInputStream(configFile));	        	
-	        Enumeration enum1 = pps.propertyNames();
-            if(!pps.containsKey("server_port"))   	{pps.setProperty("server_port", "64415");  }
-            if(!pps.containsKey("mysql_ip"))   		{pps.setProperty("mysql_ip", "172.16.35.170");  }
-            if(!pps.containsKey("mysql_port")) 		{pps.setProperty("mysql_port", "3306");  }
-            if(!pps.containsKey("mysql_user")) 		{pps.setProperty("mysql_user", "root");  }
-            if(!pps.containsKey("mysql_password"))	{pps.setProperty("mysql_password", "cooxm");  }
-            if(!pps.containsKey("mysql_database"))	{pps.setProperty("mysql_database", "cooxm_device_control");  }
-            
+		    	checkExist(configFile);
+		        pps.load(new FileInputStream(configFile));	        	
+		        Enumeration enum1 = pps.propertyNames();
+	            if(!pps.containsKey("server_port"))   	{pps.setProperty("server_port", "64415");  }
+	            if(!pps.containsKey("mysql_ip"))   		{pps.setProperty("mysql_ip", "172.16.35.170");  }
+	            if(!pps.containsKey("mysql_port")) 		{pps.setProperty("mysql_port", "3306");  }
+	            if(!pps.containsKey("mysql_user")) 		{pps.setProperty("mysql_user", "root");  }
+	            if(!pps.containsKey("mysql_password"))	{pps.setProperty("mysql_password", "cooxm");  }
+	            if(!pps.containsKey("mysql_database"))	{pps.setProperty("mysql_database", "cooxm_device_control"); } 
+	            if(!pps.containsKey("redis_ip"))	    {pps.setProperty("redis_ip", "172.16.35.170"); }
+	            if(!pps.containsKey("redis_port"))	    {pps.setProperty("redis_port", "6379"); }
+        
             pps.store(new FileOutputStream(configFile)  , "Copyright @cooxm corporation under one or more contributor license agreements. \nConfigurate for Device Control module default values.\n ");
 
 	    } catch (Exception e) {

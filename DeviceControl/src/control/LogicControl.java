@@ -11,12 +11,8 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-
 import org.apache.log4j.Logger;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -105,7 +101,7 @@ public class LogicControl {
 	private static final short WARNING_MSG_ACK				 	=	COMMAND_START+61+COMMAND_ACK_OFFSET;	
 	
 	
-	/***********************  ERROR CODE :-50000  :  -59999 ************************/
+	/***********************  ERROR CODE :-50000  :  -59999 ************/
 	private static final int SUCCESS                  =	0;
 	
 	private static final int PROFILE_OBSOLETE         =	-50001;	
@@ -113,25 +109,38 @@ public class LogicControl {
 	private static final int PROFILE_SET_OBSOLETE     =	-50003;	
 	private static final int PROFILE_SET_NOT_EXIST    = -50004;	
 	
-	private static final int DEVICE_OBSOLETE   	  = -50011;
+	private static final int DEVICE_OBSOLETE   	  	  = -50011;
 	private static final int DEVICE_NOT_EXIST   	  = -50012;
 
 	
 
 	/***********************  resource needed ************************/	
 	static Logger log= Logger.getLogger(LogicControl.class);
+	Config config=null;
 	MySqlClass mysql=null;
+	Jedis jedis=null;// new Jedis("172.16.35.170", 6379,200);
 	ProfileMap profileMap =null;
 	ProfileSetMap profileSetMap =null;
 	DeviceMap deviceMap=null;
-	Jedis jedis= new Jedis("172.16.35.170", 6379,200);
+
 	
-    public LogicControl() {
-		// TODO Auto-generated constructor stub
-	}
+    public LogicControl() {}
     
-    public LogicControl(MySqlClass mysql) {
-		this.mysql=mysql;
+    public LogicControl(Config config) {
+		Config cf= new Config();
+		String mysql_ip			=cf.getValue("mysql_ip");
+		String mysql_port			=cf.getValue("mysql_port");
+		String mysql_user		=cf.getValue("mysql_user");
+		String mysql_password	=cf.getValue("mysql_password");
+		String mysql_database	=cf.getValue("mysql_database");
+		
+		String redis_ip         =cf.getValue("redis_ip");
+		int redis_port       	=Integer.parseInt(cf.getValue("redis_port"));
+		
+		
+		this.mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
+		this.jedis= new Jedis(redis_ip, redis_port,200);
+		
 		try {
 			this.profileMap= new ProfileMap(mysql);
 			this.profileSetMap= new ProfileSetMap(mysql);
@@ -267,7 +276,7 @@ public class LogicControl {
      * }
      * @throws JSONException 
      * @return message 的json格式：
-     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50002}
+     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":XXXX}
      *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
      */
     public void get_room_profile(Message msg,MySqlClass mysql) throws JSONException, SQLException{
@@ -682,7 +691,7 @@ public class LogicControl {
     
 
 	public static void main(String[] args) {		
-		System.out.println(0x32FF+"!");
+		LogicControl lc= new LogicControl();
 
 		
 

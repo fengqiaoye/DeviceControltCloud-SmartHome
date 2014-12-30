@@ -10,9 +10,16 @@ import java.util.concurrent.TimeUnit;
 
 public class Event {
 	int eventID;
+	/**
+	 * <pre>事件类型:
+	 *  填写 commandID
+	 * */
+	int eventType;
+	int senderRole;
 	int CtrolID;
-	/*** 0: 等待处理； 1 ：已处理*/
-	int state;
+	int roomID;
+	/***<pre>处理结果： 填写errorCode*/
+	int errorCode;
 	
 	//static Map<Integer,Event> eventMap= new HashMap<Integer,Event>();
 	static BlockingQueue<Event> evnetQueue= new ArrayBlockingQueue<Event>(1000) ;
@@ -21,12 +28,18 @@ public class Event {
 	
 	Event(
 			int eventID,
+			int eventType,
+			int senderRole,
 			int CtrolID,
-			int state
+			int roomID,
+			int errorCode
 			) {
 		this.eventID=eventID;
+		this.eventType=eventType;
+		this.senderRole=senderRole;
 		this.CtrolID=CtrolID;
-		this.state=state;	
+		this.roomID=roomID;
+		this.errorCode=errorCode;	
 	}
 	
 	public void regiter(Event event){
