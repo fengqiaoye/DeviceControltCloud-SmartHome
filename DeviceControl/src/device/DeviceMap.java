@@ -18,12 +18,14 @@ import java.util.Map.Entry;
 
 import util.MySqlClass;
 
+/*** Map< ctrolID_deviceID,Device >*/
 public class DeviceMap extends HashMap<String, Device> {
 	
 	/*** Map<ctrolID_deviceID,Device>*/
 	//static Map<String, Device> deviceMap=new HashMap<String, Device>(); 	
 
 	private static final long serialVersionUID = 1L;
+	private MySqlClass mysql;
 	
 	public DeviceMap(){}
 	public DeviceMap(Map<String, Device> profileSetMap){
@@ -92,7 +94,9 @@ public class DeviceMap extends HashMap<String, Device> {
 		return deviceMap;
 	}
 	
-	
+	/*** 获取 该家庭所有设备，包含加电和 传感器
+	 * 
+	 * */
 	public List<Device> getDevicesByCtrolID(int CtrolID){
 		List<Device> deviceList= new ArrayList<Device>();
 		for (Entry<String, Device> entry : this.entrySet()) {
@@ -101,6 +105,40 @@ public class DeviceMap extends HashMap<String, Device> {
 			}			
 		}
 		return deviceList;
+	}
+	
+	/*** 获取 该家庭所有设备，只包含加电
+	 *   <pre> device.type=0;
+	 **/
+	@SuppressWarnings("null")
+	public List<Device> getApplianceByCtrolID(int CtrolID){
+		List<Device> deviceList=null;//  new ArrayList<Device>();
+		for (Entry<String, Device> entry : this.entrySet()) {
+			if(Integer.parseInt(entry.getKey().split("_")[0])==CtrolID  && entry.getValue().type==0){
+				deviceList.add(entry.getValue());
+			}			
+		}
+		return deviceList;
+	}
+	
+	/**
+	 *重写父类的方法，当向这个map添加一个情景模式时，自动把这个情景模式写入数据库
+	 *  */
+	public Device put(String key,Device device) {
+		if(null==this.mysql)
+			return null;
+		device.saveToDB(this.mysql)	;
+		return this.put(key, device);
+	}	
+	
+	/**
+	 *重写父类的方法，当向这个map删除一个情景模式时，自动把这个情景模式从数据库删除
+	 *  */
+	public Device remove(String CtrolID_deviceID,Device device) {
+		if(null==this.mysql)
+			return null;
+		device.DeleteOneDeviceFromDB(mysql, device.CtrolID, device.deviceID);
+		return this.remove(CtrolID_deviceID);
 	}
 
 	/**
@@ -112,9 +150,12 @@ public class DeviceMap extends HashMap<String, Device> {
 	 * @throws 
 	 */
 	public static void main(String[] args) throws SQLException {
-		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
-		DeviceMap dm=new DeviceMap(mysql);
-		System.out.println(dm.size());
+//		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+//		DeviceMap dm=new DeviceMap(mysql);
+//		System.out.println(dm.size());
+		
+
+		
 
 	}
 

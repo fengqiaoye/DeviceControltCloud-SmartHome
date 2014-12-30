@@ -47,7 +47,7 @@ public class ProfileSet {
 		 this.modifyTime=pc.modifyTime;		 
 	 }
 	 
-	ProfileSet (JSONObject profileSetJson){
+	public ProfileSet (JSONObject profileSetJson){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		try {
 			this.CtrolID=profileSetJson.getInt("CtrolID");
@@ -212,6 +212,33 @@ public class ProfileSet {
 			mysql.conn.commit();
 			return profileSet;
 		}
+	
+  /*** 
+   * 从入MYSQL删除一个profile
+   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+   * @table  info_user_room_st_factor
+   * @throws SQLException 
+   */
+	public static int deleteProfileSetFromDB(MySqlClass mysql,int CtrolID,int profileSetID) throws SQLException
+	{
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		mysql.conn.setAutoCommit(false);
+		String sql="delte *  "
+				+ "  from  "				
+				+profileSetTable
+				+" where ctr_id="+CtrolID
+				+" and userstsetid="+profileSetID
+				+ ";";
+		System.out.println("query:"+sql);
+		int res=mysql.query(sql);
+		if(res<=0) {
+			System.out.println("ERROR:query result is empty: "+sql);
+			return 0;
+		}				
+		mysql.conn.commit();
+		return 1;
+	}
+		
 			
 	public static void main(String[] args) throws SQLException {
 		// TODO Auto-generated method stub

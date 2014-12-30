@@ -138,12 +138,12 @@ public class ProfileMap extends HashMap<String, Profile>{
 		if(null==this.mysql)
 			return null;
 		try {
-			profile.saveProfileToDB(this.mysql)	;
+			Profile.deleteProfileFromDB(mysql, profile.CtrolID, profile.profileID);
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return null;
 		}
-		this.put(key, profile);
+		this.remove(key);
 		return profile;
 	}
 	

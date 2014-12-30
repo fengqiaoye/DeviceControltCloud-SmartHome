@@ -349,8 +349,8 @@ public class Profile {
 			System.out.println("query:"+sql);
 			int res=mysql.query(sql);
 			System.out.println("deleted "+ res + " rows of records from table:"+profileDetailTable);
-			if(res<0 ) {
-				System.out.println("ERROR:exception happened: "+sql);
+			if(res<=0 ) {
+				System.out.println("ERROR: empty result: "+sql);
 				return 0;
 			}
 			

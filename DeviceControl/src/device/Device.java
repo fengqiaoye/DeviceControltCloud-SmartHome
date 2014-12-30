@@ -71,7 +71,7 @@ public class Device {
 	/***relatedDevType定义参见deviceType, 代表没有关联*/
 	int relatedDevType; 
 	Date createTime;
-	Date modifyTime;
+	public Date modifyTime;
 	
 	static final String deviceBindTable="info_user_room_bind";
 	
@@ -113,7 +113,7 @@ public class Device {
 		this.modifyTime              = dev.modifyTime    ;
 	}
 	
-	Device (JSONObject deviceJson){
+	public Device (JSONObject deviceJson){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		try {
 			this.deviceID=deviceJson.getInt("deviceID");
@@ -270,7 +270,7 @@ public class Device {
 	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 	 * table Name:info_user_room_bind
 	 * */
-	public Device getOneDeviceFromDB(MySqlClass mysql,int CtrolID,int deviceID ){
+	public static Device getOneDeviceFromDB(MySqlClass mysql,int CtrolID,int deviceID ){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Device device=new Device();
 		String sql="select  "
@@ -296,7 +296,7 @@ public class Device {
 			System.out.println("ERROR:empty query by : "+sql);
 			return null;
 		} else if(res2.split("\n").length!=1){
-			System.out.println("ERROR:Multi profile retrieved from mysql. ");
+			System.out.println("ERROR:Multi device retrieved from mysql. ");
 			return null;
 		}else{
 			String[] index=res2.split(",");
@@ -324,7 +324,66 @@ public class Device {
 	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 	 * table Name:info_user_room_bind
 	 * */
-	public int DeleteOneDeviceFromDB(MySqlClass mysql,int CtrolID,int deviceID ){
+	public List<Device> getDevicesByCtrolID(MySqlClass mysql,int CtrolID ){
+		List<Device> deviceList=null;
+		Device device=null;
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+		String sql="select  "
+				+" ctr_id       ,"     
+				+"devid        ,"
+				+"devsn        ,"
+				+"devtype      ,"
+				+"type         ,"
+				+"roomid       ,"
+				+"wall         ,"
+				+"relateddevid ,"
+				+"createtime   ,"
+				+"modifytime   "
+				+ " from "				
+				+Device.deviceBindTable
+				+" where ctr_id="+CtrolID
+//				+" and deviceid="+deviceID
+				+ ";";
+		System.out.println("query:"+sql);
+		String res2=mysql.select(sql);
+		System.out.println("get from mysql:\n"+res2);
+		if(res2==null|| res2==""){
+			System.out.println("ERROR:empty query by : "+sql);
+			return null;
+		} else{
+			String[] res3 =res2.split("\n");
+			deviceList=new ArrayList<Device>();
+			for(String line: res3){				
+				String[] index=line.split(",");
+				device= new Device();
+				device.CtrolID=Integer.parseInt(index[0]);	
+				device.deviceID=Integer.parseInt(index[1]);	
+				device.deviceSN=index[2];
+				device.deviceType=Integer.parseInt(index[3]);
+				device.type=Integer.parseInt(index[4]);
+				device.roomID=Integer.parseInt(index[5]);
+				device.wall=Integer.parseInt(index[6]);
+				device.relatedDevType=Integer.parseInt(index[7]);
+				try {
+					device.createTime=sdf.parse(index[8]);
+					device.modifyTime=sdf.parse(index[9]);
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				deviceList.add(device);
+			}
+		}
+		return deviceList;
+	}
+	
+	/*** 
+	 * Save device info to Mysql:
+	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	 * table Name:info_user_room_bind
+	 * */
+	public static int DeleteOneDeviceFromDB(MySqlClass mysql,int CtrolID,int deviceID ){
 		String sql="delete  * "
 				+ " from "				
 				+Device.deviceBindTable
@@ -334,7 +393,7 @@ public class Device {
 		System.out.println("query:"+sql);
 		int res2=mysql.query(sql);
 		System.out.println("deleted "+ res2 + "rows of recodes");
-		if(res2<0){
+		if(res2<=0){
 			System.out.println("ERROR:  "+sql);
 			return 0;
 		} 
@@ -402,10 +461,13 @@ public class Device {
 	  public static void main(String[] args) throws SQLException{
 		  MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		  Date date=new Date();
-		  Device dev=new Device(123456789 , 1234567891 , "XJFGOD847X" ,      40 ,    0 ,    203 ,    5 , 0,date,date);
+//		  Device dev=new Device(123456789 , 1234567891 , "XJFGOD847X" ,      40 ,    0 ,    203 ,    5 , 0,date,date);
+//		  
+//		  int count=dev.saveToDB(mysql);		
+//		  System.out.println("Query OK,  "+count+" row affected.");
+		  Device device=new Device();
 		  
-		  int count=dev.saveToDB(mysql);		
-		  System.out.println("Query OK,  "+count+" row affected.");
+		  List<Device> devicelist=device.getDevicesByCtrolID(mysql, 123456789);
 	  }
 	
 

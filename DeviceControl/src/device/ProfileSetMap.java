@@ -25,7 +25,7 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 	///***Map<CtrolID+profileID,Profile>*/
 	//static Map<String, ProfileSet> profileSetMap=new HashMap<String, ProfileSet>();  
 	//static final String  profileIndexTable="info_user_room_st";
-	
+	MySqlClass mysql;
 	
 	public ProfileSetMap(){}
 	public ProfileSetMap(Map<String, ProfileSet> profileSetMap){
@@ -105,7 +105,37 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 		return profileList;
 	}
 
-
+	/**
+	 *重写父类的方法，当向这个map添加一个情景模式时，自动把这个情景模式写入数据库
+	 *  */
+	public ProfileSet put(String key,ProfileSet profileSet) {
+		if(null==this.mysql)
+			return null;
+		try {
+			profileSet.saveProfileSetToDB(this.mysql)	;
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+		this.put(key, profileSet);
+		return profileSet;		
+	}	
+	
+	/**
+	 *重写父类的方法，当向这个map删除一个情景模式时，自动把这个情景模式从数据库删除
+	 *  */
+	public ProfileSet remove(String CtrolID_profileSetID,ProfileSet profileSet) {
+		if(null==this.mysql)
+			return null;
+		try {
+			ProfileSet.deleteProfileSetFromDB(mysql, profileSet.CtrolID, profileSet.profileSetID);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			return null;
+		}
+		this.remove(CtrolID_profileSetID);
+		return profileSet;
+	}
 
 
 

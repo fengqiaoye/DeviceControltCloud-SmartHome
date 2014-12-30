@@ -11,19 +11,26 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import device.Device;
+import device.DeviceMap;
 import device.Profile;
 import device.ProfileMap;
 import device.ProfileSet;
 import device.ProfileSetMap;
+import redis.clients.jedis.Jedis;
 import socket.CtrolSocketServer;
 import socket.Message;
 import util.MySqlClass;
+
 
 public class LogicControl {	
 	
@@ -73,24 +80,24 @@ public class LogicControl {
 
 	
 	/*** 请求家电列表*/
-	private static final short GET_APP_LIST						=	COMMAND_START+41;
+	private static final short GET_ONE_DEVICE				=	COMMAND_START+41;
 	/*** 请求家电列表 的回复*/
-	private static final short GET_APP_LIST_ACK					=	COMMAND_START+41+COMMAND_ACK_OFFSET;	
+	private static final short GET_ONE_DEVICE_ACK			=	COMMAND_START+41+COMMAND_ACK_OFFSET;	
 	
 	/*** 设置 家电列表*/
-	private static final short SET_APP_LIST						=	COMMAND_START+42;
+	private static final short SET_ONE_DEVICE				=	COMMAND_START+42;
 	/*** 设置 家电列表 的回复*/
-	private static final short SET_APP_LIST_ACK					=	COMMAND_START+42+COMMAND_ACK_OFFSET;	
+	private static final short SET_ONE_DEVICE_ACK			=	COMMAND_START+42+COMMAND_ACK_OFFSET;	
 
 	/*** 删除某一个 家电*/
-	private static final short DELETE_ONE_APPLIANCE				=	COMMAND_START+43;
+	private static final short DELETE_ONE_DEVICE				=	COMMAND_START+43;
 	/*** 删除某一个 家电*/
-	private static final short DELETE_ONE_APPLIANCE_ACK			=	COMMAND_START+43+COMMAND_ACK_OFFSET;
+	private static final short DELETE_ONE_DEVICE_ACK			=	COMMAND_START+43+COMMAND_ACK_OFFSET;
 	
 	/*** 切换某个家电状态*/
-	private static final short SWITCH_APP_STATE		    		 =	COMMAND_START+44;
+	private static final short SWITCH_DEVICE_STATE		    =	COMMAND_START+44;
 	/*** 切换某个家电状态 的回复*/
-	private static final short SWITCH_APP_STATE_ACK		    	=	COMMAND_START+44+COMMAND_ACK_OFFSET;
+	private static final short SWITCH_DEVICE_STATE_ACK		=	COMMAND_START+44+COMMAND_ACK_OFFSET;
 		
     /*** 告警消息   */
 	private static final short WARNING_MSG				 		=	COMMAND_START+61;
@@ -100,18 +107,24 @@ public class LogicControl {
 	
 	/***********************  ERROR CODE :-50000  :  -59999 ************************/
 	private static final int SUCCESS                  =	0;
+	
 	private static final int PROFILE_OBSOLETE         =	-50001;	
 	private static final int PROFILE_NOT_EXIST        = -50002;		
 	private static final int PROFILE_SET_OBSOLETE     =	-50003;	
 	private static final int PROFILE_SET_NOT_EXIST    = -50004;	
+	
+	private static final int DEVICE_OBSOLETE   	  = -50011;
+	private static final int DEVICE_NOT_EXIST   	  = -50012;
 
 	
 
-	
+	/***********************  resource needed ************************/	
 	static Logger log= Logger.getLogger(LogicControl.class);
 	MySqlClass mysql=null;
 	ProfileMap profileMap =null;
-	ProfileSetMap profileSetMap =null;	
+	ProfileSetMap profileSetMap =null;
+	DeviceMap deviceMap=null;
+	Jedis jedis= new Jedis("172.16.35.170", 6379,200);
 	
     public LogicControl() {
 		// TODO Auto-generated constructor stub
@@ -122,8 +135,8 @@ public class LogicControl {
 		try {
 			this.profileMap= new ProfileMap(mysql);
 			this.profileSetMap= new ProfileSetMap(mysql);
+			this.deviceMap=new DeviceMap(mysql);
 		} catch (SQLException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -149,7 +162,15 @@ public class LogicControl {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			break;			
+			break;	
+		case DELETE_ROOM_PROFILE:
+			try {
+				delete_room_profile(msg,mysql);
+			} catch (JSONException | SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
 		case SWITCH_ROOM_PROFILE:	
 			try {
 				switch_room_profile(msg,mysql);
@@ -179,18 +200,61 @@ public class LogicControl {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			break;		
+			break;	
+		case DELETE_RROFILE_SET:
+			try {
+				delete_room_profile(msg,mysql);
+			} catch (JSONException | SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			break;
 		case SWITCH_RROFILE_SET:	
-			String plate4=new String("utf-8");
-		case GET_APP_LIST:	
-			String plate5=new String("utf-8");
-		case SET_APP_LIST:	
-			String plate11=new String("utf-8");			
-		case SWITCH_APP_STATE:	
-			String plate6=new String("utf-8");
+			switch_profile_set(msg,mysql);
+			break;
+		case GET_ONE_DEVICE:	
+			try {
+				get_profile_set(msg,mysql);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			break;
+		case SET_ONE_DEVICE:	
+			try {
+				get_profile_set(msg,mysql);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			break;	
+		case DELETE_ONE_DEVICE:
+			try {
+				delete_one_device(msg,mysql);
+			} catch (JSONException | SQLException e) {
+				e.printStackTrace();
+			}
+			break;			
+		case SWITCH_DEVICE_STATE:	
+			try {
+				get_profile_set(msg,mysql);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			break;
 		case WARNING_MSG:	
-			String plate7=new String("utf-8");
-			
+			try {
+				get_profile_set(msg,mysql);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			break;			
 		}		
 	}
 	
@@ -286,6 +350,45 @@ public class LogicControl {
 			e.printStackTrace();
 		}     	
     }
+    
+    /*** 删除情景模式
+     * <pre>传入的json格式为：
+     * { 
+     *   CtrolID:1234567
+     *   profileID:7654321
+     * }
+     * @throws JSONException 
+     * @return message 的json格式：
+     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50002}
+     *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
+     */
+    public void delete_room_profile(Message msg,MySqlClass mysql) throws JSONException, SQLException{
+    	JSONObject json=msg.json;
+    	//Profile profile=null;
+    	int CtrolID=json.getInt("CtrolID");
+    	int profileID=json.getInt("profileID");
+    	String key=CtrolID+"_"+profileID;
+    	if(profileMap.containsKey(key)){
+    		profileMap.remove(key);
+    		msg.json=null;
+    		msg.json.put("errorCode", SUCCESS);    		
+    	}else if((Profile.getOneProfileFromDB(mysql, CtrolID, profileID))!=null){
+    		Profile.deleteProfileFromDB(mysql, CtrolID, profileID);
+    		msg.json=null;
+    		msg.json.put("errorCode", SUCCESS);
+    	}else {
+			log.warn("room_profile not exist CtrolID:"+CtrolID+" profileID:"+profileID+" from profileMap or Mysql.");
+			msg.json=null;
+			msg.json.put("errorCode",PROFILE_NOT_EXIST);
+    	}
+    	msg.header.commandID+= DELETE_ROOM_PROFILE_ACK;
+    	try {
+			CtrolSocketServer.sendCommandQueue.put(msg);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}    	
+    }
 	
     
     /*** 请求切换情景模式,根据命令的发送方有不同的响应方式
@@ -297,7 +400,26 @@ public class LogicControl {
     * }
  	* */
     public void switch_room_profile(Message msg,MySqlClass mysql)throws JSONException, SQLException{
-    	
+    	JSONObject json=msg.json;
+    	Profile profile=null;
+    	int CtrolID=json.getInt("CtrolID");
+    	int profileID=json.getInt("profileID");
+    	String key=CtrolID+"_"+profileID;
+    	if(profileMap.containsKey(key)){
+    		profile= profileMap.get(key);
+    	}else if(( profile=Profile.getOneProfileFromDB(mysql, CtrolID, profileID))!=null){    		
+    	}else {
+			log.warn("Can't get_room_profile CtrolID:"+CtrolID+" profileID:"+profileID+" from profileMap or Mysql.");
+			msg.json=null;
+			msg.json.put("errorCode",PROFILE_NOT_EXIST);
+			msg.header.commandID=SWITCH_ROOM_PROFILE_ACK;
+	    	try {
+				CtrolSocketServer.sendCommandQueue.put(msg);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+	    	return;
+    	}    	    	
     }
     
     /*** 查询情景模式集
@@ -349,16 +471,17 @@ public class LogicControl {
 	public void set_profile_set(Message msg,MySqlClass mysql) throws JSONException, SQLException, ParseException{
     	JSONObject json=msg.json;
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    	ProfileSet profileSet=null;
+    	ProfileSet profileSet=new ProfileSet(msg.json);
     	int CtrolID=json.getInt("CtrolID");
     	int profileSetID=json.getInt("profileSetID");
     	Date jsonModifyTime=sdf.parse(json.getString("modifyTime"));
     	String key=CtrolID+"_"+profileSetID;
     	
-    	if( profileSetMap.containsKey(key) && profileSet.modifyTime.after(jsonModifyTime)){	//云端较新  
+    	if( profileSetMap.containsKey(key) && profileSetMap.get(key).modifyTime.after(jsonModifyTime)){	//云端较新  
 			msg.json=null;
 			msg.json.put("errorCode",PROFILE_SET_OBSOLETE);    		
     	}else{
+    		profileSetMap.put(key, profileSet);
 			msg.json=null;
 			msg.json.put("errorCode",SUCCESS);   		
     	}    	
@@ -370,46 +493,173 @@ public class LogicControl {
 		} 	
 	}
 	
+    /*** 删除情景模式集
+     * <pre>传入的json格式为：
+     * { 
+     *   CtrolID:1234567
+     *   profileSetID:7654321
+     * }
+     * @throws JSONException 
+     * @return message 的json格式：
+     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50002}
+     *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
+     */
+    public void delete_profile_set(Message msg,MySqlClass mysql) throws JSONException, SQLException{
+    	JSONObject json=msg.json;
+    	//Profile profile=null;
+    	int CtrolID=json.getInt("CtrolID");
+    	int profileSetID=json.getInt("profileSetID");
+    	String key=CtrolID+"_"+profileSetID;
+    	if(profileSetMap.containsKey(key)){
+    		profileSetMap.remove(key);
+    		msg.json=null;
+    		msg.json.put("errorCode", SUCCESS);    		
+    	}else if((ProfileSet.getProfileSetFromDB(mysql, CtrolID, profileSetID))!=null){
+    		ProfileSet.deleteProfileSetFromDB(mysql, CtrolID, profileSetID);
+    		msg.json=null;
+    		msg.json.put("errorCode", SUCCESS);
+    	}else {
+			log.warn("room_profileSet not exist CtrolID:"+CtrolID+" profileSetID:"+profileSetID+" from profileSetMap or Mysql.");
+			msg.json=null;
+			msg.json.put("errorCode",PROFILE_SET_NOT_EXIST);
+    	}
+    	msg.header.commandID+= DELETE_RROFILE_SET_ACK;
+    	try {
+			CtrolSocketServer.sendCommandQueue.put(msg);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}    	
+    }
+	
+
+	
 	/*** 情景模式集切换 
 	 * 	 <pre>对应json消息体为：
 	 *   {
-	 *     comand:SWITCH_RROFILE_SET 
+	 *     senderRole:"control"/"mobile"/"cloud"
 	 *     CtrolID:1234567
 	 *     profileSetID:7654321
      *   }*/
-	public void SWITCH_RROFILE_SET(){
+	public void switch_profile_set(Message msg,MySqlClass mysql){
 		
 	}
 	
-	/*** 请求家电列表
+	/*** 获取一个设备
 	 * 	 <pre>对应json消息体为：
 	 *   {
-	 *     comand:GET_APP_LIST 
 	 *     CtrolID:1234567
-     *   }*/
-	public void GET_APP_LIST(){
-		
+	 *     deviceID:
+     *   }
+     *   @return List< Device > 加电列表 的json格式
+	 * @throws JSONException 
+     *   */
+	public void get_one_device(Message msg,MySqlClass mysql) throws JSONException{
+    	JSONObject json=msg.json;
+    	Device device=new Device();
+    	int CtrolID=json.getInt("CtrolID");
+    	int deviceID=json.getInt("deviceID");
+    	String key=CtrolID+"_"+deviceID;
+    	if(deviceMap.containsKey(key)){
+    		device=deviceMap.get(key);
+    		msg.json=null;
+    		msg.json=device.toJsonObj();
+    	}else if(null!= (device=Device.getOneDeviceFromDB(mysql, CtrolID, deviceID))){
+    		msg.json=null;
+    		msg.json=device.toJsonObj();   		
+    	}else {
+			log.warn("Can't get_one_device, CtrolID:"+CtrolID+"deviceID: "+ deviceID+" from deviceMap or Mysql.");
+			msg.json=null;
+			msg.json.put("errorCode",DEVICE_NOT_EXIST);
+    	}
+    	msg.header.commandID+=  GET_ONE_DEVICE_ACK;
+    	try {
+			CtrolSocketServer.sendCommandQueue.put(msg);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}	
 	}
 	
 	
-	/*** 设置 家电列表
-	 * 	 <pre>对应的：
+	/*** 设置 一个家电
+	 * 	 <pre>对应的jsonArray：	 * 
 	 *   {
-	 *     将每一个家电转一个json对象，将整个房屋多个家电组成一个json数组
-     *   }*/
-	public void SET_APP_LIST(){
-		
+	 *     将这个家电的jsonObject格式
+     *   }
+	 * @throws JSONException 
+	 * @throws ParseException */
+	public void set_one_device(Message msg,MySqlClass mysql) throws JSONException, ParseException{
+    	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    	JSONObject json=msg.json;
+    	Device device=new Device(msg.json);
+    	int CtrolID=json.getInt("CtrolID");
+    	int deviceID=json.getInt("deviceID");
+    	Date jsonModifyTime=sdf.parse(json.getString("modifyTime"));
+    	String key=CtrolID+"_"+deviceID;
+    	
+    	if( this.deviceMap.containsKey(key) && this.deviceMap.get(key).modifyTime.after(jsonModifyTime)){	//云端较新  
+			msg.json=null;
+			msg.json.put("errorCode",DEVICE_OBSOLETE);    		
+    	}else{ //云端较旧，则保存
+    		this.deviceMap.put(key, device);
+			msg.json=null;
+			msg.json.put("errorCode",SUCCESS);   
+			}    	
+  		msg.header.commandID=SET_ONE_DEVICE_ACK;
+    	try {
+			CtrolSocketServer.sendCommandQueue.put(msg);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} 		
 	}
 	
+    /*** 删除情景模式集
+     * <pre>传入的json格式为：
+     * { 
+     *   CtrolID:1234567
+     *   deviceID:7654321
+     * }
+     * @throws JSONException 
+     * @return message 的json格式：
+     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50002}
+     *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
+     */
+    public void delete_one_device(Message msg,MySqlClass mysql) throws JSONException, SQLException{
+    	JSONObject json=msg.json;
+    	int CtrolID=json.getInt("CtrolID");
+    	int deviceID=json.getInt("deviceID");
+    	String key=CtrolID+"_"+deviceID;
+    	if(deviceMap.containsKey(key)){
+    		deviceMap.remove(key);
+    		msg.json=null;
+    		msg.json.put("errorCode", SUCCESS);    		
+    	}else if((Device.getOneDeviceFromDB(mysql, CtrolID, deviceID))!=null){
+    		Device.DeleteOneDeviceFromDB(mysql, CtrolID, deviceID);
+    		msg.json=null;
+    		msg.json.put("errorCode", SUCCESS);
+    	}else {
+			log.warn("room_device not exist CtrolID:"+CtrolID+" deviceID:"+deviceID+" from deviceMap or Mysql.");
+			msg.json=null;
+			msg.json.put("errorCode",DEVICE_NOT_EXIST);
+    	}
+    	msg.header.commandID+= DELETE_RROFILE_SET_ACK;
+    	try {
+			CtrolSocketServer.sendCommandQueue.put(msg);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}    	
+    }
 	
 	/*** 切换某个家电状态
 	 * 	 <pre>例如对应json消息体如下格式 ：
 	 *   {
-	 *     comand:SWITCH_APP_STATE
+	 *     senderRole:"control"/"mobile"/"cloud"
 	 *     CtrolID:1234567
 	 *     deviceID:7654321
      *   }*/
-	public void SWITCH_APP_STATE(){
+	public void SWITCH_APP_STATE(Message msg,MySqlClass mysql){
 		
 	}
 	
