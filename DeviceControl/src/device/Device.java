@@ -10,7 +10,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -461,13 +460,13 @@ public class Device {
 	  public static void main(String[] args) throws SQLException{
 		  MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		  Date date=new Date();
-//		  Device dev=new Device(123456789 , 1234567891 , "XJFGOD847X" ,      40 ,    0 ,    203 ,    5 , 0,date,date);
-//		  
-//		  int count=dev.saveToDB(mysql);		
-//		  System.out.println("Query OK,  "+count+" row affected.");
-		  Device device=new Device();
+		  Device dev=new Device(123456789 , 1234567891 , "XJFGOD847X" ,      40 ,    0 ,    203 ,    5 , 0,date,date);
 		  
-		  List<Device> devicelist=device.getDevicesByCtrolID(mysql, 123456789);
+		  int count=dev.saveToDB(mysql);		
+		  System.out.println("Query OK,  "+count+" row affected.");
+//		  Device device=new Device();
+//		  
+//		  List<Device> devicelist=device.getDevicesByCtrolID(mysql, 123456789);
 	  }
 	
 

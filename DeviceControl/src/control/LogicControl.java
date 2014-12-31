@@ -116,7 +116,6 @@ public class LogicControl {
 
 	/***********************  resource needed ************************/	
 	static Logger log= Logger.getLogger(LogicControl.class);
-	Config config=null;
 	MySqlClass mysql=null;
 	Jedis jedis=null;// new Jedis("172.16.35.170", 6379,200);
 	ProfileMap profileMap =null;
@@ -126,8 +125,9 @@ public class LogicControl {
 	
     public LogicControl() {}
     
-    public LogicControl(Config config) {
-		Config cf= new Config();
+    public LogicControl(Config cf) {
+    	log.info("Starting logic control module ... ");
+    	
 		String mysql_ip			=cf.getValue("mysql_ip");
 		String mysql_port			=cf.getValue("mysql_port");
 		String mysql_user		=cf.getValue("mysql_user");
@@ -140,7 +140,6 @@ public class LogicControl {
 		
 		this.mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
 		this.jedis= new Jedis(redis_ip, redis_port,200);
-		
 		try {
 			this.profileMap= new ProfileMap(mysql);
 			this.profileSetMap= new ProfileSetMap(mysql);
@@ -148,6 +147,8 @@ public class LogicControl {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		log.info("successful initialize profileMap,size="+profileMap.size()+";profileSetMap size="+profileSetMap.size()+"; deviceMap, size="+deviceMap.size());
+		log.info("Initialization of Logic control module finished. ");
 	}
 	
 	public void decodeCommand(Message msg){		

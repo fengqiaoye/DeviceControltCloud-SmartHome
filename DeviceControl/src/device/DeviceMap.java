@@ -14,8 +14,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-
 import util.MySqlClass;
 
 /*** Map< ctrolID_deviceID,Device >*/
@@ -137,7 +135,7 @@ public class DeviceMap extends HashMap<String, Device> {
 	public Device remove(String CtrolID_deviceID,Device device) {
 		if(null==this.mysql)
 			return null;
-		device.DeleteOneDeviceFromDB(mysql, device.CtrolID, device.deviceID);
+		Device.DeleteOneDeviceFromDB(mysql, device.CtrolID, device.deviceID);
 		return this.remove(CtrolID_deviceID);
 	}
 

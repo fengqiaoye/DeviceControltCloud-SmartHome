@@ -50,4 +50,6 @@
  2014-12-23 10:23:17[FATAL] util.LogUtil.main(LogUtil.java:42): fatal 2
  2014-12-23 10:26:03[ERROR] util.LogUtil.main(LogUtil.java:41): error 4
  2014-12-23 10:26:03[FATAL] util.LogUtil.main(LogUtil.java:42): fatal 2
+ 2014-12-31 10:21:35[ERROR] util.LogUtil.main(LogUtil.java:41): error 4
+ 2014-12-31 10:21:35[FATAL] util.LogUtil.main(LogUtil.java:42): fatal 2
  

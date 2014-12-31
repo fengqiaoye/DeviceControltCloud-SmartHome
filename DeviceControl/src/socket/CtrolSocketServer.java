@@ -9,14 +9,13 @@ import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.log4j.Logger;
-import org.apache.log4j.spi.LoggerFactory;
+import control.Config;
 
 public class CtrolSocketServer {
 
@@ -35,23 +34,33 @@ public class CtrolSocketServer {
      * @key IP
      * @value thread
      */
-	public static Map<String,Thread> threadMap= new HashMap<String,Thread>();
+	public static Map<String,Thread> threadMap;//= new HashMap<String,Thread>();
 	
-    public static BlockingQueue<Message> receiveCommandQueue= new ArrayBlockingQueue<Message>(10000);
-    public static BlockingQueue<Message> sendCommandQueue= new ArrayBlockingQueue<Message>(10000);
+    public static BlockingQueue<Message> receiveCommandQueue;//= new ArrayBlockingQueue<Message>(10000);
+    public static BlockingQueue<Message> sendCommandQueue;//= new ArrayBlockingQueue<Message>(10000);
     
 	static Logger log =Logger.getLogger(CtrolSocketServer.class);	
 	
 	
 	/***@param serverPort: 从配置文件中读取: ./conf/control.conf */
-	public CtrolSocketServer(int serverPort) {
+	public CtrolSocketServer(Config config) {
+		log.info("starting device control socket server...");
+		threadMap= new HashMap<String,Thread>();
+		
+		int serverPort=Integer.parseInt(config.getValue("server_port"));
+		int max_send_msg_queue=Integer.parseInt(config.getValue("max_send_msg_queue"));
+		int max_recv_msg_queue=Integer.parseInt(config.getValue("max_recv_msg_queue"));
+
+		sendCommandQueue= new ArrayBlockingQueue<Message>(max_send_msg_queue);
+		receiveCommandQueue= new ArrayBlockingQueue<Message>(max_recv_msg_queue);
+
         try{
         	severSock= new ServerSocket(serverPort);
         }
         catch(IOException e)
         {
-            System.out.println(e);
-        	//log.error(e);
+            //System.out.println(e);
+        	log.error(e);
             System.exit(1);
         }
 	}
@@ -60,7 +69,6 @@ public class CtrolSocketServer {
 	{
         while(true)
         {
-        	Date now = new Date(); 
         	log.info(" Listening at port:"+severSock.getLocalPort()+"...");
         	Socket sock = severSock.accept();
         	 InetAddress clientAdress=sock.getInetAddress();
@@ -91,15 +99,11 @@ public class CtrolSocketServer {
     	return str;
     }
 
-    public static void main(String [] args)  
+    public static void main(String [] args) throws IOException, Exception      
     {  
-        try {
-			new CtrolSocketServer(64415).listen();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}  
+    	Config cf = new Config();
+		new CtrolSocketServer(cf).listen();
     }
+
     
 }
