@@ -32,8 +32,8 @@ import util.MySqlClass;
 
 public class LogicControl {	
 	
-	private static final short COMMAND_START            =  0x1600;
-	private static final short COMMAND_ACK_OFFSET       =  0x4000; 
+	private static final short COMMAND_START            		=  0x1600;
+	private static final short COMMAND_ACK_OFFSET       		=  0x4000; 
 	
     /*** 请求 情景模式命令    @see get_room_profile() */
 	private static final short GET_ROOM_PROFILE					=	COMMAND_START+1;	
@@ -87,9 +87,9 @@ public class LogicControl {
 	private static final short SET_ONE_DEVICE_ACK			=	COMMAND_START+42+COMMAND_ACK_OFFSET;	
 
 	/*** 删除某一个 家电*/
-	private static final short DELETE_ONE_DEVICE				=	COMMAND_START+43;
+	private static final short DELETE_ONE_DEVICE			=	COMMAND_START+43;
 	/*** 删除某一个 家电*/
-	private static final short DELETE_ONE_DEVICE_ACK			=	COMMAND_START+43+COMMAND_ACK_OFFSET;
+	private static final short DELETE_ONE_DEVICE_ACK		=	COMMAND_START+43+COMMAND_ACK_OFFSET;
 	
 	/*** 切换某个家电状态*/
 	private static final short SWITCH_DEVICE_STATE		    =	COMMAND_START+44;
@@ -97,21 +97,27 @@ public class LogicControl {
 	private static final short SWITCH_DEVICE_STATE_ACK		=	COMMAND_START+44+COMMAND_ACK_OFFSET;
 		
     /*** 告警消息   */
-	private static final short WARNING_MSG				 		=	COMMAND_START+61;
+	private static final short WARNING_MSG				 	=	COMMAND_START+61;
     /*** 告警消息  的回复  */
-	private static final short WARNING_MSG_ACK				 	=	COMMAND_START+61+COMMAND_ACK_OFFSET;	
+	private static final short WARNING_MSG_ACK				=	COMMAND_START+61+COMMAND_ACK_OFFSET;	
 	
 	
 	/***********************  ERROR CODE :-50000  :  -59999 ************/
 	private static final int SUCCESS                  =	0;
 	
+	/** 情景模式陈旧*/
 	private static final int PROFILE_OBSOLETE         =	-50001;	
+	/** 情景模式不存在*/
 	private static final int PROFILE_NOT_EXIST        = -50002;		
 	private static final int PROFILE_SET_OBSOLETE     =	-50003;	
 	private static final int PROFILE_SET_NOT_EXIST    = -50004;	
 	
 	private static final int DEVICE_OBSOLETE   	  	  = -50011;
 	private static final int DEVICE_NOT_EXIST   	  = -50012;
+	
+	/*** 消息可以识别，但是收件人错误，例如收到自己发送的消息*/
+	private static final int WRONG_RECEIVER		   	  = -50021;
+	
 
 	
 
@@ -175,15 +181,13 @@ public class LogicControl {
 			try {
 				set_room_profile(msg,mysql);
 			} catch (JSONException | SQLException | ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
+			} 
 			break;	
 		case DELETE_ROOM_PROFILE:
 			try {
 				delete_room_profile(msg,mysql);
 			} catch (JSONException | SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			break;
@@ -193,6 +197,8 @@ public class LogicControl {
 			} catch (JSONException e) {
 				e.printStackTrace();
 			} catch (SQLException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			break;
@@ -274,16 +280,17 @@ public class LogicControl {
 		}		
 	}
 	
-    /*** 从Map或者 MYSQL查询情景模式
+    /*** 请求查询情景模式
      * <pre>传入的json格式为：
      * { 
-     *   comand:GET_ROOM_PROFILE 
+     *   sender:    中控:0 ; 手机:1 ; 云:2;
+     *   receiver:  中控:0 ; 手机:1 ; 云:2;
      *   CtrolID:1234567
      *   profileID:7654321
      * }
      * @throws JSONException 
      * @return message 的json格式：
-     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":XXXX}
+     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":}
      *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
      */
     public void get_room_profile(Message msg,MySqlClass mysql) throws JSONException, SQLException{
@@ -320,6 +327,8 @@ public class LogicControl {
      *  (2)如果上传的profile的修改时间早于云端，则需要将云端的情景模式下发到 终端（手机、中控）,返回{"errorCode":OBSOLTE_PROFILE}  ；     *         
      *@param message 传入的json格式为： （要上传或者保存的prifile的json格式）
      * {
+     *  "sender":    中控:0 ; 手机:1 ; 云:2;
+     *  "receiver":  中控:0 ; 手机:1 ; 云:2;
 		"profileID":123456789,
 		"CtrolID":12345677,
 		"profileName":"未知情景",
@@ -351,7 +360,10 @@ public class LogicControl {
     	Date jsonModifyTime=sdf.parse(json.getString("modifyTime"));
     	String key=CtrolID+"_"+profileID;
     	
-    	if( this.profileMap.containsKey(key) && this.profileMap.get(key).modifyTime.after(jsonModifyTime)){	//云端较新  
+    	if(!this.profileMap.containsKey(key)){
+			msg.json=null;
+			msg.json.put("errorCode",PROFILE_NOT_EXIST);    		
+    	}else if(  this.profileMap.get(key).modifyTime.after(jsonModifyTime)){	//云端较新  
 			msg.json=null;
 			msg.json.put("errorCode",PROFILE_OBSOLETE);    		
     	}else{ //云端较旧，则保存
@@ -370,6 +382,8 @@ public class LogicControl {
     /*** 删除情景模式
      * <pre>传入的json格式为：
      * { 
+     *   sender:    中控:0 ; 手机:1 ; 云:2;
+     *   receiver:  中控:0 ; 手机:1 ; 云:2;
      *   CtrolID:1234567
      *   profileID:7654321
      * }
@@ -410,12 +424,14 @@ public class LogicControl {
     /*** 请求切换情景模式,根据命令的发送方有不同的响应方式
      * <pre>传入的json格式为：
     * { 
-    *   senderRole:"control"/"mobile"/"cloud"
+    *   senderRole:control:0 ; mobile:1 ; cloud:2;
     *   CtrolID:1234567
     *   profileID:7654321
     * }
+     * @throws InterruptedException 
  	* */
-    public void switch_room_profile(Message msg,MySqlClass mysql)throws JSONException, SQLException{
+    public void switch_room_profile(final Message msg,MySqlClass mysql)throws JSONException, SQLException, InterruptedException{
+    	Message replyMsg=msg;
     	JSONObject json=msg.json;
     	Profile profile=null;
     	int CtrolID=json.getInt("CtrolID");
@@ -423,19 +439,31 @@ public class LogicControl {
     	String key=CtrolID+"_"+profileID;
     	if(profileMap.containsKey(key)){
     		profile= profileMap.get(key);
-    	}else if(( profile=Profile.getOneProfileFromDB(mysql, CtrolID, profileID))!=null){    		
+    		replyMsg.json=null;
+    		replyMsg.json.put("errorCode",SUCCESS);
+    	}else if(( profile=Profile.getOneProfileFromDB(mysql, CtrolID, profileID))!=null){ 
+    		replyMsg.json=null;
+    		replyMsg.json.put("errorCode",SUCCESS);
     	}else {
 			log.warn("Can't get_room_profile CtrolID:"+CtrolID+" profileID:"+profileID+" from profileMap or Mysql.");
-			msg.json=null;
-			msg.json.put("errorCode",PROFILE_NOT_EXIST);
-			msg.header.commandID=SWITCH_ROOM_PROFILE_ACK;
-	    	try {
-				CtrolSocketServer.sendCommandQueue.put(msg);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-	    	return;
-    	}    	    	
+			replyMsg.json=null;
+			replyMsg.json.put("errorCode",PROFILE_NOT_EXIST);
+    	}
+		int senderRole=json.getInt("senderRole");
+		if(senderRole==0){     //命令来自中控
+			replyMsg.header.commandID=SWITCH_ROOM_PROFILE_ACK;
+			CtrolSocketServer.sendCommandQueue.put(msg);
+		}else if(senderRole==1){//命令来自手机
+			replyMsg=msg;
+			CtrolSocketServer.sendCommandQueue.put(msg);
+		}else if(senderRole==2){
+			replyMsg.json=null;
+			replyMsg.json.put("errorCode",WRONG_RECEIVER);
+		}
+	
+	   	this.jedis.hset("room_profile", profile.roomID+"", profile.profileID+"");
+    	return;
+
     }
     
     /*** 查询情景模式集
@@ -493,7 +521,10 @@ public class LogicControl {
     	Date jsonModifyTime=sdf.parse(json.getString("modifyTime"));
     	String key=CtrolID+"_"+profileSetID;
     	
-    	if( profileSetMap.containsKey(key) && profileSetMap.get(key).modifyTime.after(jsonModifyTime)){	//云端较新  
+    	if(!profileSetMap.containsKey(key)){
+			msg.json=null;
+			msg.json.put("errorCode",PROFILE_SET_NOT_EXIST);     		
+    	}else if( profileSetMap.get(key).modifyTime.after(jsonModifyTime)){	//云端较新  
 			msg.json=null;
 			msg.json.put("errorCode",PROFILE_SET_OBSOLETE);    		
     	}else{

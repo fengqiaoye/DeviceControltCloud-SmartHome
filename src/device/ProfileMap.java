@@ -41,7 +41,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 
 	private static final long serialVersionUID = 1L;
 
-	/***Map<CtrolID+profileID,Profile>*/
+	/***Map<CtrolID_profileID,Profile>*/
 	//public static Map<String, Profile> profileMap=new HashMap<String, Profile>();  
 	//static final String  profileIndexTable="info_user_room_st";
 	MySqlClass mysql;

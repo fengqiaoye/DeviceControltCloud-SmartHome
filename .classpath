@@ -5,8 +5,8 @@
 	<classpathentry kind="lib" path="lib/apache-log4j-src.zip"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.17.jar" sourcepath="lib/apache-log4j-src.zip"/>
 	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.26-bin.jar"/>
-	<classpathentry kind="lib" path="D:/documents/projects/DeviceControltCloud-SmartHome/DeviceControl/lib/org.json.jar"/>
-	<classpathentry kind="lib" path="D:/documents/projects/DeviceControltCloud-SmartHome/DeviceControl/lib/commons-pool-1.6.jar"/>
-	<classpathentry kind="lib" path="D:/documents/projects/DeviceControltCloud-SmartHome/DeviceControl/lib/jedis-2.1.0.jar" sourcepath="D:/documents/projects/DeviceControltCloud-SmartHome/DeviceControl/lib/jedis-2.1.0-src.zip"/>
+	<classpathentry kind="lib" path="lib/org.json.jar"/>
+	<classpathentry kind="lib" path="lib/commons-pool-1.6.jar"/>
+	<classpathentry kind="lib" path="lib/jedis-2.1.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -15,7 +15,8 @@ public class Event {
 	 *  填写 commandID
 	 * */
 	int eventType;
-	int senderRole;
+	/***"control":0 ;"mobile":1; "cloud":2; */
+	int senderRole;  
 	int CtrolID;
 	int roomID;
 	/***<pre>处理结果： 填写errorCode*/
@@ -24,8 +25,7 @@ public class Event {
 	//static Map<Integer,Event> eventMap= new HashMap<Integer,Event>();
 	static BlockingQueue<Event> evnetQueue= new ArrayBlockingQueue<Event>(1000) ;
 	
-	Event() {}
-	
+	Event() {}	
 	Event(
 			int eventID,
 			int eventType,
