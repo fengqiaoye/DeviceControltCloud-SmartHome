@@ -294,6 +294,17 @@ public class Room {
 		return room;		
 	}
 	
+	public static int deleteRoomFromDB(MySqlClass mysql, int CtrolID, int roomID){
+		String sql2="delete *  "
+				+ "  from "				
+				+roomIndexTable
+				+" where ctr_id="+CtrolID
+				+" and roomid="+roomID
+				+ ";";
+		System.out.println("query:"+sql2);
+		return mysql.query(sql2);		
+	}
+	
 	public static void main(String[] args) throws SQLException, IOException {
 		// TODO Auto-generated method stub
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");

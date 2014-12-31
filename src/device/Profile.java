@@ -16,6 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import control.LogicControl;
 import util.MySqlClass;
 
 
@@ -250,11 +251,8 @@ public class Profile {
 			System.out.println("query:"+sql);
 			String res=mysql.select(sql);
 			System.out.println("get from mysql:\n"+res);
-			if(res==null ) {
-				System.out.println("ERROR:exception happened: "+sql);
-				return null;
-			}else if(res=="") {
-				System.out.println("ERROR:query result is empty: "+sql);
+			if(res==null || res=="" ) {
+				System.err.println("ERROR:query result is empty: "+sql);
 				return null;
 			}
 			String[] resArray=res.split("\n");
@@ -520,21 +518,21 @@ public class Profile {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		Profile p =new Profile();
 		p=Profile.getOneProfileFromDB(mysql, 12345677, 123456789);
-	    JSONObject jo=p.toJsonObj();
-		
-		String str = "[{\"id\":\"\",\"num\":\"\",\"dt\":\"2010-07-21T17:29:28\",\"consignee\":\"aaaa\",\"bank\":\"001\",\"ems\":\"0\"}]";
-		String str2="{\"student\":[{\"name\":\"leilei\",\"age\":23},{\"name\":\"leilei02\",\"age\":23}]}";
-		
-
-
-//		p.profileID++;
+//	    JSONObject jo=p.toJsonObj();
 //		
-//		try {
-//			p.saveProfileToDB(mysql);
-//		} catch (SQLException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+//		String str = "[{\"id\":\"\",\"num\":\"\",\"dt\":\"2010-07-21T17:29:28\",\"consignee\":\"aaaa\",\"bank\":\"001\",\"ems\":\"0\"}]";
+//		String str2="{\"student\":[{\"name\":\"leilei\",\"age\":23},{\"name\":\"leilei02\",\"age\":23}]}";
+//		
+
+
+		p.profileID++;
+		
+		try {
+			p.saveProfileToDB(mysql);
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 }

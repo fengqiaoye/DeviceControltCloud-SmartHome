@@ -12,6 +12,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -22,6 +23,7 @@ import device.Profile;
 import device.ProfileMap;
 import device.ProfileSet;
 import device.ProfileSetMap;
+import device.RoomMap;
 import redis.clients.jedis.Jedis;
 import socket.CtrolSocketServer;
 import socket.Message;
@@ -36,8 +38,7 @@ public class LogicControl {
     /*** 请求 情景模式命令    @see get_room_profile() */
 	private static final short GET_ROOM_PROFILE					=	COMMAND_START+1;	
     /*** 请求 情景模式的回复    @see get_room_profile_ack() */
-	private static final short GET_ROOM_PROFILE_ACK     		=   COMMAND_START+1 + COMMAND_ACK_OFFSET;
-	
+	private static final short GET_ROOM_PROFILE_ACK     		=   COMMAND_START+1 + COMMAND_ACK_OFFSET;	
 	
     /*** 设置 情景模式   @see set_room_profile()  */
 	private static final short SET_ROOM_PROFILE					=	COMMAND_START+2;	
@@ -114,13 +115,14 @@ public class LogicControl {
 
 	
 
-	/***********************  resource needed ************************/	
+	/***********************   resource needed   ************************/	
 	static Logger log= Logger.getLogger(LogicControl.class);
 	MySqlClass mysql=null;
 	Jedis jedis=null;// new Jedis("172.16.35.170", 6379,200);
 	ProfileMap profileMap =null;
 	ProfileSetMap profileSetMap =null;
 	DeviceMap deviceMap=null;
+	RoomMap roomMap=null;
 
 	
     public LogicControl() {}
@@ -129,14 +131,13 @@ public class LogicControl {
     	log.info("Starting logic control module ... ");
     	
 		String mysql_ip			=cf.getValue("mysql_ip");
-		String mysql_port			=cf.getValue("mysql_port");
+		String mysql_port		=cf.getValue("mysql_port");
 		String mysql_user		=cf.getValue("mysql_user");
 		String mysql_password	=cf.getValue("mysql_password");
 		String mysql_database	=cf.getValue("mysql_database");
 		
 		String redis_ip         =cf.getValue("redis_ip");
-		int redis_port       	=Integer.parseInt(cf.getValue("redis_port"));
-		
+		int redis_port       	=Integer.parseInt(cf.getValue("redis_port"));		
 		
 		this.mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
 		this.jedis= new Jedis(redis_ip, redis_port,200);
@@ -144,10 +145,15 @@ public class LogicControl {
 			this.profileMap= new ProfileMap(mysql);
 			this.profileSetMap= new ProfileSetMap(mysql);
 			this.deviceMap=new DeviceMap(mysql);
+			this.roomMap=new RoomMap(mysql);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		log.info("successful initialize profileMap,size="+profileMap.size()+";profileSetMap size="+profileSetMap.size()+"; deviceMap, size="+deviceMap.size());
+		log.info("successful initialize profileMap,size="+profileMap.size()
+				+";profileSetMap size="+profileSetMap.size()
+				+"; deviceMap, size="+deviceMap.size()
+				+"; roomMap, size="+roomMap.size()
+				);
 		log.info("Initialization of Logic control module finished. ");
 	}
 	
