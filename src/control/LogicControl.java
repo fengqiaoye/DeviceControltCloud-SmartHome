@@ -283,8 +283,8 @@ public class LogicControl {
     /*** 请求查询情景模式
      * <pre>传入的json格式为：
      * { 
-     *   sender:    中控:0 ; 手机:1 ; 云:2;
-     *   receiver:  中控:0 ; 手机:1 ; 云:2;
+     *   senderRole:    中控:0 ; 手机:1 ; 云:2;
+     *   receiverRole:  中控:0 ; 手机:1 ; 云:2;
      *   CtrolID:1234567
      *   profileID:7654321
      * }

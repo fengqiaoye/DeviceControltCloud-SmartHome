@@ -48,6 +48,8 @@ public class Device {
 
 	2040:射频发射器
 	2050:红外发射器
+	
+	3000以上：用户自己添加的未知设备
 	*/
 	int deviceType;
 	
