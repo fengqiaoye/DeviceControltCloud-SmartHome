@@ -164,13 +164,13 @@ public class Profile {
 		mysql.conn.setAutoCommit(false);
 		for (Factor ft:this.factorList) {
 			String sql="insert into "+profileDetailTable
-					+" (userroomstid       ,"     
-					+"ctr_id        ,"
-					+"factorid        ,"
-					+"lower      ,"
-					+"upper         ,"
-					+"cmpalg         ,"
-					+"valid_flag     ,"
+					+" (userroomstid  ,"     
+					+"ctr_id ,"
+					+"factorid ,"
+					+"lower ,"
+					+"upper ,"
+					+"cmpalg ,"
+					+"valid_flag ,"
 					+"createtime   ,"
 					+"modifytime   "
 					+ ")"				
@@ -193,14 +193,14 @@ public class Profile {
 		
 		
 		String sql="insert into "+profileIndexTable
-				+" (userroomstid       ," 
-				+" userroomstname       ," 
-				+"ctr_id        ,"
-				+"roomid        ,"
-				+"roomtype      ,"
-				+"sttemplateid         ,"
-				+"stsetid         ,"
-				+"createtime   ,"
+				+" (userroomstid ," 
+				+" userroomstname ," 
+				+"ctr_id ,"
+				+"roomid ,"
+				+"roomtype ,"
+				+"sttemplateid ,"
+				+"stsetid  ,"
+				+"createtime ,"
 				+"modifytime   "
 				+ ")"				
 				+"values "
