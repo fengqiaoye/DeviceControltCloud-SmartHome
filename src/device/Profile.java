@@ -189,9 +189,7 @@ public class Profile {
 			System.out.println(sql);
 			int count=mysql.query(sql);
 			if(count>0) System.out.println("insert success"); 	
-		}
-		
-		
+		}		
 		
 		
 		String sql="insert into "+profileIndexTable
