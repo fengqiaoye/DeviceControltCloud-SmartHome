@@ -29,11 +29,10 @@ import socket.CtrolSocketServer;
 import socket.Message;
 import util.MySqlClass;
 
-
 public class LogicControl {	
 	
-	private static final short COMMAND_START            		=  0x1600;
-	private static final short COMMAND_ACK_OFFSET       		=  0x4000; 
+	public static final short COMMAND_START            		=  0x1600;
+	public static final short COMMAND_ACK_OFFSET       		=  0x4000; 
 	
     /*** 请求 情景模式命令    @see get_room_profile() */
 	private static final short GET_ROOM_PROFILE					=	COMMAND_START+1;	
@@ -120,6 +119,7 @@ public class LogicControl {
 	private static final int WRONG_RECEIVER		   	  = -50021;
 	/** 命令超时没有响应*/
 	public static final int TIME_OUT		   	      = -50022;
+	private static final int UNKNOWN_COMMAND		   	  = -50023;
 	
 
 	
@@ -237,7 +237,15 @@ public class LogicControl {
 			}
 			break;
 		case SWITCH_RROFILE_SET:	
-			switch_profile_set(msg,mysql);
+			try {
+				switch_profile_set(msg,mysql);
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			} catch (InterruptedException e1) {
+				e1.printStackTrace();
+			}
 			break;
 		case GET_ONE_DEVICE:	
 			try {
@@ -281,7 +289,18 @@ public class LogicControl {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}
-			break;			
+			break;
+		default:
+			msg.json=null;
+			try {
+				msg.json=new JSONObject();
+				msg.json.put("errorCode", UNKNOWN_COMMAND);
+    			msg.json.put("sender",2);
+    			msg.json.put("receiver",0);  
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			break;
 		}		
 	}
 	
@@ -446,17 +465,25 @@ public class LogicControl {
     	JSONObject json=msg.json;
     	Profile profile=null;
     	int CtrolID=json.getInt("CtrolID");
-    	int profileID=json.getInt("profileID"); 
-    	int sender=json.getInt("sender");     	
+    	int profileID=json.getInt("profileID");
+    	int sender=0;
+    	if(json.has("sender")){
+    		sender=json.getInt("sender"); 
+    	}
     	String key=CtrolID+"_"+profileID;
     	if((profile= profileMap.get(key))!=null || (profile=Profile.getOneProfileFromDB(mysql, CtrolID, profileID))!=null){
     		jedis.publish(commandQueue, profile.toJsonObj().toString());
+    		jedis.hset(currentProfile, key, profile.toJsonObj().toString());
     		if(sender==0){
 	    		replyMsg.json=null;
-	    		replyMsg.json.put("errorCode",SUCCESS);	    		
+	    		replyMsg.json.put("errorCode",SUCCESS);
+    			sendMsg.json.put("sender",2);
+    			sendMsg.json.put("receiver",sender);  	    		
     		}else if(sender==1 ||sender==3){
 //    			replyMsg.json=null;
 //    			replyMsg.json.put("errorCode",RECEIVED);
+    			TimeOutTread to=new TimeOutTread(10,msg);
+    			to.start();
     			
     			sendMsg.json.put("sender",2);
     			sendMsg.json.put("receiver",0);    			
@@ -466,9 +493,6 @@ public class LogicControl {
 			replyMsg.json=null;
 			replyMsg.json.put("errorCode",PROFILE_NOT_EXIST);
     	}
-
-	
-	   	this.jedis.hset("room_profile", profile.roomID+"", profile.profileID+"");
     	return;
 
     }
@@ -595,7 +619,39 @@ public class LogicControl {
 	 *     CtrolID:1234567
 	 *     profileSetID:7654321
      *   }*/
-	public void switch_profile_set(Message msg,MySqlClass mysql){
+	public void switch_profile_set(Message msg,MySqlClass mysql)throws JSONException, SQLException, InterruptedException{
+    	Message replyMsg=new Message(msg);
+    	Message sendMsg=new Message(msg);
+    	JSONObject json=msg.json;
+    	ProfileSet profileSet=null;
+    	int CtrolID=json.getInt("CtrolID");
+    	int profileSetID=json.getInt("profileSetID"); 
+    	int sender=0;
+    	if(json.has("sender")){
+    		sender=json.getInt("sender"); 
+    	}     	
+    	String key=CtrolID+"_"+profileSetID;
+    	if((profileSet= profileSetMap.get(key))!=null || (profileSet=ProfileSet.getProfileSetFromDB(mysql, CtrolID, profileSetID))!=null){
+    		jedis.publish(commandQueue, profileSet.toJsonObj().toString());
+    		jedis.hset(currentProfileSet, key, profileSet.toJsonObj().toString());
+    		if(sender==0){
+	    		replyMsg.json=null;
+	    		replyMsg.json.put("errorCode",SUCCESS);
+    			sendMsg.json.put("sender",2);
+    			sendMsg.json.put("receiver",sender);  	    		
+    		}else if(sender==1 ||sender==3){
+    			TimeOutTread to=new TimeOutTread(10,msg);
+    			to.start();    			
+    			sendMsg.json.put("sender",2);
+    			sendMsg.json.put("receiver",0);    			
+    		}
+    	}else {
+			log.warn("Can't switch room profileSet,profileSet doesn't exit. CtrolID:"+CtrolID+" profileSetID:"+profileSetID+" from profileSetMap or Mysql.");
+			replyMsg.json=null;
+			replyMsg.json.put("errorCode",PROFILE_NOT_EXIST);
+    	}
+
+    	return;
 		
 	}
 	
@@ -637,7 +693,7 @@ public class LogicControl {
 	
 	
 	/*** 设置 一个家电
-	 * 	 <pre>对应的jsonArray：	 * 
+	 * 	 <pre>对应的jsonArray:* 
 	 *   {
 	 *     将这个家电的jsonObject格式
      *   }
@@ -712,9 +768,45 @@ public class LogicControl {
 	 *     senderRole:"control"/"mobile"/"cloud"
 	 *     CtrolID:1234567
 	 *     deviceID:7654321
-     *   }*/
-	public void SWITCH_APP_STATE(Message msg,MySqlClass mysql){
-		
+     *   }
+	 * @throws JSONException 
+	 * @throws SQLException */
+	public void switch_app_state(Message msg,MySqlClass mysql) throws JSONException, SQLException{
+	   	Message replyMsg=new Message(msg);
+    	Message sendMsg=new Message(msg);
+    	JSONObject json=msg.json;
+    	Profile profile=null;
+    	int CtrolID=json.getInt("CtrolID");
+    	int profileID=json.getInt("profileID");
+    	int sender=0;
+    	if(json.has("sender")){
+    		sender=json.getInt("sender"); 
+    	}
+    	String key=CtrolID+"_"+profileID;
+    	if((profile= profileMap.get(key))!=null || (profile=Profile.getOneProfileFromDB(mysql, CtrolID, profileID))!=null){
+    		jedis.publish(commandQueue, profile.toJsonObj().toString());
+    		jedis.hset(currentProfile, key, profile.toJsonObj().toString());
+    		if(sender==0){
+	    		replyMsg.json=null;
+	    		replyMsg.json.put("errorCode",SUCCESS);
+    			sendMsg.json.put("sender",2);
+    			sendMsg.json.put("receiver",sender);  	    		
+    		}else if(sender==1 ||sender==3){
+//    			replyMsg.json=null;
+//    			replyMsg.json.put("errorCode",RECEIVED);
+    			TimeOutTread to=new TimeOutTread(10,msg);
+    			to.start();
+    			
+    			sendMsg.json.put("sender",2);
+    			sendMsg.json.put("receiver",0);    			
+    		}
+    	}else {
+			log.warn("Can't switch room profile,profile doesn't exit. CtrolID:"+CtrolID+" profileID:"+profileID+" from profileMap or Mysql.");
+			replyMsg.json=null;
+			replyMsg.json.put("errorCode",PROFILE_NOT_EXIST);
+    	}
+    	return;
+
 	}
 	
   /*** 告警消息

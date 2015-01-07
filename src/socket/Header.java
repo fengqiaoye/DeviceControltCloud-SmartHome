@@ -8,23 +8,23 @@ import util.BytesUtil;
 
 public class Header{
 	/*** 6字节  默认：#XRPC#*/
-	String headTag; 
+	 String headTag; 
 	/***协议主版本号*/
-    byte mainVersion ;
+	 byte mainVersion ;
 	/***协议子版本号*/
-    byte subVersion ;
+	 byte subVersion ;
 	/***包体总长度，cookie+消息体+包尾*/
-    public short msgLen ;
+     short msgLen ;
 	/***命令号*/
 	public short commandID;	
 	/***序列号*/
 	public int sequeeceNo ;
 	/***加密方式: 0不加密, 其他值为约定的加密方式*/
- 	short encType; 
+ 	public short encType; 
  	/***cookie长度,cookie从包头结束位置开始*/
  	public short cookieLen; 
  	/*保留字段*/	
- 	int reserve; 
+ 	public int reserve; 
  	
  	private static final int commandMax=0x19FF;
  	private static final int commandMin=0x1600;	
@@ -42,7 +42,7 @@ public class Header{
 			this.reserve=header.reserve;			
 	 }
  	
- 	Header(String headTag,byte mainVersion,byte subVersion,short msgLen,short commandID,int sequeeceNo,short encType,
+ public	Header(String headTag,byte mainVersion,byte subVersion,short msgLen,short commandID,int sequeeceNo,short encType,
  			short cookieLen,
  			int reserve ){
 		this.headTag=headTag;			
