@@ -513,31 +513,20 @@ public class Profile {
 	
 	
 	public static void main(String[] args) throws SQLException, JSONException {
-		// TODO Auto-generated method stub
-//		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
-//		Profile p =new Profile();
-//		p=Profile.getOneProfileFromDB(mysql, 12345677, 123456789);
-//	    JSONObject jo=p.toJsonObj();
-//		
-//		String str = "[{\"id\":\"\",\"num\":\"\",\"dt\":\"2010-07-21T17:29:28\",\"consignee\":\"aaaa\",\"bank\":\"001\",\"ems\":\"0\"}]";
-		//String str2="{\"student\":[{\"name\":\"leilei\",\"age\":23},{\"name\":\"leilei02\",\"age\":23}]}";
-
-//		p.profileID++;
-//		
-//		try {
-//			p.saveProfileToDB(mysql);
-//		} catch (SQLException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
+		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+		Profile p =new Profile();
+		p=Profile.getOneProfileFromDB(mysql, 12345677, 123456789);
+	    JSONObject jo=p.toJsonObj();
 		
-		String str2="{ \"people\":[{\"firstName\":\"Brett\",\"lastName\":\"McLaughlin\",\"email\":\"aaaa\"},{\"firstName\":\"Jason\",\"lastName\":\"Hunter\",\"email\":\"bbbb\"},{\"firstName\":\"Elliotte\",\"lastName\":\"Harold\",\"email\":\"cccc\"},{\"INT\":\"123\",\"BOOL\":\"false\",\"DOUBLE\":\"456.789\"}]}";
-		System.out.println(new Date());
-		for (int i=0;i<10000000;i++)	{
-			JSONObject jo = new JSONObject(str2);
-			Object ja=jo.get("people");		
+
+		p.profileID++;
+		
+		try {
+			p.saveProfileToDB(mysql);
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
-		System.out.println(new Date());
+
 	}
 
 }

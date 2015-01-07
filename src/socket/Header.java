@@ -29,7 +29,7 @@ public class Header{
  	private static final int commandMax=0x19FF;
  	private static final int commandMin=0x1600;	
 
-	Header(){} 
+	public Header(){} 
  	Header(Header header){
 			this.headTag=header.headTag;			
 			this.mainVersion=header.mainVersion;
@@ -41,6 +41,20 @@ public class Header{
 			this.cookieLen=header.cookieLen;
 			this.reserve=header.reserve;			
 	 }
+ 	
+ 	Header(String headTag,byte mainVersion,byte subVersion,short msgLen,short commandID,int sequeeceNo,short encType,
+ 			short cookieLen,
+ 			int reserve ){
+		this.headTag=headTag;			
+		this.mainVersion=mainVersion;
+		this.subVersion=subVersion;
+		this.msgLen=msgLen;
+		this.commandID=commandID;
+		this.sequeeceNo=sequeeceNo;
+		this.encType=encType; 
+		this.cookieLen=cookieLen;
+		this.reserve=reserve;			
+ }
 	 
 	 /***23 bytes of header
 	 * @param mainVersoin 
@@ -102,6 +116,12 @@ public class Header{
 		return true;
 	}
     return false;
+  }
+  
+  public static void main(String[] args){
+	  
+	  //Header head=new Header("#XRPC#", 1, 2, 15, 0x1601, 12345, 1, 5, 6);
+			  
   }
   
 }

@@ -18,7 +18,7 @@ public class Message  {
 	 public JSONObject json;
 
 	public Message(){}
-	Message(Message msg){	
+	public Message(Message msg){	
 		this.header=msg.header; 
 		this.cookie=msg.cookie;
 		this.json=msg.json;
@@ -84,7 +84,7 @@ public class Message  {
 		return this.header.isValid();
 	}
     
-   public String MessageToString(){
+   public String msgToString(){
 	   String out=new String();
 	   out+=  		this.header.headTag		+",";
 	   out+=		this.header.mainVersion	+",";

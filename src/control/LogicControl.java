@@ -104,6 +104,7 @@ public class LogicControl {
 	
 	/***********************  ERROR CODE :-50000  :  -59999 ************/
 	private static final int SUCCESS                  =	0;
+	private static final int RECEIVED                 = -50000;
 	
 	/** 情景模式陈旧*/
 	private static final int PROFILE_OBSOLETE         =	-50001;	
@@ -117,6 +118,8 @@ public class LogicControl {
 	
 	/*** 消息可以识别，但是收件人错误，例如收到自己发送的消息*/
 	private static final int WRONG_RECEIVER		   	  = -50021;
+	/** 命令超时没有响应*/
+	public static final int TIME_OUT		   	      = -50022;
 	
 
 	
@@ -129,7 +132,9 @@ public class LogicControl {
 	ProfileSetMap profileSetMap =null;
 	DeviceMap deviceMap=null;
 	RoomMap roomMap=null;
-
+	private final static String currentProfile= "currentProfile";
+	private final static String currentProfileSet= "currentProfileSet";
+	private final static String commandQueue= "commandQueue";
 	
     public LogicControl() {}
     
@@ -283,8 +288,8 @@ public class LogicControl {
     /*** 请求查询情景模式
      * <pre>传入的json格式为：
      * { 
-     *   senderRole:    中控:0 ; 手机:1 ; 云:2;
-     *   receiverRole:  中控:0 ; 手机:1 ; 云:2;
+     *   senderRole:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   receiverRole:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
      *   CtrolID:1234567
      *   profileID:7654321
      * }
@@ -327,27 +332,30 @@ public class LogicControl {
      *  (2)如果上传的profile的修改时间早于云端，则需要将云端的情景模式下发到 终端（手机、中控）,返回{"errorCode":OBSOLTE_PROFILE}  ；     *         
      *@param message 传入的json格式为： （要上传或者保存的prifile的json格式）
      * {
-     *  "sender":    中控:0 ; 手机:1 ; 云:2;
-     *  "receiver":  中控:0 ; 手机:1 ; 云:2;
-		"profileID":123456789,
-		"CtrolID":12345677,
-		"profileName":"未知情景",
-		"profileSetID":12345,
-		"profileTemplateID":0,
-		"roomID":203,
-		"roomType":2,
-		"factorList":
-		[
-			{"factorID":40,"minValue":20,"compareWay":0,"modifyTime":"2014-12-13 14:15:17","validFlag":false,
-			"createTime":"Fri Dec 12 12:30:00 CST 2014","maxValue":30
-			},
-
-			{"factorID":60,"minValue":1,"compareWay":0,"modifyTime":"2014-12-13 14:15:17","validFlag":false,
-			"createTime":"2014-12-13 14:15:17","maxValue":1
-			}
-		],
-		"modifyTime":"2014-12-13 14:15:17",
-		"createTime":"2014-12-13 14:15:17"
+     *  "senderRole":    中控:0 ; 手机:1 ; 云:2;
+     *  "receiverRole":  中控:0 ; 手机:1 ; 云:2;
+     *  profile:
+     *   {
+			"profileID":123456789,
+			"CtrolID":12345677,
+			"profileName":"未知情景",
+			"profileSetID":12345,
+			"profileTemplateID":0,
+			"roomID":203,
+			"roomType":2,
+			"factorList":
+			[
+				{"factorID":40,"minValue":20,"compareWay":0,"modifyTime":"2014-12-13 14:15:17","validFlag":false,
+				"createTime":"Fri Dec 12 12:30:00 CST 2014","maxValue":30
+				},
+	
+				{"factorID":60,"minValue":1,"compareWay":0,"modifyTime":"2014-12-13 14:15:17","validFlag":false,
+				"createTime":"2014-12-13 14:15:17","maxValue":1
+				}
+			],
+			"modifyTime":"2014-12-13 14:15:17",
+			"createTime":"2014-12-13 14:15:17"
+		}
 	  }
      * @throws ParseException 
 	*/
@@ -382,8 +390,8 @@ public class LogicControl {
     /*** 删除情景模式
      * <pre>传入的json格式为：
      * { 
-     *   sender:    中控:0 ; 手机:1 ; 云:2;
-     *   receiver:  中控:0 ; 手机:1 ; 云:2;
+     *   senderRole:    中控:0 ; 手机:1 ; 云:2;
+     *   receiverRole:  中控:0 ; 手机:1 ; 云:2;
      *   CtrolID:1234567
      *   profileID:7654321
      * }
@@ -424,42 +432,41 @@ public class LogicControl {
     /*** 请求切换情景模式,根据命令的发送方有不同的响应方式
      * <pre>传入的json格式为：
     * { 
-    *   senderRole:control:0 ; mobile:1 ; cloud:2;
+     *   sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:4; ...
+     *   receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
     *   CtrolID:1234567
+    *   roomID: 203
     *   profileID:7654321
     * }
      * @throws InterruptedException 
  	* */
     public void switch_room_profile(final Message msg,MySqlClass mysql)throws JSONException, SQLException, InterruptedException{
-    	Message replyMsg=msg;
+    	Message replyMsg=new Message(msg);
+    	Message sendMsg=new Message(msg);
     	JSONObject json=msg.json;
     	Profile profile=null;
     	int CtrolID=json.getInt("CtrolID");
-    	int profileID=json.getInt("profileID");
+    	int profileID=json.getInt("profileID"); 
+    	int sender=json.getInt("sender");     	
     	String key=CtrolID+"_"+profileID;
-    	if(profileMap.containsKey(key)){
-    		profile= profileMap.get(key);
-    		replyMsg.json=null;
-    		replyMsg.json.put("errorCode",SUCCESS);
-    	}else if(( profile=Profile.getOneProfileFromDB(mysql, CtrolID, profileID))!=null){ 
-    		replyMsg.json=null;
-    		replyMsg.json.put("errorCode",SUCCESS);
+    	if((profile= profileMap.get(key))!=null || (profile=Profile.getOneProfileFromDB(mysql, CtrolID, profileID))!=null){
+    		jedis.publish(commandQueue, profile.toJsonObj().toString());
+    		if(sender==0){
+	    		replyMsg.json=null;
+	    		replyMsg.json.put("errorCode",SUCCESS);	    		
+    		}else if(sender==1 ||sender==3){
+//    			replyMsg.json=null;
+//    			replyMsg.json.put("errorCode",RECEIVED);
+    			
+    			sendMsg.json.put("sender",2);
+    			sendMsg.json.put("receiver",0);    			
+    		}
     	}else {
-			log.warn("Can't get_room_profile CtrolID:"+CtrolID+" profileID:"+profileID+" from profileMap or Mysql.");
+			log.warn("Can't switch room profile,profile doesn't exit. CtrolID:"+CtrolID+" profileID:"+profileID+" from profileMap or Mysql.");
 			replyMsg.json=null;
 			replyMsg.json.put("errorCode",PROFILE_NOT_EXIST);
     	}
-		int senderRole=json.getInt("senderRole");
-		if(senderRole==0){     //命令来自中控
-			replyMsg.header.commandID=SWITCH_ROOM_PROFILE_ACK;
-			CtrolSocketServer.sendCommandQueue.put(msg);
-		}else if(senderRole==1){//命令来自手机
-			replyMsg=msg;
-			CtrolSocketServer.sendCommandQueue.put(msg);
-		}else if(senderRole==2){
-			replyMsg.json=null;
-			replyMsg.json.put("errorCode",WRONG_RECEIVER);
-		}
+
 	
 	   	this.jedis.hset("room_profile", profile.roomID+"", profile.profileID+"");
     	return;
@@ -730,10 +737,6 @@ public class LogicControl {
 
 	public static void main(String[] args) {		
 		LogicControl lc= new LogicControl();
-
-		
-
-
 	}	
 	
 }

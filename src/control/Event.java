@@ -15,7 +15,7 @@ public class Event {
 	 *  ÃÓ–¥ commandID
 	 * */
 	int eventType;
-	/***"control":0 ;"mobile":1; "cloud":2; */
+	/***"control":0 ;"mobile":1; "cloud":2; web:3; */
 	int senderRole;  
 	int CtrolID;
 	int roomID;
@@ -23,7 +23,7 @@ public class Event {
 	int errorCode;
 	
 	//static Map<Integer,Event> eventMap= new HashMap<Integer,Event>();
-	static BlockingQueue<Event> evnetQueue= new ArrayBlockingQueue<Event>(1000) ;
+	//static BlockingQueue<Event> evnetQueue= new ArrayBlockingQueue<Event>(1000) ;
 	
 	Event() {}	
 	Event(
@@ -42,13 +42,13 @@ public class Event {
 		this.errorCode=errorCode;	
 	}
 	
-	public void regiter(Event event){
-		Event.evnetQueue.offer(event);		
-	}
-	
-	public void withDraw(Event event) throws InterruptedException{
-		Event.evnetQueue.poll(200, TimeUnit.MICROSECONDS);		
-	}
+//	public void regiter(Event event){
+//		Event.evnetQueue.offer(event);		
+//	}
+//	
+//	public void withDraw(Event event) throws InterruptedException{
+//		Event.evnetQueue.poll(200, TimeUnit.MICROSECONDS);		
+//	}
 
 	public static void main(String[] args) {
 

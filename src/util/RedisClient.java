@@ -10,6 +10,7 @@ import java.util.concurrent.ConcurrentMap;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.JedisPubSub;
 import redis.clients.jedis.JedisShardInfo;
 import redis.clients.jedis.ShardedJedis;
 import redis.clients.jedis.ShardedJedisPool;
@@ -72,9 +73,9 @@ public class RedisClient {
         jedisPool.returnResource(jedis);
         shardedJedisPool.returnResource(shardedJedis);
     } 
-
-    public static void main(String[] args) {  
-    /*	RedisClient redisClient= new RedisClient();
+    
+    public void redisClientTest(){
+        RedisClient redisClient= new RedisClient();
     	redisClient.show();
        //System.out.println(redisClient.jedis.flushDB()); 
         
@@ -102,14 +103,61 @@ public class RedisClient {
         System.out.println("批量获取key001和key003对应的值："+shardedJedis.hmget("hashs", "key001", "key003")); 
         System.out.println("获取hashs中所有的key："+shardedJedis.hkeys("hashs"));
         System.out.println("获取hashs中所有的value："+shardedJedis.hvals("hashs"));
-        System.out.println();*/
+        System.out.println();
+    }
+    
+    public void hashmapTest(){
+    	jedis.set("richard", "good boy");
+    	jedis.get("richard");        
+        jedis.hset("hashs", "key001", "value001");
+    }
+
+    public static void main(String[] args) {  
     	
    	Jedis jedis= new Jedis("172.16.35.170", 6379,200);
-//    	jedis.set("richard", "good boy");
-//    	jedis.get("richard");
-        
-        jedis.hset("hashs", "key001", "value001");
 
+        JedisPubSub jedisPubSub=new JedisPubSub() {
+			
+			@Override
+			public void onUnsubscribe(String arg0, int arg1) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onSubscribe(String arg0, int arg1) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onPUnsubscribe(String arg0, int arg1) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onPSubscribe(String arg0, int arg1) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onPMessage(String arg0, String arg1, String arg2) {
+				// TODO Auto-generated method stub
+				
+			}
+			
+			@Override
+			public void onMessage(String arg0, String arg1) {
+				// TODO Auto-generated method stub
+				
+				System.out.println(arg0+ "_"+ arg1);
+				
+			}
+		};
+        //jedis.publish("msg", "201451");
+        jedis.subscribe(jedisPubSub, "msg");
 
     	    	
     }

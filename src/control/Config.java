@@ -43,7 +43,7 @@ public class Config extends Properties {
 	            if(!pps.containsKey("redis_port"))	    {pps.setProperty("redis_port", "6379"); }
 	            if(!pps.containsKey("max_send_msg_queue"))	    {pps.setProperty("max_send_msg_queue", "10000"); }
 	            if(!pps.containsKey("max_recv_msg_queue"))	    {pps.setProperty("max_recv_msg_queue", "10000"); }
-	            
+	            if(!pps.containsKey("request_timeout"))	    {pps.setProperty("request_timeout", "30"); }
             pps.store(new FileOutputStream(configFile)  , "Copyright @cooxm corporation under one or more contributor license agreements. \nConfigurate for Device Control module default values.\n ");
 
 	    } catch (Exception e) {
