@@ -119,7 +119,8 @@ public class LogicControl {
 	private static final int WRONG_RECEIVER		   	  = -50021;
 	/** 命令超时没有响应*/
 	public static final int TIME_OUT		   	      = -50022;
-	private static final int UNKNOWN_COMMAND		   	  = -50023;
+	/**命令号码段不对*/
+	public static final int WRONG_COMMAND		   	  = -50023;
 	
 
 	
@@ -175,7 +176,7 @@ public class LogicControl {
 		{
 		case GET_ROOM_PROFILE:			
 			try {
-				get_room_profile(msg,mysql);
+				get_room_profile(msg);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			} catch (SQLException e) {
@@ -184,21 +185,21 @@ public class LogicControl {
 			break;
 		case SET_ROOM_PROFILE:
 			try {
-				set_room_profile(msg,mysql);
+				set_room_profile(msg);
 			} catch (JSONException | SQLException | ParseException e) {
 				e.printStackTrace();
 			} 
 			break;	
 		case DELETE_ROOM_PROFILE:
 			try {
-				delete_room_profile(msg,mysql);
+				delete_room_profile(msg);
 			} catch (JSONException | SQLException e) {
 				e.printStackTrace();
 			}
 			break;
 		case SWITCH_ROOM_PROFILE:	
 			try {
-				switch_room_profile(msg,mysql);
+				switch_room_profile(msg);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			} catch (SQLException e) {
@@ -209,7 +210,7 @@ public class LogicControl {
 			break;
 		case GET_RROFILE_SET:	
 			try {
-				get_profile_set(msg,mysql);
+				get_profile_set(msg);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			} catch (SQLException e) {
@@ -218,7 +219,7 @@ public class LogicControl {
 			break;
 		case SET_RROFILE_SET:	
 			try {
-				set_profile_set(msg,mysql);
+				set_profile_set(msg);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			} catch (SQLException e) {
@@ -230,7 +231,7 @@ public class LogicControl {
 			break;	
 		case DELETE_RROFILE_SET:
 			try {
-				delete_room_profile(msg,mysql);
+				delete_room_profile(msg);
 			} catch (JSONException | SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -238,7 +239,7 @@ public class LogicControl {
 			break;
 		case SWITCH_RROFILE_SET:	
 			try {
-				switch_profile_set(msg,mysql);
+				switch_profile_set(msg);
 			} catch (JSONException e1) {
 				e1.printStackTrace();
 			} catch (SQLException e1) {
@@ -249,7 +250,7 @@ public class LogicControl {
 			break;
 		case GET_ONE_DEVICE:	
 			try {
-				get_profile_set(msg,mysql);
+				get_profile_set(msg);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			} catch (SQLException e) {
@@ -258,7 +259,7 @@ public class LogicControl {
 			break;
 		case SET_ONE_DEVICE:	
 			try {
-				get_profile_set(msg,mysql);
+				get_profile_set(msg);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			} catch (SQLException e) {
@@ -267,14 +268,14 @@ public class LogicControl {
 			break;	
 		case DELETE_ONE_DEVICE:
 			try {
-				delete_one_device(msg,mysql);
+				delete_one_device(msg);
 			} catch (JSONException | SQLException e) {
 				e.printStackTrace();
 			}
 			break;			
 		case SWITCH_DEVICE_STATE:	
 			try {
-				get_profile_set(msg,mysql);
+				get_profile_set(msg);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			} catch (SQLException e) {
@@ -283,7 +284,7 @@ public class LogicControl {
 			break;
 		case WARNING_MSG:	
 			try {
-				get_profile_set(msg,mysql);
+				get_profile_set(msg);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			} catch (SQLException e) {
@@ -294,7 +295,7 @@ public class LogicControl {
 			msg.json=null;
 			try {
 				msg.json=new JSONObject();
-				msg.json.put("errorCode", UNKNOWN_COMMAND);
+				msg.json.put("errorCode", WRONG_COMMAND);
     			msg.json.put("sender",2);
     			msg.json.put("receiver",0);  
 			} catch (JSONException e) {
@@ -317,7 +318,7 @@ public class LogicControl {
      *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":}
      *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
      */
-    public void get_room_profile(Message msg,MySqlClass mysql) throws JSONException, SQLException{
+    public void get_room_profile(Message msg) throws JSONException, SQLException{
     	JSONObject json=msg.json;
     	Profile profile=null;
     	int CtrolID=json.getInt("CtrolID");
@@ -378,7 +379,7 @@ public class LogicControl {
 	  }
      * @throws ParseException 
 	*/
-    public void set_room_profile(Message msg,MySqlClass mysql) throws JSONException, SQLException, ParseException{
+    public void set_room_profile(Message msg) throws JSONException, SQLException, ParseException{
     	JSONObject json=msg.json;
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	Profile profile=new Profile(msg.json);
@@ -419,7 +420,7 @@ public class LogicControl {
      *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50002}
      *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
      */
-    public void delete_room_profile(Message msg,MySqlClass mysql) throws JSONException, SQLException{
+    public void delete_room_profile(Message msg) throws JSONException, SQLException{
     	JSONObject json=msg.json;
     	//Profile profile=null;
     	int CtrolID=json.getInt("CtrolID");
@@ -442,7 +443,6 @@ public class LogicControl {
     	try {
 			CtrolSocketServer.sendCommandQueue.put(msg);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}    	
     }
@@ -459,7 +459,7 @@ public class LogicControl {
     * }
      * @throws InterruptedException 
  	* */
-    public void switch_room_profile(final Message msg,MySqlClass mysql)throws JSONException, SQLException, InterruptedException{
+    public void switch_room_profile(final Message msg)throws JSONException, SQLException, InterruptedException{
     	Message replyMsg=new Message(msg);
     	Message sendMsg=new Message(msg);
     	JSONObject json=msg.json;
@@ -478,15 +478,14 @@ public class LogicControl {
 	    		replyMsg.json=null;
 	    		replyMsg.json.put("errorCode",SUCCESS);
     			sendMsg.json.put("sender",2);
-    			sendMsg.json.put("receiver",sender);  	    		
+    			sendMsg.json.put("receiver",sender); 
+    			CtrolSocketServer.sendCommandQueue.put(sendMsg);
     		}else if(sender==1 ||sender==3){
 //    			replyMsg.json=null;
 //    			replyMsg.json.put("errorCode",RECEIVED);
     			TimeOutTread to=new TimeOutTread(10,msg);
     			to.start();
-    			
-    			sendMsg.json.put("sender",2);
-    			sendMsg.json.put("receiver",0);    			
+   			
     		}
     	}else {
 			log.warn("Can't switch room profile,profile doesn't exit. CtrolID:"+CtrolID+" profileID:"+profileID+" from profileMap or Mysql.");
@@ -495,6 +494,20 @@ public class LogicControl {
     	}
     	return;
 
+    }
+    
+    /*** 请求切换情景模式,返回值
+     * <pre>传入的json格式为：
+    * { 
+     *   sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:4; ...
+     *   receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
+         errorCode: SUCCESS/ PROFILE_NOT_EXIST /TIME_OUT /WRONG_RECEIVER  /WRONG_COMMAND
+    * }
+     * @throws InterruptedException 
+ 	* */
+    public void switch_room_profile_ack(final Message msg)throws JSONException, SQLException, InterruptedException{
+		TimeOutTread to=new TimeOutTread(10,msg);
+		to.start();
     }
     
     /*** 查询情景模式集
@@ -508,7 +521,7 @@ public class LogicControl {
      *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50004}
      *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
      */
-    public void get_profile_set(Message msg,MySqlClass mysql) throws JSONException, SQLException{
+    public void get_profile_set(Message msg) throws JSONException, SQLException{
     	JSONObject json=msg.json;
     	ProfileSet profileSet=null;
     	int CtrolID=json.getInt("CtrolID");
@@ -543,7 +556,7 @@ public class LogicControl {
      *   ]  
      * }
 	 * */
-	public void set_profile_set(Message msg,MySqlClass mysql) throws JSONException, SQLException, ParseException{
+	public void set_profile_set(Message msg) throws JSONException, SQLException, ParseException{
     	JSONObject json=msg.json;
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	ProfileSet profileSet=new ProfileSet(msg.json);
@@ -582,7 +595,7 @@ public class LogicControl {
      *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50002}
      *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
      */
-    public void delete_profile_set(Message msg,MySqlClass mysql) throws JSONException, SQLException{
+    public void delete_profile_set(Message msg) throws JSONException, SQLException{
     	JSONObject json=msg.json;
     	//Profile profile=null;
     	int CtrolID=json.getInt("CtrolID");
@@ -619,7 +632,7 @@ public class LogicControl {
 	 *     CtrolID:1234567
 	 *     profileSetID:7654321
      *   }*/
-	public void switch_profile_set(Message msg,MySqlClass mysql)throws JSONException, SQLException, InterruptedException{
+	public void switch_profile_set(Message msg)throws JSONException, SQLException, InterruptedException{
     	Message replyMsg=new Message(msg);
     	Message sendMsg=new Message(msg);
     	JSONObject json=msg.json;
@@ -638,12 +651,12 @@ public class LogicControl {
 	    		replyMsg.json=null;
 	    		replyMsg.json.put("errorCode",SUCCESS);
     			sendMsg.json.put("sender",2);
-    			sendMsg.json.put("receiver",sender);  	    		
-    		}else if(sender==1 ||sender==3){
+    			sendMsg.json.put("receiver",0);  	    		
+    		}else {
     			TimeOutTread to=new TimeOutTread(10,msg);
     			to.start();    			
     			sendMsg.json.put("sender",2);
-    			sendMsg.json.put("receiver",0);    			
+    			sendMsg.json.put("receiver",sender);    			
     		}
     	}else {
 			log.warn("Can't switch room profileSet,profileSet doesn't exit. CtrolID:"+CtrolID+" profileSetID:"+profileSetID+" from profileSetMap or Mysql.");
@@ -655,6 +668,20 @@ public class LogicControl {
 		
 	}
 	
+    /*** 请求切换情景模式集,返回值
+     * <pre>传入的json格式为：
+    * { 
+     *   sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:4; ...
+     *   receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
+         errorCode: SUCCESS/ PROFILE_SET_NOT_EXIST /TIME_OUT /WRONG_RECEIVER  /WRONG_COMMAND
+    * }
+     * @throws InterruptedException 
+ 	* */
+    public void switch_profile_set_ack(final Message msg)throws JSONException, SQLException, InterruptedException{
+		TimeOutTread to=new TimeOutTread(10,msg);
+		to.start();
+    }
+    
 	/*** 获取一个设备
 	 * 	 <pre>对应json消息体为：
 	 *   {
@@ -664,7 +691,7 @@ public class LogicControl {
      *   @return List< Device > 加电列表 的json格式
 	 * @throws JSONException 
      *   */
-	public void get_one_device(Message msg,MySqlClass mysql) throws JSONException{
+	public void get_one_device(Message msg) throws JSONException{
     	JSONObject json=msg.json;
     	Device device=new Device();
     	int CtrolID=json.getInt("CtrolID");
@@ -735,7 +762,7 @@ public class LogicControl {
      *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50002}
      *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
      */
-    public void delete_one_device(Message msg,MySqlClass mysql) throws JSONException, SQLException{
+    public void delete_one_device(Message msg) throws JSONException, SQLException{
     	JSONObject json=msg.json;
     	int CtrolID=json.getInt("CtrolID");
     	int deviceID=json.getInt("deviceID");
@@ -765,27 +792,29 @@ public class LogicControl {
 	/*** 切换某个家电状态
 	 * 	 <pre>例如对应json消息体如下格式 ：
 	 *   {
+         sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
+     *   receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
 	 *     senderRole:"control"/"mobile"/"cloud"
 	 *     CtrolID:1234567
 	 *     deviceID:7654321
      *   }
 	 * @throws JSONException 
 	 * @throws SQLException */
-	public void switch_app_state(Message msg,MySqlClass mysql) throws JSONException, SQLException{
+	public void switch_app_state(Message msg) throws JSONException, SQLException{
 	   	Message replyMsg=new Message(msg);
     	Message sendMsg=new Message(msg);
     	JSONObject json=msg.json;
-    	Profile profile=null;
+    	Device device=null;
     	int CtrolID=json.getInt("CtrolID");
-    	int profileID=json.getInt("profileID");
+    	int deviceID=json.getInt("deviceID");
     	int sender=0;
     	if(json.has("sender")){
     		sender=json.getInt("sender"); 
     	}
-    	String key=CtrolID+"_"+profileID;
-    	if((profile= profileMap.get(key))!=null || (profile=Profile.getOneProfileFromDB(mysql, CtrolID, profileID))!=null){
-    		jedis.publish(commandQueue, profile.toJsonObj().toString());
-    		jedis.hset(currentProfile, key, profile.toJsonObj().toString());
+    	String key=CtrolID+"_"+deviceID;
+    	if((device= deviceMap.get(key))!=null || (device=Device.getOneDeviceFromDB(mysql, CtrolID, deviceID))!=null){
+    		jedis.publish(commandQueue, device.toJsonObj().toString());
+    		jedis.hset(currentProfile, key, device.toJsonObj().toString());
     		if(sender==0){
 	    		replyMsg.json=null;
 	    		replyMsg.json.put("errorCode",SUCCESS);
@@ -801,13 +830,27 @@ public class LogicControl {
     			sendMsg.json.put("receiver",0);    			
     		}
     	}else {
-			log.warn("Can't switch room profile,profile doesn't exit. CtrolID:"+CtrolID+" profileID:"+profileID+" from profileMap or Mysql.");
+			log.warn("Can't switch room device,device doesn't exit. CtrolID:"+CtrolID+" deviceID:"+deviceID+" from deviceMap or Mysql.");
 			replyMsg.json=null;
 			replyMsg.json.put("errorCode",PROFILE_NOT_EXIST);
     	}
     	return;
 
 	}
+	
+    /*** 请求切换某个家电状态,返回值
+     * <pre>传入的json格式为：
+    * { 
+     *   sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:4; ...
+     *   receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
+         errorCode: SUCCESS/ APP_NOT_EXIST /TIME_OUT /WRONG_RECEIVER  /WRONG_COMMAND
+    * }
+     * @throws InterruptedException 
+ 	* */
+    public void switch_room_profile_set_ack(final Message msg)throws JSONException, SQLException, InterruptedException{
+		TimeOutTread to=new TimeOutTread(10,msg);
+		to.start();
+    }
 	
   /*** 告警消息
   <pre>例如对应json消息体如下格式 ：

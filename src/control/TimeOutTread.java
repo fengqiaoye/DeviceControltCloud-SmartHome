@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;  
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;  
 import java.util.concurrent.ExecutorService;  
 import java.util.concurrent.Executors;  
@@ -44,7 +45,7 @@ public class TimeOutTread extends Thread {
         try {  
             System.out.println(new Date());  
             result = future.get(timOut*1000, TimeUnit.MILLISECONDS);// 设定在2000毫秒的时间内完成   
-            
+            System.out.println(result);
             System.out.println(new Date());
         } catch (InterruptedException e) {  
             System.out.println("线程中断出错。");  
@@ -56,16 +57,18 @@ public class TimeOutTread extends Thread {
         } catch (TimeoutException e) {// 超时异常     
         	
             System.out.println("超时"); 
+
             try {
-            	//msg.json=new JSONObject();
+          	
+				JSONObject json=new JSONObject();
+    			msg.json=json;
             	msg.json.put("errorCode",LogicControl.TIME_OUT);
             	if(msg.json.has("sender")){
-    			msg.json.put("receiver",msg.json.getInt("sender")); 
-            	}else {
-            		msg.json.put("receiver",0);
+            		msg.json.put("receiver",msg.json.getInt("sender")); 
+    				CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
             	}
     			msg.json.put("sender",2);
-				CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+
 			} catch (InterruptedException | JSONException e1) {
 				e1.printStackTrace();
 			}
@@ -90,7 +93,8 @@ public class TimeOutTread extends Thread {
       
     static class waitForReply implements Callable<Boolean> {   
     	Message msg;
-    	static Map<String, Message>  msgMap= new HashMap<String, Message>();
+    	static Map<String, Message>  msgMap= new ConcurrentHashMap<String, Message>() ;// new HashMap<String, Message>();
+        //Collections.synchronizedMap(new HashMap(...));
     	waitForReply(Message msg){
     		this.msg=msg;
     	}
@@ -98,21 +102,29 @@ public class TimeOutTread extends Thread {
         public Boolean call() {     
            while(true){  
         		int CtrolID;
-        		String cookie;
+        		String cookie=null;
         		int commandID;
+        		int sender;
+        		String key;
+        		String originKey;
     			try {
-    				CtrolID = msg.json.getInt("CtrolID");
-    				commandID=msg.header.commandID;
-    				cookie=msg.cookie;
-    				String key=CtrolID+"_"+commandID;
-    				String originKey=CtrolID+"_"+(commandID-0x4000);
-    				if(commandID>=0x1600 && commandID>=0x19FF ){
+    				if(msg.json.has("CtrolID") && msg.json.has("sender") ){
+	    				CtrolID = msg.json.getInt("CtrolID");
+			    		sender=msg.json.getInt("sender");
+	    				commandID=msg.header.commandID;
+	    				cookie=msg.cookie;
+	    				key=CtrolID+"_"+commandID;
+	    				originKey=CtrolID+"_"+(commandID-0x4000); 
+    		    	}else {
+						return false;
+					}
+    				if(commandID>=0x1600 && commandID<=0x19FF ){
     					msgMap.put(key, msg);
     					return true;
-    				}else if( commandID>=0x5600 && commandID>=0x59FF && msgMap.containsKey(originKey) && msgMap.get(originKey).cookie==cookie){
+    				}else if( commandID>=0x5600 && commandID<=0x59FF && msgMap.containsKey(originKey) && msgMap.get(originKey).cookie==cookie){
         	    		try {
         	    			msg.json.put("sender",2);
-        	    			msg.json.put("receiver",0);  
+        	    			msg.json.put("receiver",sender);  
 							boolean t=CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 							if(t==true){
 								return true;
@@ -121,12 +133,21 @@ public class TimeOutTread extends Thread {
 							e.printStackTrace();
 						}
         	    		msgMap.remove(originKey);
-    				}
-    			} catch (JSONException e) {
+    				}else {
+    					JSONObject json=new JSONObject();
+    	    			msg.json=json;
+    	    			msg.json.put("errorCode", LogicControl.WRONG_COMMAND);
+    	    			msg.json.put("sender",2);
+    	    			msg.json.put("receiver",sender);
+						CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+
+					    return false;
+					}
+    			} catch (JSONException | InterruptedException  e) {
     				e.printStackTrace();
     			}
             	
-                if (Thread.interrupted()){ //很重要  
+                if (Thread.interrupted()){    //很重要  
                     return false;     
                 }  
             }
@@ -143,7 +164,7 @@ public class TimeOutTread extends Thread {
     	byte mainVersion=1;
     	byte subVersion=2;
     	short msgLen=15;
-    	short commandID=0x1601;
+    	short commandID=0x5601;
     	int sequeeceNo=123456;
     	short encType=1; 
     	short cookieLen=4;
