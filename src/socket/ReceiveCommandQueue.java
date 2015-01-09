@@ -48,7 +48,7 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
     	Event event=new Event(msg);
     	checkMysql();
      	try {
-			event.toReplyDB(mysql);
+			event.toReceiveDB(mysql);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -61,7 +61,7 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
     	Event event=new Event(msg);
     	checkMysql();
      	try {
-			event.toReplyDB(mysql);
+			event.toReceiveDB(mysql);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -80,7 +80,7 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
     	Event event=new Event(msg);
     	checkMysql();
      	try {
-			event.toReplyDB(mysql);
+			event.toReceiveDB(mysql);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

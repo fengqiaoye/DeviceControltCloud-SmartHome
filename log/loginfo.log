@@ -22384,3 +22384,9 @@ java.sql.SQLException: Field 'eventid' doesn't have a default value
 	at socket.Event.toReplyDB(Event.java:191)
 	at socket.ReceiveCommandQueue.put(ReceiveCommandQueue.java:83)
 	at socket.ReceiveCommandQueue.main(ReceiveCommandQueue.java:130)
+2015-01-09 19:01:35[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-09 19:01:35[INFO ] control.Config.<init>(Config.java:53): System config finished. 
+2015-01-09 19:02:37[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-09 19:02:37[INFO ] control.Config.<init>(Config.java:53): System config finished. 
+2015-01-09 19:04:02[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-09 19:04:02[INFO ] control.Config.<init>(Config.java:53): System config finished. 
