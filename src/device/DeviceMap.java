@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import util.MySqlClass;
 
 /*** Map< ctrolID_deviceID,Device >*/
@@ -41,6 +42,7 @@ public class DeviceMap extends HashMap<String, Device> {
    * @throws SQLException 
    */
 	public static HashMap<String, Device> getDeviceMapFromDB(MySqlClass mysql )throws SQLException	{
+		System.out.println("Start to initialize deviceMap....");
 		HashMap<String, Device> deviceMap=new HashMap<String, Device>();
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String sql="select  "
@@ -59,9 +61,9 @@ public class DeviceMap extends HashMap<String, Device> {
 				//+" where ctr_id="+CtrolID
 				//+" and deviceid="+deviceID
 				+ ";";
-		System.out.println("query:"+sql);
+		//System.out.println("query:"+sql);
 		String res=mysql.select(sql);
-		System.out.println("get from mysql:\n"+res);
+		//System.out.println("get from mysql:\n"+res);
 		if(res==null|| res==""){
 			System.out.println("ERROR:empty query by : "+sql);
 			return null ;
@@ -84,11 +86,11 @@ public class DeviceMap extends HashMap<String, Device> {
 				device.createTime=sdf.parse(index[8]);
 				device.modifyTime=sdf.parse(index[9]);
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			deviceMap.put(device.CtrolID+"_"+device.deviceID, device);
 		}
+		System.out.println("Initialize deviceMap finished !");
 		return deviceMap;
 	}
 	
@@ -108,9 +110,9 @@ public class DeviceMap extends HashMap<String, Device> {
 	/*** 获取 该家庭所有设备，只包含加电
 	 *   <pre> device.type=0;
 	 **/
-	@SuppressWarnings("null")
+	//@SuppressWarnings("null")
 	public List<Device> getApplianceByCtrolID(int CtrolID){
-		List<Device> deviceList=null;//  new ArrayList<Device>();
+		List<Device> deviceList=new ArrayList<Device>();
 		for (Entry<String, Device> entry : this.entrySet()) {
 			if(Integer.parseInt(entry.getKey().split("_")[0])==CtrolID  && entry.getValue().type==0){
 				deviceList.add(entry.getValue());
@@ -122,11 +124,12 @@ public class DeviceMap extends HashMap<String, Device> {
 	/**
 	 *重写父类的方法，当向这个map添加一个情景模式时，自动把这个情景模式写入数据库
 	 *  */
+	@Override
 	public Device put(String key,Device device) {
 		if(null==this.mysql)
 			return null;
 		device.saveToDB(this.mysql)	;
-		return this.put(key, device);
+		return super.put(key, device);
 	}	
 	
 	/**

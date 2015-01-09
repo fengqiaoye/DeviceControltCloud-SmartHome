@@ -17,7 +17,9 @@ import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
 import org.apache.log4j.spi.LoggerFactory;
 import org.json.JSONException;
+import org.json.JSONObject;
 
+import control.LogicControl;
 import util.BytesUtil;
 
 
@@ -66,11 +68,10 @@ public class ServerThread extends Thread  {
         	if(!CtrolSocketServer.sendCommandQueue.isEmpty()){
         		Message outMsg=null;
 				try {
-					outMsg = CtrolSocketServer.sendCommandQueue.poll(200, TimeUnit.MICROSECONDS);
+					outMsg = CtrolSocketServer.sendCommandQueue.poll(100, TimeUnit.MICROSECONDS);
 					outMsg.writeToSock(clientRequest);
 
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}       		     		
         	}
@@ -88,8 +89,15 @@ public class ServerThread extends Thread  {
             }else{
             	log.info("Invalid command receive. SequeeceID:"+msg.header.sequeeceNo+" command ID :"+msg.header.commandID);
             	Message errMsg=msg;
-            	errMsg.header.commandID+=0x8000;
-            	CtrolSocketServer.sendCommandQueue.add(errMsg);
+            	errMsg.header.commandID+= LogicControl.COMMAND_ACK_OFFSET;
+            	errMsg.json=new JSONObject();
+            	try {
+					errMsg.json.put("errorCode", LogicControl.WRONG_COMMAND);
+					CtrolSocketServer.sendCommandQueue.offer(errMsg, 100, TimeUnit.MICROSECONDS);
+				} catch (JSONException | InterruptedException e) {
+					e.printStackTrace();
+				}
+            	//CtrolSocketServer.sendCommandQueue.add(errMsg);
             }
         }   
     } 
@@ -160,6 +168,7 @@ public class ServerThread extends Thread  {
 		} catch (IOException e) {
 			e.printStackTrace();
 			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress()); 
+			System.out.println("error:exception happened,connection from "+clientRequest.getInetAddress().getHostAddress() + " has been closed!");
 		}  
     	String comString=new String(commnad);
     	System.out.println("command: "+comString);

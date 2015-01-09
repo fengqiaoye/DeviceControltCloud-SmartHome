@@ -4,6 +4,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
+import java.util.Date;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -16,6 +17,8 @@ public class Message  {
 	 public Header header;
 	 public String cookie;
 	 public JSONObject json;
+	 Date receiveTime;
+	 Date replyTime;
 
 	public Message(){}
 	public Message(Message msg){	

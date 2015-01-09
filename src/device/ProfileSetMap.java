@@ -44,6 +44,7 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
     */
 	public static HashMap<String, ProfileSet> getProfileSetMapFromDB(MySqlClass mysql) throws SQLException	
 	{   
+		System.out.println("Start to initialize profileSetMap....");
 		HashMap<String, ProfileSet> profileSetMap=new HashMap<String, ProfileSet>();
 		ProfileSet profileSet=null; 		
 	    List<Integer> profileIDList=new ArrayList<Integer>();
@@ -59,9 +60,9 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 				+ "  from  "				
 				+ProfileSet.profileSetTable
 				+ ";";
-		System.out.println("query:"+sql2);
+		//System.out.println("query:"+sql2);
 		String res2=mysql.select(sql2);
-		System.out.println("get from mysql:\n"+res2);
+		//System.out.println("get from mysql:\n"+res2);
 		if(res2==null|| res2==""){
 			System.out.println("ERROR:empty query by : "+sql2);
 			return  null;
@@ -80,7 +81,6 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 				profileSet.createTime=sdf.parse(cells[5]);
 				profileSet.modifyTime=sdf.parse(cells[6]);
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}				
 			profileIDList.add(profileID);
@@ -89,6 +89,7 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 		
 		if(!profileSet.isEmpty())
 		profileSetMap.put(profileSet.CtrolID+"_"+profileSet.profileSetID, profileSet);
+		System.out.println("Initialize profileSetMap finished !");
 		return profileSetMap;
 	}
 
@@ -108,6 +109,7 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 	/**
 	 *重写父类的方法，当向这个map添加一个情景模式时，自动把这个情景模式写入数据库
 	 *  */
+	@Override
 	public ProfileSet put(String key,ProfileSet profileSet) {
 		if(null==this.mysql)
 			return null;
@@ -117,7 +119,7 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 			e.printStackTrace();
 			return null;
 		}
-		this.put(key, profileSet);
+		super.put(key, profileSet);
 		return profileSet;		
 	}	
 	
@@ -140,7 +142,6 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 
 
 	public static void main(String[] args) throws SQLException {
-		// TODO Auto-generated method stub
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		ProfileSetMap pm=new ProfileSetMap(mysql);
 		System.out.println(pm.size());

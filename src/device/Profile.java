@@ -192,7 +192,7 @@ public class Profile {
 		}		
 		
 		
-		String sql="insert into "+profileIndexTable
+		String sql2="insert into "+profileIndexTable
 				+" (userroomstid ," 
 				+" userroomstname ," 
 				+"ctr_id ,"
@@ -215,7 +215,8 @@ public class Profile {
 				+sdf.format(this.createTime)+"','"
 				+sdf.format(this.modifyTime)
 				+"')";
-		System.out.println(sql);		
+		System.out.println(sql2);	
+		mysql.query(sql2);
 		mysql.conn.commit();
 		
 		
@@ -377,7 +378,7 @@ public class Profile {
    */
 	public	static List<Factor>  getProFactorsFromDB(MySqlClass mysql,int CtrolID,int profileID) throws SQLException
 		{
-		    String tablename="info_user_room_st_factor";
+		    //String tablename="info_user_room_st_factor";
 			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			mysql.conn.setAutoCommit(false);
 			String sql="select "
@@ -391,13 +392,13 @@ public class Profile {
 					+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
 					+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 					+ "  from  "				
-					+tablename
+					+profileDetailTable
 					+" where ctr_id="+CtrolID
 					+" and userroomstid="+profileID
 					+ ";";
-			System.out.println("query:"+sql);
+			//System.out.println("query:"+sql);
 			String res=mysql.select(sql);
-			System.out.println("get from mysql:\n"+res);
+			//System.out.println("get from mysql:\n"+res);
 			if(res==null ) {
 				System.out.println("ERROR:exception happened: "+sql);
 				return null;
@@ -429,7 +430,7 @@ public class Profile {
 					factorList=new ArrayList<Factor>();
 					factorList.add(ft);					
 				}else {
-					System.out.println("ERROR:Columns mismatch between class Profile  and table  "+ tablename);
+					System.out.println("ERROR:Columns mismatch between class Profile  and table  "+ profileDetailTable);
 					return null;				
 				}
 			}		
@@ -526,7 +527,7 @@ public class Profile {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-
+		
 	}
 
 }

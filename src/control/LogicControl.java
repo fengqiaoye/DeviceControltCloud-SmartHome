@@ -31,8 +31,8 @@ import util.MySqlClass;
 
 public class LogicControl {	
 	
-	public static final short COMMAND_START            		=  0x1600;
-	public static final short COMMAND_ACK_OFFSET       		=  0x4000; 
+	public static final short COMMAND_START            		   =  0x1600;
+	public static final short COMMAND_ACK_OFFSET       		   =  0x4000; 
 	
     /*** 请求 情景模式命令    @see get_room_profile() */
 	private static final short GET_ROOM_PROFILE					=	COMMAND_START+1;	
@@ -127,7 +127,7 @@ public class LogicControl {
 
 	/***********************   resource needed   ************************/	
 	static Logger log= Logger.getLogger(LogicControl.class);
-	MySqlClass mysql=null;
+	static MySqlClass mysql=null;
 	Jedis jedis=null;// new Jedis("172.16.35.170", 6379,200);
 	ProfileMap profileMap =null;
 	ProfileSetMap profileSetMap =null;
@@ -161,13 +161,17 @@ public class LogicControl {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		log.info("successful initialize profileMap,size="+profileMap.size()
-				+";profileSetMap size="+profileSetMap.size()
+		log.info("Initialization of map successful :  profileMap,size="+profileMap.size()
+				+";profileSetMap size="+profileMap.size()
 				+"; deviceMap, size="+deviceMap.size()
 				+"; roomMap, size="+roomMap.size()
 				);
 		log.info("Initialization of Logic control module finished. ");
 	}
+    
+  public static MySqlClass  getMysql(){
+	  return mysql;    	
+    }
 	
 	public void decodeCommand(Message msg){		
 		int commandID=msg.header.commandID;
@@ -338,7 +342,6 @@ public class LogicControl {
     	try {
 			CtrolSocketServer.sendCommandQueue.put(msg);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}    	
     }

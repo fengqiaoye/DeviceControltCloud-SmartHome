@@ -119,8 +119,10 @@ public class TimeOutTread extends Thread {
 						return false;
 					}
     				if(commandID>=0x1600 && commandID<=0x19FF ){
-    					msgMap.put(key, msg);
-    					return true;
+    					if (!msgMap.containsKey(key)) {
+        					msgMap.put(key, msg);
+        					return true;							
+						}
     				}else if( commandID>=0x5600 && commandID<=0x59FF && msgMap.containsKey(originKey) && msgMap.get(originKey).cookie==cookie){
         	    		try {
         	    			msg.json.put("sender",2);
@@ -164,7 +166,7 @@ public class TimeOutTread extends Thread {
     	byte mainVersion=1;
     	byte subVersion=2;
     	short msgLen=15;
-    	short commandID=0x5601;
+    	short commandID=0x1601;
     	int sequeeceNo=123456;
     	short encType=1; 
     	short cookieLen=4;

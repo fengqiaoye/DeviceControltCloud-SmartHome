@@ -27,6 +27,7 @@ import java.util.Map.Entry;
 
 
 
+
 import org.apache.log4j.Logger;
 
 import util.BytesUtil;
@@ -65,6 +66,7 @@ public class ProfileMap extends HashMap<String, Profile>{
     */
 	public static HashMap<String, Profile> getProfileMapFromDB(MySqlClass mysql) throws SQLException		
 	{   
+		System.out.println("Start to initialize profileMap....");
 		HashMap<String, Profile> profileMap=new HashMap<String, Profile>();
 		Profile profile= null;//new Profile();
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -82,9 +84,9 @@ public class ProfileMap extends HashMap<String, Profile>{
 		//+" where ctr_id="+CtrolID
 		//+" and userroomstid="+profileID
 		+ ";";
-		System.out.println("query:"+sql2);
+		//System.out.println("query:"+sql2);
 		String res2=mysql.select(sql2);
-		System.out.println("get from mysql:\n"+res2);
+		//System.out.println("get from mysql:\n"+res2);
 		if(res2==null|| res2==""){
 			System.out.println("ERROR:empty query by : "+sql2);
 			return null;
@@ -103,13 +105,13 @@ public class ProfileMap extends HashMap<String, Profile>{
 				profile.createTime=sdf.parse(index[6]);
 				profile.modifyTime=sdf.parse(index[7]);
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}			
 			profile.factorList=Profile.getProFactorsFromDB(mysql, profile.CtrolID, profile.profileID);
 			if(!profile.isEmpty())
 			profileMap.put(profile.CtrolID+"_"+profile.profileID, profile);		
 		}
+		System.out.println("Initialize profileMap finished !");
 		return profileMap;		
 	}
 	
@@ -118,6 +120,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 	/**
 	 *重写父类的方法，当向这个map添加一个情景模式时，自动把这个情景模式写入数据库
 	 *  */
+	@Override
 	public Profile put(String key,Profile profile) {
 		if(null==this.mysql)
 			return null;
@@ -127,7 +130,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 			e.printStackTrace();
 			return null;
 		}
-		this.put(key, profile);
+		super.put(key, profile);
 		return profile;		
 	}	
 	

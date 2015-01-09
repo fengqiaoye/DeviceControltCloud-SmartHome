@@ -50,7 +50,7 @@ public class RoomMap  extends HashMap<String, Room>{
    * @throws SQLException 
    */
 	public static HashMap<String, Room> getRoomMapFromDB(MySqlClass mysql) throws SQLException	
-	{   
+	{   System.out.println("Start to initialize roomMap....");
 	    HashMap<String, Room> roomMap=new HashMap<String, Room>(); 
 	    Room room= null;//new Room();
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -64,9 +64,9 @@ public class RoomMap  extends HashMap<String, Room>{
 		+ "  from "				
 		+Room.roomIndexTable
 		+ ";";
-		System.out.println("query:"+sql2);
+//		System.out.println("query:"+sql2);
 		String res2=mysql.select(sql2);
-		System.out.println("get from mysql:\n"+res2);
+//		System.out.println("get from mysql:\n"+res2);
 		if(res2==null|| res2==""){
 			System.out.println("ERROR:empty query by : "+sql2);
 			return null;
@@ -88,6 +88,7 @@ public class RoomMap  extends HashMap<String, Room>{
 			}			
 			roomMap.put(room.CtrolID+"_"+room.roomID, room);		
 		}	
+		System.out.println("Initialize deviceMap finished !");
 		return roomMap;
 	}
 	
@@ -103,7 +104,7 @@ public class RoomMap  extends HashMap<String, Room>{
 			e.printStackTrace();
 			return null;
 		}
-		this.put(key, room);
+		super.put(key, room);
 		return room;		
 	}	
 	
