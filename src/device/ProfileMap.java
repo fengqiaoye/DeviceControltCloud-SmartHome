@@ -137,17 +137,16 @@ public class ProfileMap extends HashMap<String, Profile>{
 	/**
 	 *重写父类的方法，当向这个map删除一个情景模式时，自动把这个情景模式从数据库删除
 	 *  */
-	public Profile remove(String key,Profile profile) {
-		if(null==this.mysql)
-			return null;
+	@Override
+	public Profile remove(Object key) {
+		Profile profile = super.get(key);
 		try {
 			Profile.deleteProfileFromDB(mysql, profile.CtrolID, profile.profileID);
 		} catch (SQLException e) {
 			e.printStackTrace();
-			return null;
 		}
-		this.remove(key);
-		return profile;
+		return super.remove(key);
+		//return profile;
 	}
 	
 

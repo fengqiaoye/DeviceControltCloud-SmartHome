@@ -95,6 +95,7 @@ public class RoomMap  extends HashMap<String, Room>{
 	/**
 	 *重写父类的方法，当向这个map添加一个情景模式时，自动把这个情景模式写入数据库
 	 *  */
+	@Override
 	public Room put(String key,Room room) {
 		if(null==this.mysql)
 			return null;
@@ -111,12 +112,13 @@ public class RoomMap  extends HashMap<String, Room>{
 	/**
 	 *重写父类的方法，当向这个map删除一个情景模式时，自动把这个情景模式从数据库删除
 	 *  */
-	public Room remove(String key,Room room) {
+	@Override
+	public Room remove(Object key) {
 		if(null==this.mysql)
 			return null;
+		Room room =super.get(key);
 		Room.deleteRoomFromDB(mysql, room.CtrolID, room.roomID);
-		this.remove(key);
-		return room;
+		return super.remove(key);
 	}
 		
 	

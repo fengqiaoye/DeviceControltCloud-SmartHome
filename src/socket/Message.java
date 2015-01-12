@@ -22,6 +22,7 @@ public class Message  {
 
 	public Message(){}
 	public Message(Message msg){	
+		//Message copyMsg=new  Message();
 		this.header=msg.header; 
 		this.cookie=msg.cookie;
 		this.json=msg.json;

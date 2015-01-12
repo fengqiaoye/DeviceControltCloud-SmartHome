@@ -27,8 +27,8 @@ public class Event {
 	private static final String replyTable   ="info_devicecontrol_msg_reply";
 	MySqlClass mysql;
 	
-	/***时间戳*/
-	//int eventID;
+	/*** 填写序列号*/
+	int eventID;
 	
 	/**
 	 * <pre>事件类型:
@@ -39,8 +39,8 @@ public class Event {
 	int CtrolID;
 	int roomID;
 	
-	/** msg里的 cookie字段 */
-	String sender;
+	/** Json里的ctrolID*/
+	//String sender;
 	
 	/***"Json里的sender ：control":0  ;"mobile":1;  "cloud":2;  web:3;   other：4 */
 	int senderRole;  
@@ -64,9 +64,9 @@ public class Event {
 			Date replyTime,
 			String json
 			) {		
-		//this.eventID=++count;
+		this.eventID=eventID;
 		this.commandID=commandID;
-		this.sender=sender;
+		//this.sender=sender;
 		this.senderRole=senderRole;
 		this.CtrolID=CtrolID;
 		this.roomID=roomID;
@@ -77,7 +77,7 @@ public class Event {
 	}
 	
 	Event(Message msg)  {
-        //this.eventID=++count;
+        this.eventID=Integer.parseInt(msg.cookie);
 		this.commandID=msg.header.commandID;
 		if(msg.json.has("CtrolID")){
 			try {
@@ -99,7 +99,7 @@ public class Event {
 			this.CtrolID=0;
 			System.out.println("In contact message received, cant parse roomID in json:"+msg.msgToString());
 		}
-		this.sender=msg.cookie;
+		//this.sender=msg.cookie;
 		if(msg.json.has("sender")){
 			try {
 				this.senderRole=msg.json.getInt("sender");
@@ -128,11 +128,11 @@ public class Event {
 		mysql.conn.setAutoCommit(false);
 			String sql="insert into "+receiveTable
 					+" ( "
-					//+ "eventid  ,"     
+					+ "eventid  ,"     
 					+"commandid ,"
 					+"ctrolid ,"
 					+"roomid ,"
-					+"sender ,"
+					//+"sender ,"
 					+"senderrole ,"
 					+"errorcode ,"
 					+"receivetime ,"
@@ -141,11 +141,11 @@ public class Event {
 					+ ")"				
 					+"values "
 					+ "("
-					//+this.eventID+","
+					+this.eventID+","
 					+this.commandID+","
 					+this.CtrolID+","
 					+this.roomID+",'"
-					+this.sender+"','"
+					//+this.sender+"','"
 					+this.senderRole+"',"
 					+this.errorCode+",'"
 					+sdf.format(this.receiveTime)+"','"
@@ -163,7 +163,7 @@ public class Event {
 
 			String sql="insert into "+replyTable
 					+" ("
-					//+ "eventid  ,"     
+					+ "eventid  ,"     
 					+"commandid ,"
 					+"ctrolid ,"
 					+"roomid ,"
@@ -176,11 +176,11 @@ public class Event {
 					+ ")"				
 					+"values "
 					+ "("
-					//+this.eventID+","
+					+this.eventID+","
 					+this.commandID+","
 					+this.CtrolID+","
 					+this.roomID+",'"
-					+this.sender+"','"
+					//+this.sender+"','"
 					+this.senderRole+"',"
 					+this.errorCode+",'"
 					+sdf.format(this.receiveTime)+"','"

@@ -14,6 +14,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import redis.clients.jedis.Jedis;
+import socket.Message;
 
 
 
@@ -96,6 +97,44 @@ public class TestClass {
 		}
 	}
 	
+	static class Test{
+		String ID;
+		String name;
+		Test(){}
+		Test(String ID,
+		String name){
+			this.ID=ID;
+			this.name=name;
+		}
+	}
+	
+	public static void referenceTest(){
+//		String a= new String("  test a  ");
+//		System.out.println(a.length());
+//		String b=a;
+//		b=b.trim();
+//		System.out.println(b.length());
+//		System.out.println(a.length());
+		
+//		Test a= new Test("1", "one");
+//		Test b= new Test();
+//		 b=a;
+//		b.name="two";
+//		System.out.println(a.name);
+		
+		Message a = new Message();
+		a.cookie="test A";
+		System.out.println(a);
+		Message b=a ;//new Message(a);
+		b.cookie="test B";
+		System.out.println(b);
+		
+		System.out.println(a.cookie);
+		System.out.println(b.cookie);
+		
+		
+	}
+	
 	
 
 	public static void main(String[] args) {
@@ -108,6 +147,8 @@ public class TestClass {
 //		 String student=(String) unserialize(bs);
 //		 System.out.println(student);
 		 
-		 testJson();
+//		 testJson();
+		
+		referenceTest();
 		}
 }

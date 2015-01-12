@@ -135,11 +135,13 @@ public class DeviceMap extends HashMap<String, Device> {
 	/**
 	 *重写父类的方法，当向这个map删除一个情景模式时，自动把这个情景模式从数据库删除
 	 *  */
-	public Device remove(String CtrolID_deviceID,Device device) {
+	@Override
+	public Device remove(Object CtrolID_deviceID) {		
 		if(null==this.mysql)
 			return null;
+		Device device = super.get(CtrolID_deviceID);
 		Device.DeleteOneDeviceFromDB(mysql, device.CtrolID, device.deviceID);
-		return this.remove(CtrolID_deviceID);
+		return super.remove(CtrolID_deviceID);
 	}
 
 	/**

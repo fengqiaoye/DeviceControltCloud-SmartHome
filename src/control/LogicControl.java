@@ -12,6 +12,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.json.JSONException;
@@ -151,7 +152,7 @@ public class LogicControl {
 		String redis_ip         =cf.getValue("redis_ip");
 		int redis_port       	=Integer.parseInt(cf.getValue("redis_port"));		
 		
-		this.mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
+		mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
 		this.jedis= new Jedis(redis_ip, redis_port,200);
 		try {
 			this.profileMap= new ProfileMap(mysql);
@@ -296,12 +297,16 @@ public class LogicControl {
 			}
 			break;
 		default:
-			msg.json=null;
+			msg.json=new JSONObject();
+			int sender=0;
+
 			try {
-				msg.json=new JSONObject();
+				if(msg.json.has("sender")){
+					   sender=msg.json.getInt("sender");
+				}
 				msg.json.put("errorCode", WRONG_COMMAND);
     			msg.json.put("sender",2);
-    			msg.json.put("receiver",0);  
+    			msg.json.put("receiver",sender);  
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
@@ -312,35 +317,51 @@ public class LogicControl {
     /*** 请求查询情景模式
      * <pre>传入的json格式为：
      * { 
-     *   senderRole:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
-     *   receiverRole:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
      *   CtrolID:1234567
      *   profileID:7654321
      * }
      * @throws JSONException 
      * @return message 的json格式：
-     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":}
-     *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
+     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode": XXXX}
+     *   （2）如果查询的情景模式存在，则返回:
+     *  { 
+     *  errorCode:SUCCESS,
+     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   CtrolID:1234567,
+     *   profileID:7654321,
+     *   profile: 
+     *         {
+     *          情景模式的json格式 
+     *         }
+     * }
+     *                      
      */
     public void get_room_profile(Message msg) throws JSONException, SQLException{
-    	JSONObject json=msg.json;
+    	//JSONObject json=new jsson;
     	Profile profile=null;
-    	int CtrolID=json.getInt("CtrolID");
-    	int profileID=json.getInt("profileID");
+    	int CtrolID=msg.json.getInt("CtrolID");
+    	int profileID=msg.json.getInt("profileID");
+    	int sender=0;
     	String key=CtrolID+"_"+profileID;
-    	if(profileMap.containsKey(key)){
-    		profile= profileMap.get(key);
-    		msg.json=profile.toJsonObj();
-    	}else if(( profile=Profile.getOneProfileFromDB(mysql, CtrolID, profileID))!=null){
-    		msg.json=profile.toJsonObj();;
+    	if( (profile= profileMap.get(key))!=null  || (profile=Profile.getOneProfileFromDB(mysql, CtrolID, profileID))!=null){
+    		msg.json.put("profile", profile.toJsonObj());
+    		msg.json.put("errorCode",SUCCESS);
     	}else {
 			log.warn("Can't get_room_profile CtrolID:"+CtrolID+" profileID:"+profileID+" from profileMap or Mysql.");
-			msg.json=null;
+			//msg.json=new JSONObject();
 			msg.json.put("errorCode",PROFILE_NOT_EXIST);
     	}
-    	msg.header.commandID+= GET_ROOM_PROFILE_ACK;
+    	msg.header.commandID= GET_ROOM_PROFILE_ACK;
+		msg.json.put("sender",2);
+		if(msg.json.has("sender")){
+		   sender=msg.json.getInt("sender");
+		}
+		msg.json.put("receiver",sender);  
     	try {
-			CtrolSocketServer.sendCommandQueue.put(msg);
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}    	
@@ -382,29 +403,34 @@ public class LogicControl {
 	  }
      * @throws ParseException 
 	*/
-    public void set_room_profile(Message msg) throws JSONException, SQLException, ParseException{
-    	JSONObject json=msg.json;
+    public void set_room_profile( Message msg) throws JSONException, SQLException, ParseException{
+    	//JSONObject json=msg.json;
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    	Profile profile=new Profile(msg.json);
-    	int CtrolID=json.getInt("CtrolID");
-    	int profileID=json.getInt("profileID");
-    	Date jsonModifyTime=sdf.parse(json.getString("modifyTime"));
+    	Profile msgProfile=new Profile(msg.json.getJSONObject("profile"));
+    	Profile dbProfile;
+    	int CtrolID=msg.json.getInt("CtrolID");
+    	int profileID=msg.json.getInt("profileID");
+    	Date msgModifyTime=sdf.parse(msg.json.getString("modifyTime"));
     	String key=CtrolID+"_"+profileID;
+    	int sender=0;
     	
-    	if(!this.profileMap.containsKey(key)){
-			msg.json=null;
+    	if((dbProfile=this.profileMap.get(key))==null && (dbProfile=Profile.getOneProfileFromDB(mysql, CtrolID, profileID))==null){
 			msg.json.put("errorCode",PROFILE_NOT_EXIST);    		
-    	}else if(  this.profileMap.get(key).modifyTime.after(jsonModifyTime)){	//云端较新  
-			msg.json=null;
+    	}else if(  dbProfile.modifyTime.after(msgModifyTime)){	//云端较新  
 			msg.json.put("errorCode",PROFILE_OBSOLETE);    		
-    	}else{ //云端较旧，则保存
-    		this.profileMap.put(key, profile);
-			msg.json=null;
+    	}else if(  dbProfile.modifyTime.before(msgModifyTime)){ //云端较旧，则保存
+    		this.profileMap.put(key, msgProfile);
+			msg.json=new JSONObject();
 			msg.json.put("errorCode",SUCCESS);   
 			}    	
   		msg.header.commandID=SET_ROOM_PROFILE_ACK;
+		msg.json.put("sender",2);
+		if(msg.json.has("sender")){
+		   sender=msg.json.getInt("sender");
+		}
+		msg.json.put("receiver",sender); 
     	try {
-			CtrolSocketServer.sendCommandQueue.put(msg);
+			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}     	
@@ -421,30 +447,35 @@ public class LogicControl {
      * @throws JSONException 
      * @return message 的json格式：
      *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50002}
-     *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
+           
      */
     public void delete_room_profile(Message msg) throws JSONException, SQLException{
-    	JSONObject json=msg.json;
-    	//Profile profile=null;
-    	int CtrolID=json.getInt("CtrolID");
-    	int profileID=json.getInt("profileID");
+    	int CtrolID=msg.json.getInt("CtrolID");
+    	int profileID=msg.json.getInt("profileID");
     	String key=CtrolID+"_"+profileID;
+    	int sender=0;
+		if(msg.json.has("sender")){
+		   sender=msg.json.getInt("sender");
+		}
     	if(profileMap.containsKey(key)){
     		profileMap.remove(key);
-    		msg.json=null;
+    		msg.json=new JSONObject();
     		msg.json.put("errorCode", SUCCESS);    		
     	}else if((Profile.getOneProfileFromDB(mysql, CtrolID, profileID))!=null){
     		Profile.deleteProfileFromDB(mysql, CtrolID, profileID);
-    		msg.json=null;
+    		msg.json=new JSONObject();
     		msg.json.put("errorCode", SUCCESS);
     	}else {
 			log.warn("room_profile not exist CtrolID:"+CtrolID+" profileID:"+profileID+" from profileMap or Mysql.");
-			msg.json=null;
+			//msg.json=new JSONObject();
 			msg.json.put("errorCode",PROFILE_NOT_EXIST);
     	}
-    	msg.header.commandID+= DELETE_ROOM_PROFILE_ACK;
+    	msg.header.commandID= DELETE_ROOM_PROFILE_ACK;
+
+		msg.json.put("sender",2);
+		msg.json.put("receiver",sender); 
     	try {
-			CtrolSocketServer.sendCommandQueue.put(msg);
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}    	
@@ -464,39 +495,33 @@ public class LogicControl {
  	* */
     public void switch_room_profile(final Message msg)throws JSONException, SQLException, InterruptedException{
     	Message replyMsg=new Message(msg);
-    	Message sendMsg=new Message(msg);
-    	JSONObject json=msg.json;
+    	//JSONObject json=msg.json;
     	Profile profile=null;
-    	int CtrolID=json.getInt("CtrolID");
-    	int profileID=json.getInt("profileID");
+    	int CtrolID=msg.json.getInt("CtrolID");
+    	int profileID=msg.json.getInt("profileID");
     	int sender=0;
-    	if(json.has("sender")){
-    		sender=json.getInt("sender"); 
+    	if(msg.json.has("sender")){
+    		sender=msg.json.getInt("sender"); 
     	}
     	String key=CtrolID+"_"+profileID;
     	if((profile= profileMap.get(key))!=null || (profile=Profile.getOneProfileFromDB(mysql, CtrolID, profileID))!=null){
     		jedis.publish(commandQueue, profile.toJsonObj().toString());
     		jedis.hset(currentProfile, key, profile.toJsonObj().toString());
     		if(sender==0){
-	    		replyMsg.json=null;
+	    		replyMsg.json=new JSONObject();
 	    		replyMsg.json.put("errorCode",SUCCESS);
-    			sendMsg.json.put("sender",2);
-    			sendMsg.json.put("receiver",sender); 
-    			CtrolSocketServer.sendCommandQueue.put(sendMsg);
-    		}else if(sender==1 ||sender==3){
-//    			replyMsg.json=null;
-//    			replyMsg.json.put("errorCode",RECEIVED);
+    		}else {
     			TimeOutTread to=new TimeOutTread(10,msg);
-    			to.start();
-   			
+    			to.start();   			
     		}
     	}else {
 			log.warn("Can't switch room profile,profile doesn't exit. CtrolID:"+CtrolID+" profileID:"+profileID+" from profileMap or Mysql.");
-			replyMsg.json=null;
 			replyMsg.json.put("errorCode",PROFILE_NOT_EXIST);
     	}
-    	return;
-
+    	msg.header.commandID= SWITCH_ROOM_PROFILE_ACK;
+		replyMsg.json.put("sender",2);
+		replyMsg.json.put("receiver",0);
+    	CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
     }
     
     /*** 请求切换情景模式,返回值
@@ -516,35 +541,50 @@ public class LogicControl {
     /*** 查询情景模式集
      * <pre>传入的json格式为：
      * { 
+     *   sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:4; ...
+     *   receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
      *   CtrolID:1234567
      *   profileSetID:7654321
      * }
      * @throws JSONException 
      * @return message 的json格式：
      *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50004}
-     *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
+     *   （2）如果查询的情景模式集存在，则返回:
+     *  { 
+     *   errorCode:SUCCESS,
+     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   CtrolID:1234567,
+     *   profileSetID:7654321,
+     *   profile: 
+     *         {
+     *          情景模式集的json格式 
+     *         }
+     * }              
      */
     public void get_profile_set(Message msg) throws JSONException, SQLException{
-    	JSONObject json=msg.json;
+    	//JSONObject json=msg.json;
     	ProfileSet profileSet=null;
-    	int CtrolID=json.getInt("CtrolID");
-    	int profileSetID=json.getInt("profileSetID");
+    	int CtrolID=msg.json.getInt("CtrolID");
+    	int profileSetID=msg.json.getInt("profileSetID");
     	String key=CtrolID+"_"+profileSetID;
-    	if(profileSetMap.containsKey(key)){
-    		profileSet= profileSetMap.get(key);
-    		msg.json=profileSet.toJsonObj();
-    	}else if(( profileSet=ProfileSet.getProfileSetFromDB(mysql, CtrolID, profileSetID))!=null){
-    		msg.json=profileSet.toJsonObj();;
+    	int sender=0;
+    	if(msg.json.has("sender")){
+    		sender=msg.json.getInt("sender"); 
+    	}
+    	if((profileSet=profileSetMap.get(key))!=null || (profileSet=ProfileSet.getProfileSetFromDB(mysql, CtrolID, profileSetID))!=null){
+    		msg.json.put("profileSet", profileSet.toJsonObj());
+    		msg.json.put("errorCode",SUCCESS);   
     	}else {
 			log.warn("Can't get_profile_set, CtrolID:"+CtrolID+" profileSetID:"+profileSetID+" from profileMap or Mysql.");
-			msg.json=null;
 			msg.json.put("errorCode",PROFILE_SET_NOT_EXIST);
     	}
-    	msg.header.commandID+=  GET_RROFILE_SET_ACK;
+    	msg.header.commandID=  GET_RROFILE_SET_ACK;
+		msg.json.put("sender",2);
+		msg.json.put("receiver",sender);
     	try {
-			CtrolSocketServer.sendCommandQueue.put(msg);
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}    	
     }
@@ -552,36 +592,46 @@ public class LogicControl {
 
 	
 	/*** 设置 情景模式集
+
 	 * <pre>Json格式和 设置情景模式 和 {@link control.LogicControl#SET_ROOM_RROFILE SET_ROOM_RROFILE} 类似：
-     * {  
-     *   [  
-     *   情景模式集 的json格式 ：即多个情景模式组成的json数组    
-     *   ]  
+
+     * { 
+     *  "senderRole":    中控:0 ; 手机:1 ; 云:2;
+     *  "receiverRole":  中控:0 ; 手机:1 ; 云:2; 
+     *   profileSet:
+     *     {  
+     *      情景模式集 的json格式 ：即多个情景模式组成的json数组    
+     *     }  
      * }
 	 * */
 	public void set_profile_set(Message msg) throws JSONException, SQLException, ParseException{
-    	JSONObject json=msg.json;
+    	//JSONObject json=msg.json;
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    	ProfileSet profileSet=new ProfileSet(msg.json);
-    	int CtrolID=json.getInt("CtrolID");
-    	int profileSetID=json.getInt("profileSetID");
-    	Date jsonModifyTime=sdf.parse(json.getString("modifyTime"));
+    	ProfileSet msgProfileSet=new ProfileSet(msg.json.getJSONObject("profileSet"));
+    	ProfileSet dbProfileSet;
+    	int CtrolID=msg.json.getInt("CtrolID");
+    	int profileSetID=msg.json.getInt("profileSetID");
+    	Date msgModifyTime=sdf.parse(msg.json.getString("modifyTime"));
     	String key=CtrolID+"_"+profileSetID;
+    	int sender=0;
+    	if(msg.json.has("sender")){
+    		sender=msg.json.getInt("sender"); 
+    	}
     	
-    	if(!profileSetMap.containsKey(key)){
-			msg.json=null;
+    	if((dbProfileSet=profileSetMap.get(key))==null && (dbProfileSet=ProfileSet.getProfileSetFromDB(mysql, CtrolID, profileSetID))==null ){
 			msg.json.put("errorCode",PROFILE_SET_NOT_EXIST);     		
-    	}else if( profileSetMap.get(key).modifyTime.after(jsonModifyTime)){	//云端较新  
-			msg.json=null;
+    	}else if( dbProfileSet.modifyTime.after(msgModifyTime)){	//云端较新  
 			msg.json.put("errorCode",PROFILE_SET_OBSOLETE);    		
-    	}else{
-    		profileSetMap.put(key, profileSet);
-			msg.json=null;
+    	}else if( dbProfileSet.modifyTime.before(msgModifyTime)){
+    		profileSetMap.put(key, msgProfileSet);
+			msg.json=new JSONObject();
 			msg.json.put("errorCode",SUCCESS);   		
     	}    	
   		msg.header.commandID= SET_RROFILE_SET_ACK;
+		msg.json.put("sender",2);
+		msg.json.put("receiver",sender); 
     	try {
-			CtrolSocketServer.sendCommandQueue.put(msg);
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} 	
@@ -599,29 +649,33 @@ public class LogicControl {
      *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
      */
     public void delete_profile_set(Message msg) throws JSONException, SQLException{
-    	JSONObject json=msg.json;
+    	//JSONObject json=msg.json;
     	//Profile profile=null;
-    	int CtrolID=json.getInt("CtrolID");
-    	int profileSetID=json.getInt("profileSetID");
+    	int CtrolID=msg.json.getInt("CtrolID");
+    	int profileSetID=msg.json.getInt("profileSetID");
     	String key=CtrolID+"_"+profileSetID;
+    	int sender=0;
+    	if(msg.json.has("sender")){
+    		sender=msg.json.getInt("sender"); 
+    	}
     	if(profileSetMap.containsKey(key)){
     		profileSetMap.remove(key);
-    		msg.json=null;
+    		msg.json=new JSONObject();
     		msg.json.put("errorCode", SUCCESS);    		
     	}else if((ProfileSet.getProfileSetFromDB(mysql, CtrolID, profileSetID))!=null){
     		ProfileSet.deleteProfileSetFromDB(mysql, CtrolID, profileSetID);
-    		msg.json=null;
+    		msg.json=new JSONObject();
     		msg.json.put("errorCode", SUCCESS);
     	}else {
 			log.warn("room_profileSet not exist CtrolID:"+CtrolID+" profileSetID:"+profileSetID+" from profileSetMap or Mysql.");
-			msg.json=null;
 			msg.json.put("errorCode",PROFILE_SET_NOT_EXIST);
     	}
-    	msg.header.commandID+= DELETE_RROFILE_SET_ACK;
+    	msg.header.commandID= DELETE_RROFILE_SET_ACK;
+		msg.json.put("sender",2);
+		msg.json.put("receiver",sender); 
     	try {
-			CtrolSocketServer.sendCommandQueue.put(msg);
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}    	
     }
@@ -637,37 +691,35 @@ public class LogicControl {
      *   }*/
 	public void switch_profile_set(Message msg)throws JSONException, SQLException, InterruptedException{
     	Message replyMsg=new Message(msg);
-    	Message sendMsg=new Message(msg);
+    	//Message sendMsg=new Message(msg);
     	JSONObject json=msg.json;
     	ProfileSet profileSet=null;
-    	int CtrolID=json.getInt("CtrolID");
-    	int profileSetID=json.getInt("profileSetID"); 
+    	int CtrolID=msg.json.getInt("CtrolID");
+    	int profileSetID=msg.json.getInt("profileSetID"); 
     	int sender=0;
     	if(json.has("sender")){
-    		sender=json.getInt("sender"); 
+    		sender=msg.json.getInt("sender"); 
     	}     	
     	String key=CtrolID+"_"+profileSetID;
     	if((profileSet= profileSetMap.get(key))!=null || (profileSet=ProfileSet.getProfileSetFromDB(mysql, CtrolID, profileSetID))!=null){
     		jedis.publish(commandQueue, profileSet.toJsonObj().toString());
     		jedis.hset(currentProfileSet, key, profileSet.toJsonObj().toString());
     		if(sender==0){
-	    		replyMsg.json=null;
+	    		replyMsg.json=new JSONObject();
 	    		replyMsg.json.put("errorCode",SUCCESS);
-    			sendMsg.json.put("sender",2);
-    			sendMsg.json.put("receiver",0);  	    		
+  	    		
     		}else {
     			TimeOutTread to=new TimeOutTread(10,msg);
-    			to.start();    			
-    			sendMsg.json.put("sender",2);
-    			sendMsg.json.put("receiver",sender);    			
+    			to.start();  				
     		}
     	}else {
 			log.warn("Can't switch room profileSet,profileSet doesn't exit. CtrolID:"+CtrolID+" profileSetID:"+profileSetID+" from profileSetMap or Mysql.");
-			replyMsg.json=null;
 			replyMsg.json.put("errorCode",PROFILE_NOT_EXIST);
     	}
-
-    	return;
+    	msg.header.commandID= SWITCH_RROFILE_SET_ACK;
+		replyMsg.json.put("sender",2);
+		replyMsg.json.put("receiver",sender);
+		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		
 	}
 	
@@ -695,28 +747,28 @@ public class LogicControl {
 	 * @throws JSONException 
      *   */
 	public void get_one_device(Message msg) throws JSONException{
-    	JSONObject json=msg.json;
+    	//JSONObject json=msg.json;
     	Device device=new Device();
-    	int CtrolID=json.getInt("CtrolID");
-    	int deviceID=json.getInt("deviceID");
+    	int CtrolID=msg.json.getInt("CtrolID");
+    	int deviceID=msg.json.getInt("deviceID");
     	String key=CtrolID+"_"+deviceID;
-    	if(deviceMap.containsKey(key)){
-    		device=deviceMap.get(key);
-    		msg.json=null;
-    		msg.json=device.toJsonObj();
-    	}else if(null!= (device=Device.getOneDeviceFromDB(mysql, CtrolID, deviceID))){
-    		msg.json=null;
-    		msg.json=device.toJsonObj();   		
+    	int sender=0;
+    	if(msg.json.has("sender")){
+    		sender=msg.json.getInt("sender"); 
+    	}
+    	if( (device=deviceMap.get(key))!=null || (device=Device.getOneDeviceFromDB(mysql, CtrolID, deviceID))!=null){
+    		msg.json.put("device", device.toJsonObj());
+    		msg.json.put("errorCode",SUCCESS);   
     	}else {
 			log.warn("Can't get_one_device, CtrolID:"+CtrolID+"deviceID: "+ deviceID+" from deviceMap or Mysql.");
-			msg.json=null;
 			msg.json.put("errorCode",DEVICE_NOT_EXIST);
     	}
-    	msg.header.commandID+=  GET_ONE_DEVICE_ACK;
+    	msg.header.commandID=  GET_ONE_DEVICE_ACK;
+		msg.json.put("sender",2);
+		msg.json.put("receiver",sender); 
     	try {
-			CtrolSocketServer.sendCommandQueue.put(msg);
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}	
 	}
@@ -731,24 +783,31 @@ public class LogicControl {
 	 * @throws ParseException */
 	public void set_one_device(Message msg,MySqlClass mysql) throws JSONException, ParseException{
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    	JSONObject json=msg.json;
-    	Device device=new Device(msg.json);
-    	int CtrolID=json.getInt("CtrolID");
-    	int deviceID=json.getInt("deviceID");
-    	Date jsonModifyTime=sdf.parse(json.getString("modifyTime"));
+    	Device msgDevice=new Device(msg.json);
+    	Device dbDevice;
+    	int CtrolID=msg.json.getInt("CtrolID");
+    	int deviceID=msg.json.getInt("deviceID");
+    	Date msgModifyTime=sdf.parse(msg.json.getString("modifyTime"));
     	String key=CtrolID+"_"+deviceID;
+    	int sender=0;
+    	if(msg.json.has("sender")){
+    		sender=msg.json.getInt("sender"); 
+    	}
     	
-    	if( this.deviceMap.containsKey(key) && this.deviceMap.get(key).modifyTime.after(jsonModifyTime)){	//云端较新  
-			msg.json=null;
-			msg.json.put("errorCode",DEVICE_OBSOLETE);    		
-    	}else{ //云端较旧，则保存
-    		this.deviceMap.put(key, device);
-			msg.json=null;
-			msg.json.put("errorCode",SUCCESS);   
-			}    	
+    	if((dbDevice=this.deviceMap.get(key))==null  && (dbDevice=Device.getOneDeviceFromDB(mysql, CtrolID, deviceID))==null ){	
+    		msg.json.put("errorCode",DEVICE_NOT_EXIST);    		
+    	}else if(dbDevice.modifyTime.after(msgModifyTime)){ ////云端较新  
+			msg.json.put("errorCode",DEVICE_OBSOLETE);   
+		}else if (dbDevice.modifyTime.before(msgModifyTime)){ //云端较旧
+    		this.deviceMap.put(key, msgDevice);
+    		msg.json=new JSONObject();
+			msg.json.put("errorCode",SUCCESS); 
+		}
   		msg.header.commandID=SET_ONE_DEVICE_ACK;
+		msg.json.put("sender",2);
+		msg.json.put("receiver",sender); 
     	try {
-			CtrolSocketServer.sendCommandQueue.put(msg);
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} 		
@@ -766,28 +825,29 @@ public class LogicControl {
      *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
      */
     public void delete_one_device(Message msg) throws JSONException, SQLException{
-    	JSONObject json=msg.json;
-    	int CtrolID=json.getInt("CtrolID");
-    	int deviceID=json.getInt("deviceID");
+    	//JSONObject json=msg.json;
+    	int CtrolID=msg.json.getInt("CtrolID");
+    	int deviceID=msg.json.getInt("deviceID");
     	String key=CtrolID+"_"+deviceID;
-    	if(deviceMap.containsKey(key)){
+    	Device device=null;
+    	int sender=0;
+    	if(msg.json.has("sender")){
+    		sender=msg.json.getInt("sender"); 
+    	}
+    	if((device=deviceMap.get(key))!=null || (device=Device.getOneDeviceFromDB(mysql, CtrolID, deviceID))!=null){
     		deviceMap.remove(key);
-    		msg.json=null;
+    		msg.json=new JSONObject();
     		msg.json.put("errorCode", SUCCESS);    		
-    	}else if((Device.getOneDeviceFromDB(mysql, CtrolID, deviceID))!=null){
-    		Device.DeleteOneDeviceFromDB(mysql, CtrolID, deviceID);
-    		msg.json=null;
-    		msg.json.put("errorCode", SUCCESS);
     	}else {
 			log.warn("room_device not exist CtrolID:"+CtrolID+" deviceID:"+deviceID+" from deviceMap or Mysql.");
-			msg.json=null;
 			msg.json.put("errorCode",DEVICE_NOT_EXIST);
     	}
-    	msg.header.commandID+= DELETE_RROFILE_SET_ACK;
+    	msg.header.commandID=  DELETE_ONE_DEVICE_ACK;
+		msg.json.put("sender",2);
+		msg.json.put("receiver",sender); 
     	try {
-			CtrolSocketServer.sendCommandQueue.put(msg);
+			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}    	
     }
@@ -805,40 +865,38 @@ public class LogicControl {
 	 * @throws SQLException */
 	public void switch_app_state(Message msg) throws JSONException, SQLException{
 	   	Message replyMsg=new Message(msg);
-    	Message sendMsg=new Message(msg);
-    	JSONObject json=msg.json;
     	Device device=null;
-    	int CtrolID=json.getInt("CtrolID");
-    	int deviceID=json.getInt("deviceID");
+    	int CtrolID=msg.json.getInt("CtrolID");
+    	int deviceID=msg.json.getInt("deviceID");
     	int sender=0;
-    	if(json.has("sender")){
-    		sender=json.getInt("sender"); 
+    	if(msg.json.has("sender")){
+    		sender=msg.json.getInt("sender"); 
     	}
     	String key=CtrolID+"_"+deviceID;
     	if((device= deviceMap.get(key))!=null || (device=Device.getOneDeviceFromDB(mysql, CtrolID, deviceID))!=null){
     		jedis.publish(commandQueue, device.toJsonObj().toString());
     		jedis.hset(currentProfile, key, device.toJsonObj().toString());
     		if(sender==0){
-	    		replyMsg.json=null;
-	    		replyMsg.json.put("errorCode",SUCCESS);
-    			sendMsg.json.put("sender",2);
-    			sendMsg.json.put("receiver",sender);  	    		
-    		}else if(sender==1 ||sender==3){
+	    		replyMsg.json=new JSONObject();
+	    		replyMsg.json.put("errorCode",SUCCESS); 	    		
+    		}else {
 //    			replyMsg.json=null;
 //    			replyMsg.json.put("errorCode",RECEIVED);
     			TimeOutTread to=new TimeOutTread(10,msg);
-    			to.start();
-    			
-    			sendMsg.json.put("sender",2);
-    			sendMsg.json.put("receiver",0);    			
+    			to.start();   			
     		}
     	}else {
 			log.warn("Can't switch room device,device doesn't exit. CtrolID:"+CtrolID+" deviceID:"+deviceID+" from deviceMap or Mysql.");
-			replyMsg.json=null;
 			replyMsg.json.put("errorCode",PROFILE_NOT_EXIST);
     	}
-    	return;
-
+    	msg.header.commandID=SWITCH_DEVICE_STATE_ACK;
+    	replyMsg.json.put("sender",2);
+    	replyMsg.json.put("receiver",sender); 
+		try {
+			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 	
     /*** 请求切换某个家电状态,返回值
