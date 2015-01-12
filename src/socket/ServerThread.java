@@ -75,23 +75,11 @@ public class ServerThread extends Thread  {
 			} catch (UnsupportedEncodingException | JSONException e) {
 				e.printStackTrace();
 			} 
-            if(msg.isValid()){
-            	if(CtrolSocketServer.receiveCommandQueue.offer(msg)==false){
-            		log.error("can't add message to the receiving queue. SequeeceID:"+msg.header.sequeeceNo);
-            	}
-            }else{
-            	log.info("Invalid command receive. SequeeceID:"+msg.header.sequeeceNo+" command ID :"+msg.header.commandID);
-            	Message errMsg=msg;
-            	errMsg.header.commandID+= LogicControl.COMMAND_ACK_OFFSET;
-            	errMsg.json=new JSONObject();
-            	try {
-					errMsg.json.put("errorCode", LogicControl.WRONG_COMMAND);
-					CtrolSocketServer.sendCommandQueue.offer(errMsg, 100, TimeUnit.MICROSECONDS);
-				} catch (JSONException | InterruptedException e) {
-					e.printStackTrace();
-				}
-            	//CtrolSocketServer.sendCommandQueue.add(errMsg);
-            }
+            try {
+				CtrolSocketServer.receiveCommandQueue.offer(msg,100, TimeUnit.MICROSECONDS);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
         }   
     } 
     

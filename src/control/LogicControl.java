@@ -117,7 +117,7 @@ public class LogicControl {
 	private static final int DEVICE_NOT_EXIST   	  = -50012;
 	
 	/*** 消息可以识别，但是收件人错误，例如收到自己发送的消息*/
-	private static final int WRONG_RECEIVER		   	  = -50021;
+	private static final int COMMAND_NOT_ENCODED   	  = -50021;
 	/** 命令超时没有响应*/
 	public static final int TIME_OUT		   	      = -50022;
 	/**命令号码段不对*/
@@ -297,17 +297,35 @@ public class LogicControl {
 			}
 			break;
 		default:
-			msg.json=new JSONObject();
 			int sender=0;
-
-			try {
-				if(msg.json.has("sender")){
-					   sender=msg.json.getInt("sender");
+			if(msg.json.has("sender")){
+				   try {
+					sender=msg.json.getInt("sender");
+	    			msg.json.put("sender",2);
+	    			msg.json.put("receiver",sender); 
+				} catch (JSONException e) {
+					e.printStackTrace();
 				}
-				msg.json.put("errorCode", WRONG_COMMAND);
-    			msg.json.put("sender",2);
-    			msg.json.put("receiver",sender);  
-			} catch (JSONException e) {
+			}
+			if(msg.isValid()){
+				log.info("Valid command receive,but commandID not encoded.SequeeceID:"+msg.cookie+" command ID :"+msg.header.commandID);
+				try {
+					msg.json.put("errorCode", LogicControl.COMMAND_NOT_ENCODED);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				}
+            }else{
+            	log.info("Invalid command receive. SequeeceID:"+msg.cookie+" command ID :"+msg.header.commandID);
+            	try {
+					msg.json.put("errorCode", LogicControl.WRONG_COMMAND);
+				} catch (JSONException  e) {
+					e.printStackTrace();
+				}            
+            }
+			msg.header.commandID+= LogicControl.COMMAND_ACK_OFFSET;
+			try {
+				CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MICROSECONDS);
+			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 			break;

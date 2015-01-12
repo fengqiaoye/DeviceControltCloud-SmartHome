@@ -15,6 +15,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import org.apache.log4j.Logger;
+
 import control.Config;
 
 public class CtrolSocketServer {
@@ -36,8 +37,10 @@ public class CtrolSocketServer {
      */
 	public static Map<String,Thread> threadMap;//= new HashMap<String,Thread>();
 	
-    public static BlockingQueue<Message> receiveCommandQueue;//= new ArrayBlockingQueue<Message>(10000);
-    public static BlockingQueue<Message> sendCommandQueue;//= new ArrayBlockingQueue<Message>(10000);
+   // public static BlockingQueue<Message> receiveCommandQueue;
+   // public static BlockingQueue<Message> sendCommandQueue;
+	public static ReceiveCommandQueue receiveCommandQueue;
+	public static SendCommandQueue sendCommandQueue;
     
 	static Logger log =Logger.getLogger(CtrolSocketServer.class);	
 	
@@ -48,12 +51,12 @@ public class CtrolSocketServer {
 		threadMap= new HashMap<String,Thread>();
 		
 		int serverPort=Integer.parseInt(config.getValue("server_port"));
-		int max_send_msg_queue=Integer.parseInt(config.getValue("max_send_msg_queue"));
-		int max_recv_msg_queue=Integer.parseInt(config.getValue("max_recv_msg_queue"));
-
-		sendCommandQueue= new ArrayBlockingQueue<Message>(max_send_msg_queue);
-		receiveCommandQueue= new ArrayBlockingQueue<Message>(max_recv_msg_queue);
-
+		//int max_send_msg_queue=Integer.parseInt(config.getValue("max_send_msg_queue"));
+		//int max_recv_msg_queue=Integer.parseInt(config.getValue("max_recv_msg_queue"));
+		//sendCommandQueue= new ArrayBlockingQueue<Message>(max_send_msg_queue);
+		//receiveCommandQueue= new ArrayBlockingQueue<Message>(max_recv_msg_queue);
+		sendCommandQueue=SendCommandQueue.getInstance();
+		receiveCommandQueue=ReceiveCommandQueue.getInstance();
         try{
         	severSock= new ServerSocket(serverPort);
         }

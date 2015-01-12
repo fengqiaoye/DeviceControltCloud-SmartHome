@@ -148,18 +148,18 @@ public class Message  {
 			   dataout.writeUTF(  	this.header.headTag            )  ;
 			   dataout.writeByte(		this.header.mainVersion)	  ;
 			   dataout.writeByte(		this.header.subVersion)       ;
-			   dataout.writeShort(		(int)this.header.msgLen)		      ;
-			   dataout.writeShort(		(int)this.header.commandID)	      ;
+			   dataout.writeShort(		this.header.msgLen)		      ;
+			   dataout.writeShort(		this.header.commandID)	      ;
 			   dataout.writeInt(		this.header.sequeeceNo)	      ;
 			   dataout.writeByte(		this.header.encType)		  ;
 			   dataout.writeByte(		this.header.cookieLen)	      ;	   
 			   dataout.writeInt(		this.header.reserve	)	       ;  
 			   dataout.writeUTF(		this.cookie)		             ; 
 			   dataout.writeUTF(		this.json.toString()   ) 	;
+			   dataout.flush();
 			  
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}    	
     }

@@ -53,7 +53,7 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
     }
     
     @Override
-    public boolean offer(Message msg, long time, TimeUnit unit) {
+    public boolean offer(Message msg, long time, TimeUnit unit) throws InterruptedException {
     	Event event=new Event(msg);
     	checkMysql();
      	try {
@@ -61,12 +61,10 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-     	try {
+
 			return super.offer(msg,time,unit);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-     	return false;
+
+
     }
     
     
