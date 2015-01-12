@@ -57,7 +57,7 @@ public class Event {
 			int commandID,
 			int CtrolID,
 			int roomID,
-			String sender,
+			//String sender,
 			int senderRole,
 			int errorCode,
 			Date receiveTime,
@@ -91,7 +91,7 @@ public class Event {
 		}
 		if(msg.json.has("roomID")){
 			try {
-				this.CtrolID=msg.json.getInt("roomID");
+				this.roomID=msg.json.getInt("roomID");
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
@@ -110,7 +110,7 @@ public class Event {
 
 		if(msg.json.has("errorCode")){
 			try {
-				this.CtrolID=msg.json.getInt("errorCode");
+				this.errorCode=msg.json.getInt("errorCode");
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
@@ -167,7 +167,7 @@ public class Event {
 					+"commandid ,"
 					+"ctrolid ,"
 					+"roomid ,"
-					+"sender ,"
+					//+"sender ,"
 					+"senderrole ,"
 					+"errorcode ,"
 					+"receivetime ,"

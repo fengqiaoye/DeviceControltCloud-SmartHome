@@ -10,7 +10,7 @@ import java.io.InputStreamReader;
 
 public class TwoSocketServer
 {
-	ArrayList clientList = new ArrayList();
+	ArrayList<Socket> clientList = new ArrayList<Socket>();
 	//private DataOutputStream output;
 	//private DataInputStream input;
 	//private String clientName;

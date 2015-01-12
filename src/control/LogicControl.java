@@ -880,8 +880,6 @@ public class LogicControl {
 	    		replyMsg.json=new JSONObject();
 	    		replyMsg.json.put("errorCode",SUCCESS); 	    		
     		}else {
-//    			replyMsg.json=null;
-//    			replyMsg.json.put("errorCode",RECEIVED);
     			TimeOutTread to=new TimeOutTread(10,msg);
     			to.start();   			
     		}
@@ -904,7 +902,7 @@ public class LogicControl {
     * { 
      *   sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:4; ...
      *   receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
-         errorCode: SUCCESS/ APP_NOT_EXIST /TIME_OUT /WRONG_RECEIVER  /WRONG_COMMAND
+         errorCode: SUCCESS/ PROFILE_SET_NOT_EXIST /TIME_OUT /WRONG_COMMAND
     * }
      * @throws InterruptedException 
  	* */

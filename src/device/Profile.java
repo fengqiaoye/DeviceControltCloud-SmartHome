@@ -4,7 +4,6 @@ package device;
  * @version Created：2014年12月15日 下午3:03:30 
  */
 
-import java.util.*;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -17,7 +16,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import control.LogicControl;
 import util.MySqlClass;
 
 

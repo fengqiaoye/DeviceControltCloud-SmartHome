@@ -221,7 +221,6 @@ public class ProfileSet {
    */
 	public static int deleteProfileSetFromDB(MySqlClass mysql,int CtrolID,int profileSetID) throws SQLException
 	{
-		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		mysql.conn.setAutoCommit(false);
 		String sql="delte *  "
 				+ "  from  "				

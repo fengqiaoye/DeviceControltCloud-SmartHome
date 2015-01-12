@@ -1,2 +1,32 @@
 2015-01-12 09:36:51[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
 2015-01-12 09:36:51[INFO ] control.Config.<init>(Config.java:53): System config finished. 
+2015-01-12 16:35:53[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-12 16:35:53[INFO ] control.Config.<init>(Config.java:53): System config finished. 
+2015-01-12 16:36:09[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-12 16:36:09[INFO ] control.Config.<init>(Config.java:53): System config finished. 
+2015-01-12 16:42:45[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-12 16:42:45[INFO ] control.Config.<init>(Config.java:53): System config finished. 
+2015-01-12 16:42:46[ERROR] util.MySqlClass.query(MySqlClass.java:69): com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException: Duplicate entry '87654321' for key 'PRIMARY'
+com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException: Duplicate entry '87654321' for key 'PRIMARY'
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(Unknown Source)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(Unknown Source)
+	at java.lang.reflect.Constructor.newInstance(Unknown Source)
+	at com.mysql.jdbc.Util.handleNewInstance(Util.java:411)
+	at com.mysql.jdbc.Util.getInstance(Util.java:386)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:1041)
+	at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:4190)
+	at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:4122)
+	at com.mysql.jdbc.MysqlIO.sendCommand(MysqlIO.java:2570)
+	at com.mysql.jdbc.MysqlIO.sqlQueryDirect(MysqlIO.java:2731)
+	at com.mysql.jdbc.ConnectionImpl.execSQL(ConnectionImpl.java:2812)
+	at com.mysql.jdbc.StatementImpl.executeUpdate(StatementImpl.java:1811)
+	at com.mysql.jdbc.StatementImpl.executeUpdate(StatementImpl.java:1725)
+	at util.MySqlClass.query(MySqlClass.java:63)
+	at socket.Event.toReplyDB(Event.java:191)
+	at socket.SendCommandQueue.put(SendCommandQueue.java:89)
+	at socket.SendCommandQueue.main(SendCommandQueue.java:132)
+2015-01-12 16:43:08[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-12 16:43:08[INFO ] control.Config.<init>(Config.java:53): System config finished. 
+2015-01-12 16:43:15[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-12 16:43:15[INFO ] control.Config.<init>(Config.java:53): System config finished. 

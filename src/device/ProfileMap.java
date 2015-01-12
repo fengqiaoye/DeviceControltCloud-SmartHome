@@ -14,23 +14,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-/** 
- * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created：2014年12月15日 下午4:48:54 
- */
-
-
-
-
-
-
-
-
-
-import org.apache.log4j.Logger;
-
-import util.BytesUtil;
 import util.MySqlClass;
 
 /**

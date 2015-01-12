@@ -1,16 +1,12 @@
 package socket;
 
 import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.mysql.jdbc.authentication.MysqlClearPasswordPlugin;
 
 import util.MySqlClass;
 import control.Config;
@@ -128,6 +124,7 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
     	
     	ReceiveCommandQueue qe=ReceiveCommandQueue.getInstance();
     	qe.put(msg);
+    	System.out.println(qe.size());
 		
 
 	}

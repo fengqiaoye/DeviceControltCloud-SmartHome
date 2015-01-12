@@ -88,11 +88,10 @@ public class TestClass {
 	}
 	
 	public static void testJson(){
-		JSONObject jo=null;
+		JSONObject jo=new JSONObject();
 		try {
 			jo.put("1","2");
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
