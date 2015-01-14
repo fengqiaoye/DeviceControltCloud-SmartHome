@@ -1,4 +1,4 @@
-package socket;
+ï»¿package socket;
 
 import java.sql.SQLException;
 import java.util.Date;
@@ -14,13 +14,13 @@ import control.LogicControl;
 
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created£º9 Jan 2015 15:25:50 
+ * @version Createdï¼š9 Jan 2015 15:25:50 
  */
 
 public class SendCommandQueue  extends ArrayBlockingQueue<Message>{
 
 	/**
-	 * Ä¬ÈÏserialVersionUID
+	 * é»˜è®¤serialVersionUID
 	 */
 	private static final long serialVersionUID = -8076018759025681161L;
 	

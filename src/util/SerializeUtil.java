@@ -1,7 +1,7 @@
-package util;
+ï»¿package util;
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created£º6 Jan 2015 10:47:18 
+ * @version Createdï¼š6 Jan 2015 10:47:18 
  */
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -13,7 +13,7 @@ public class SerializeUtil {
 		ObjectOutputStream oos = null;
 		ByteArrayOutputStream baos = null;
 		try {
-			//ĞòÁĞ»¯
+			//åºåˆ—åŒ–
 			baos = new ByteArrayOutputStream();
 			oos = new ObjectOutputStream(baos);
 			oos.writeObject(object);
@@ -28,7 +28,7 @@ public class SerializeUtil {
 	public static Object unserialize(byte[] bytes) {
 		ByteArrayInputStream bais = null;
 		try {
-			//·´ĞòÁĞ»¯
+			//ååºåˆ—åŒ–
 			bais = new ByteArrayInputStream(bytes);
 			ObjectInputStream ois = new ObjectInputStream(bais);
 			return ois.readObject();

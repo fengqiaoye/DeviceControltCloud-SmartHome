@@ -1,10 +1,10 @@
-package util;
+ï»¿package util;
 
 import java.nio.charset.Charset;
 
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created£º22 Dec 2014 16:58:28 
+ * @version Createdï¼š22 Dec 2014 16:58:28 
  */
 
 public class BytesUtil {

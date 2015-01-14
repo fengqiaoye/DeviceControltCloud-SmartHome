@@ -1,7 +1,7 @@
-package socket;
+ï»¿package socket;
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created£º18 Dec 2014 16:43:09 
+ * @version Createdï¼š18 Dec 2014 16:43:09 
  */
 
 import java.sql.SQLException;
@@ -27,25 +27,25 @@ public class Event {
 	private static final String replyTable   ="info_devicecontrol_msg_reply";
 	MySqlClass mysql;
 	
-	/*** ÌîĞ´ĞòÁĞºÅ*/
+	/*** å¡«å†™åºåˆ—å·*/
 	int eventID;
 	
 	/**
-	 * <pre>ÊÂ¼şÀàĞÍ:
-	 *  ÌîĞ´ commandID
+	 * <pre>äº‹ä»¶ç±»å‹:
+	 *  å¡«å†™ commandID
 	 * */
 	int commandID;
 	
 	int CtrolID;
 	int roomID;
 	
-	/** JsonÀïµÄctrolID*/
+	/** Jsoné‡Œçš„ctrolID*/
 	//String sender;
 	
-	/***"JsonÀïµÄsender £ºcontrol":0  ;"mobile":1;  "cloud":2;  web:3;   other£º4 */
+	/***"Jsoné‡Œçš„sender ï¼šcontrol":0  ;"mobile":1;  "cloud":2;  web:3;   otherï¼š4 */
 	int senderRole;  
 
-	/***<pre>´¦Àí½á¹û£º ÌîĞ´errorCode*/
+	/***<pre>å¤„ç†ç»“æœï¼š å¡«å†™errorCode*/
 	int errorCode;
 	Date receiveTime;
 	Date replyTime;	
@@ -86,7 +86,7 @@ public class Event {
 				e.printStackTrace();
 			}
 		}else {
-			System.out.println("In contact message received, cant parse CtrolID in json£º"+msg.msgToString());
+			System.out.println("In contact message received, cant parse CtrolID in jsonï¼š"+msg.msgToString());
 			return;
 		}
 		if(msg.json.has("roomID")){

@@ -1,4 +1,4 @@
-package util;
+ï»¿package util;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,10 +15,10 @@ import redis.clients.jedis.ShardedJedisPool;
 
 public class RedisClient {
 
-    private Jedis jedis;//·ÇÇĞÆ¬¶î¿Í»§¶ËÁ¬½Ó
-    private JedisPool jedisPool;//·ÇÇĞÆ¬Á¬½Ó³Ø
-    private static ShardedJedis shardedJedis;//ÇĞÆ¬¶î¿Í»§¶ËÁ¬½Ó
-    private ShardedJedisPool shardedJedisPool;//ÇĞÆ¬Á¬½Ó³Ø
+    private Jedis jedis;//éåˆ‡ç‰‡é¢å®¢æˆ·ç«¯è¿æ¥
+    private JedisPool jedisPool;//éåˆ‡ç‰‡è¿æ¥æ± 
+    private static ShardedJedis shardedJedis;//åˆ‡ç‰‡é¢å®¢æˆ·ç«¯è¿æ¥
+    private ShardedJedisPool shardedJedisPool;//åˆ‡ç‰‡è¿æ¥æ± 
 
     
     public RedisClient() 
@@ -30,11 +30,11 @@ public class RedisClient {
     } 
  
     /**
-     * ³õÊ¼»¯·ÇÇĞÆ¬³Ø
+     * åˆå§‹åŒ–éåˆ‡ç‰‡æ± 
      */
     private void initialPool() 
     { 
-        // ³Ø»ù±¾ÅäÖÃ 
+        // æ± åŸºæœ¬é…ç½® 
         JedisPoolConfig config = new JedisPoolConfig(); 
         config.setMaxActive(20); 
         config.setMaxIdle(5); 
@@ -45,21 +45,21 @@ public class RedisClient {
     }
     
     /** 
-     * ³õÊ¼»¯ÇĞÆ¬³Ø 
+     * åˆå§‹åŒ–åˆ‡ç‰‡æ±  
      */ 
     private void initialShardedPool() 
     { 
-        // ³Ø»ù±¾ÅäÖÃ 
+        // æ± åŸºæœ¬é…ç½® 
         JedisPoolConfig config = new JedisPoolConfig(); 
         config.setMaxActive(20); 
         config.setMaxIdle(5); 
         config.setMaxWait(1000l); 
         config.setTestOnBorrow(false); 
-        // slaveÁ´½Ó 
+        // slaveé“¾æ¥ 
         List<JedisShardInfo> shards = new ArrayList<JedisShardInfo>(); 
         shards.add(new JedisShardInfo("172.16.35.170", 6379, "master")); 
 
-        // ¹¹Ôì³Ø 
+        // æ„é€ æ±  
         shardedJedisPool = new ShardedJedisPool(config, shards); 
     } 
     
@@ -73,30 +73,30 @@ public class RedisClient {
     	redisClient.show();
        //System.out.println(redisClient.jedis.flushDB()); 
         
-        System.out.println("=============Ôö=============");
-        System.out.println("hashsÖĞÌí¼Ókey001ºÍvalue001¼üÖµ¶Ô£º"+shardedJedis.hset("hashs", "key001", "value001")); 
-        System.out.println("hashsÖĞÌí¼Ókey002ºÍvalue002¼üÖµ¶Ô£º"+shardedJedis.hset("hashs", "key002", "value002")); 
-        System.out.println("hashsÖĞÌí¼Ókey003ºÍvalue003¼üÖµ¶Ô£º"+shardedJedis.hset("hashs", "key003", "value003"));
-        System.out.println("ĞÂÔökey004ºÍ4µÄÕûĞÍ¼üÖµ¶Ô£º"+shardedJedis.hincrBy("hashs", "key004", 4l));
-        System.out.println("hashsÖĞµÄËùÓĞÖµ£º"+shardedJedis.hvals("hashs"));
+        System.out.println("=============å¢=============");
+        System.out.println("hashsä¸­æ·»åŠ key001å’Œvalue001é”®å€¼å¯¹ï¼š"+shardedJedis.hset("hashs", "key001", "value001")); 
+        System.out.println("hashsä¸­æ·»åŠ key002å’Œvalue002é”®å€¼å¯¹ï¼š"+shardedJedis.hset("hashs", "key002", "value002")); 
+        System.out.println("hashsä¸­æ·»åŠ key003å’Œvalue003é”®å€¼å¯¹ï¼š"+shardedJedis.hset("hashs", "key003", "value003"));
+        System.out.println("æ–°å¢key004å’Œ4çš„æ•´å‹é”®å€¼å¯¹ï¼š"+shardedJedis.hincrBy("hashs", "key004", 4l));
+        System.out.println("hashsä¸­çš„æ‰€æœ‰å€¼ï¼š"+shardedJedis.hvals("hashs"));
         System.out.println();
         
-        System.out.println("=============É¾=============");
-        System.out.println("hashsÖĞÉ¾³ıkey002¼üÖµ¶Ô£º"+shardedJedis.hdel("hashs", "key002"));
-        System.out.println("hashsÖĞµÄËùÓĞÖµ£º"+shardedJedis.hvals("hashs"));
+        System.out.println("=============åˆ =============");
+        System.out.println("hashsä¸­åˆ é™¤key002é”®å€¼å¯¹ï¼š"+shardedJedis.hdel("hashs", "key002"));
+        System.out.println("hashsä¸­çš„æ‰€æœ‰å€¼ï¼š"+shardedJedis.hvals("hashs"));
         System.out.println();
         
-        System.out.println("=============¸Ä=============");
-        System.out.println("key004ÕûĞÍ¼üÖµµÄÖµÔö¼Ó100£º"+shardedJedis.hincrBy("hashs", "key004", 100l));
-        System.out.println("hashsÖĞµÄËùÓĞÖµ£º"+shardedJedis.hvals("hashs"));
+        System.out.println("=============æ”¹=============");
+        System.out.println("key004æ•´å‹é”®å€¼çš„å€¼å¢åŠ 100ï¼š"+shardedJedis.hincrBy("hashs", "key004", 100l));
+        System.out.println("hashsä¸­çš„æ‰€æœ‰å€¼ï¼š"+shardedJedis.hvals("hashs"));
         System.out.println();
         
-        System.out.println("=============²é=============");
-        System.out.println("ÅĞ¶Ïkey003ÊÇ·ñ´æÔÚ£º"+shardedJedis.hexists("hashs", "key003"));
-        System.out.println("»ñÈ¡key004¶ÔÓ¦µÄÖµ£º"+shardedJedis.hget("hashs", "key004"));
-        System.out.println("ÅúÁ¿»ñÈ¡key001ºÍkey003¶ÔÓ¦µÄÖµ£º"+shardedJedis.hmget("hashs", "key001", "key003")); 
-        System.out.println("»ñÈ¡hashsÖĞËùÓĞµÄkey£º"+shardedJedis.hkeys("hashs"));
-        System.out.println("»ñÈ¡hashsÖĞËùÓĞµÄvalue£º"+shardedJedis.hvals("hashs"));
+        System.out.println("=============æŸ¥=============");
+        System.out.println("åˆ¤æ–­key003æ˜¯å¦å­˜åœ¨ï¼š"+shardedJedis.hexists("hashs", "key003"));
+        System.out.println("è·å–key004å¯¹åº”çš„å€¼ï¼š"+shardedJedis.hget("hashs", "key004"));
+        System.out.println("æ‰¹é‡è·å–key001å’Œkey003å¯¹åº”çš„å€¼ï¼š"+shardedJedis.hmget("hashs", "key001", "key003")); 
+        System.out.println("è·å–hashsä¸­æ‰€æœ‰çš„keyï¼š"+shardedJedis.hkeys("hashs"));
+        System.out.println("è·å–hashsä¸­æ‰€æœ‰çš„valueï¼š"+shardedJedis.hvals("hashs"));
         System.out.println();
     }
     

@@ -1,7 +1,7 @@
-package control;
+ï»¿package control;
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created£º6 Jan 2015 18:17:24 
+ * @version Createdï¼š6 Jan 2015 18:17:24 
  */
 
 import java.util.Date;
@@ -38,25 +38,25 @@ public class TimeOutTread extends Thread {
 	}
     
     public void run(){  
-        //int timeout = 10; //Ãë.  
+        //int timeout = 10; //ç§’.  
         ExecutorService executor = Executors.newSingleThreadExecutor();  
         Boolean result = false;     
-        Future<Boolean> future = executor.submit(this.task);// ½«ÈÎÎñÌá½»µ½Ïß³Ì³ØÖÐ     
+        Future<Boolean> future = executor.submit(this.task);// å°†ä»»åŠ¡æäº¤åˆ°çº¿ç¨‹æ± ä¸­     
         try {  
             System.out.println(new Date());  
-            result = future.get(timOut*1000, TimeUnit.MILLISECONDS);// Éè¶¨ÔÚ2000ºÁÃëµÄÊ±¼äÄÚÍê³É   
+            result = future.get(timOut*1000, TimeUnit.MILLISECONDS);// è®¾å®šåœ¨2000æ¯«ç§’çš„æ—¶é—´å†…å®Œæˆ   
             System.out.println(result);
             System.out.println(new Date());
         } catch (InterruptedException e) {  
-            System.out.println("Ïß³ÌÖÐ¶Ï³ö´í¡£");  
-            future.cancel(true);      // ÖÐ¶ÏÖ´ÐÐ´ËÈÎÎñµÄÏß³Ì     
+            System.out.println("çº¿ç¨‹ä¸­æ–­å‡ºé”™ã€‚");  
+            future.cancel(true);      // ä¸­æ–­æ‰§è¡Œæ­¤ä»»åŠ¡çš„çº¿ç¨‹     
         } catch (ExecutionException e) {     
-            System.out.println("Ïß³Ì·þÎñ³ö´í");  
+            System.out.println("çº¿ç¨‹æœåŠ¡å‡ºé”™");  
             e.printStackTrace();
-            future.cancel(true);      // ÖÐ¶ÏÖ´ÐÐ´ËÈÎÎñµÄÏß³Ì     
-        } catch (TimeoutException e) {// ³¬Ê±Òì³£     
+            future.cancel(true);      // ä¸­æ–­æ‰§è¡Œæ­¤ä»»åŠ¡çš„çº¿ç¨‹     
+        } catch (TimeoutException e) {// è¶…æ—¶å¼‚å¸¸     
         	
-            System.out.println("³¬Ê±"); 
+            System.out.println("è¶…æ—¶"); 
 
             try {
           	
@@ -72,9 +72,9 @@ public class TimeOutTread extends Thread {
 			} catch (InterruptedException | JSONException e1) {
 				e1.printStackTrace();
 			}
-            future.cancel(true);      // ÖÐ¶ÏÖ´ÐÐ´ËÈÎÎñµÄÏß³Ì
+            future.cancel(true);      // ä¸­æ–­æ‰§è¡Œæ­¤ä»»åŠ¡çš„çº¿ç¨‹
         }finally{  
-            System.out.println("Ïß³Ì·þÎñ¹Ø±Õ");  
+            System.out.println("çº¿ç¨‹æœåŠ¡å…³é—­");  
             executor.shutdown();  
         }  
     }  
@@ -83,7 +83,7 @@ public class TimeOutTread extends Thread {
         public Boolean call() {     
             while(true){   	
             	
-                if (Thread.interrupted()){ //ºÜÖØÒª  
+                if (Thread.interrupted()){ //å¾ˆé‡è¦  
                     return false;     
                 }  
             }
@@ -126,7 +126,7 @@ public class TimeOutTread extends Thread {
     				}else if( commandID>=0x5600 && commandID<=0x59FF && msgMap.containsKey(originKey) && msgMap.get(originKey).cookie==cookie){
         	    		try {
         	    			msg.json.put("sender",2);
-        	    			msg.json.put("receiver",sender);  
+        	    			msg.json.put("receiver",0);  
 							boolean t=CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 							if(t==true){
 								return true;
@@ -149,7 +149,7 @@ public class TimeOutTread extends Thread {
     				e.printStackTrace();
     			}
             	
-                if (Thread.interrupted()){    //ºÜÖØÒª  
+                if (Thread.interrupted()){    //å¾ˆé‡è¦  
                     return false;     
                 }  
             }
@@ -188,7 +188,7 @@ public class TimeOutTread extends Thread {
     	
     	TimeOutTread to=new TimeOutTread(5,msg);
     	to.start();    
-    	System.out.println("Ã»ÓÐ×èÈû");
+    	System.out.println("æ²¡æœ‰é˜»å¡ž");
     }   
     
 }  

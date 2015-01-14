@@ -1,8 +1,8 @@
-/**
+ï»¿/**
  * Copyright 2014 Cooxm.com
  * All right reserved.
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * Created£º17 Dec 2014 19:38:07 
+ * Createdï¼š17 Dec 2014 19:38:07 
  */
 package control;
 
@@ -22,7 +22,7 @@ public class Warn {
 	
 	int  type       ; 
 	/*** 
-	 * ¸æ¾¯ÇşµÀ£º 0£ºÍøÂç£» 1£ºSMS; 2 :both
+	 * å‘Šè­¦æ¸ é“ï¼š 0ï¼šç½‘ç»œï¼› 1ï¼šSMS; 2 :both
 	 * */
 	int  channel    ;  
 	Date  createTime ;  

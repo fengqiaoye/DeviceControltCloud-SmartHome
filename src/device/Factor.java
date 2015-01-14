@@ -1,30 +1,30 @@
-package device;
+ï»¿package device;
 
 import java.util.*;
 
-/*** Çé¾°Ä£Ê½Ëù°üº¬µÄÇé¾°ÒòËØ*/
+/*** æƒ…æ™¯æ¨¡å¼æ‰€åŒ…å«çš„æƒ…æ™¯å› ç´ */
 public class Factor {
  
-	/***<pre>0-10£º±£Áô
-	10£ºµÆ
-	20£ºµçÊÓ
-	40: ¿Õµ÷
+	/***<pre>0-10ï¼šä¿ç•™
+	10ï¼šç¯
+	20ï¼šç”µè§†
+	40: ç©ºè°ƒ
 
-	41: ¿Õµ÷¿ª¹Ø
-	42£º¿Õµ÷ÎÂ¶È
-	43£º¿Õµ÷·çËÙ
+	41: ç©ºè°ƒå¼€å…³
+	42ï¼šç©ºè°ƒæ¸©åº¦
+	43ï¼šç©ºè°ƒé£Žé€Ÿ
 
-	60£º´°»§
-	80£º´°Á±
-	90£ºÅ¯Æ÷
+	60ï¼šçª—æˆ·
+	80ï¼šçª—å¸˜
+	90ï¼šæš–å™¨
 
-	201£º¹â
-	301£ºPM2.5 
-	401£ºÓÐº¦ÆøÌå
-	501£ºÊª¶È
-	601£ºÎÂ¶È
-	701£ºÌìÆø£¨Ô¤±¨£©
-	901£ºÉùÒô*/
+	201ï¼šå…‰
+	301ï¼šPM2.5 
+	401ï¼šæœ‰å®³æ°”ä½“
+	501ï¼šæ¹¿åº¦
+	601ï¼šæ¸©åº¦
+	701ï¼šå¤©æ°”ï¼ˆé¢„æŠ¥ï¼‰
+	901ï¼šå£°éŸ³*/
 	int factorID;
 	//int factorType;
 	//String factorName;
@@ -61,7 +61,7 @@ public class Factor {
 		this.modifyTime=modifyTime;		
 	}
 	
-	/*** ²»º¬´´½¨Ê±¼ä,²»º¬ÒòËØÃû³ÆµÄ³õÊ¼»¯·½·¨*/
+	/*** ä¸å«åˆ›å»ºæ—¶é—´,ä¸å«å› ç´ åç§°çš„åˆå§‹åŒ–æ–¹æ³•*/
 	Factor(	int factorID,	
 			int factorType,	
 			int minValue,

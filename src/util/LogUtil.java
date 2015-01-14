@@ -1,8 +1,8 @@
-package util;
+ï»¿package util;
 
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created£º18 Dec 2014 17:42:35 
+ * @version Createdï¼š18 Dec 2014 17:42:35 
  */
 
 import java.io.IOException;

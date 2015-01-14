@@ -1,4 +1,4 @@
-package socket;
+﻿package socket;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -17,8 +17,8 @@ public class Message  {
 	 public Header header;
 	 public String cookie;
 	 public JSONObject json;
-	 Date receiveTime;
-	 Date replyTime;
+	 public Date receiveTime;
+	 public Date replyTime;
 
 	public Message(){}
 	public Message(Message msg){	
@@ -120,6 +120,17 @@ public class Message  {
 	   return out;
     }*/
    
+   /** <pre> 根据cookie获取发送命令的serverID
+    * 如果cookie为空则返回 -1 */
+   public int getServerID() {
+	   int serverID=-1;
+	   if(this.cookie==null){
+         return -1;
+	   }else{
+		   serverID=Integer.parseInt(this.cookie.split("_")[1]);
+	   }	   
+	return serverID;	
+   }
    
     public void writeBytesToSock(Socket sock){
     	try {
@@ -135,6 +146,7 @@ public class Message  {
 			   dataout.write(	BytesUtil.getBytes(	this.header.reserve	)	      ) ;  
 			   dataout.write(	BytesUtil.getBytes(	this.cookie,"UTF-8")		          )   ; 
 			   dataout.write(	BytesUtil.getBytes(	this.json.toString(),"UTF-8") )	; 
+			   dataout.flush();
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -156,9 +168,7 @@ public class Message  {
 			   dataout.writeInt(		this.header.reserve	)	       ;  
 			   dataout.writeUTF(		this.cookie)		             ; 
 			   dataout.writeUTF(		this.json.toString()   ) 	;
-			   dataout.flush();
-			  
-			
+			   dataout.flush();		
 		} catch (IOException e) {
 			e.printStackTrace();
 		}    	

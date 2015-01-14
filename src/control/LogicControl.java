@@ -1,9 +1,9 @@
-package control;
+ï»¿package control;
 /**
  * Copyright 2014 Cooxm.com
  * All right reserved.
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * Created£º2014Äê12ÔÂ15ÈÕ ÏÂÎç4:48:54 
+ * Createdï¼š2014å¹´12æœˆ15æ—¥ ä¸‹åˆ4:48:54 
  */
 
 
@@ -35,70 +35,70 @@ public class LogicControl {
 	public static final short COMMAND_START            		   =  0x1600;
 	public static final short COMMAND_ACK_OFFSET       		   =  0x4000; 
 	
-    /*** ÇëÇó Çé¾°Ä£Ê½ÃüÁî    @see get_room_profile() */
+    /*** è¯·æ±‚ æƒ…æ™¯æ¨¡å¼å‘½ä»¤    @see get_room_profile() */
 	private static final short GET_ROOM_PROFILE					=	COMMAND_START+1;	
-    /*** ÇëÇó Çé¾°Ä£Ê½µÄ»Ø¸´    @see get_room_profile_ack() */
+    /*** è¯·æ±‚ æƒ…æ™¯æ¨¡å¼çš„å›å¤    @see get_room_profile_ack() */
 	private static final short GET_ROOM_PROFILE_ACK     		=   COMMAND_START+1 + COMMAND_ACK_OFFSET;	
 	
-    /*** ÉèÖÃ Çé¾°Ä£Ê½   @see set_room_profile()  */
+    /*** è®¾ç½® æƒ…æ™¯æ¨¡å¼   @see set_room_profile()  */
 	private static final short SET_ROOM_PROFILE					=	COMMAND_START+2;	
-    /*** ÉèÖÃ Çé¾°Ä£Ê½µÄ»Ø¸´   @see set_room_profile_ack()  */
+    /*** è®¾ç½® æƒ…æ™¯æ¨¡å¼çš„å›å¤   @see set_room_profile_ack()  */
 	private static final short SET_ROOM_PROFILE_ACK	    		=	COMMAND_START+2+COMMAND_ACK_OFFSET;
 
-    /*** É¾³ı Çé¾°Ä£Ê½   @see delete_room_profile()  */
+    /*** åˆ é™¤ æƒ…æ™¯æ¨¡å¼   @see delete_room_profile()  */
 	private static final short DELETE_ROOM_PROFILE				=	COMMAND_START+3;	
-    /*** É¾³ı Çé¾°Ä£Ê½µÄ»Ø¸´   @see set_room_profile_ack()  */
+    /*** åˆ é™¤ æƒ…æ™¯æ¨¡å¼çš„å›å¤   @see set_room_profile_ack()  */
 	private static final short DELETE_ROOM_PROFILE_ACK	    	=	COMMAND_START+3+COMMAND_ACK_OFFSET;
 	
-	/*** ÖĞ¿ØÇĞ»»Çé¾°Ä£Ê½ÃüÁî */
+	/*** ä¸­æ§åˆ‡æ¢æƒ…æ™¯æ¨¡å¼å‘½ä»¤ */
 	private static final short SWITCH_ROOM_PROFILE				=	COMMAND_START+4;
-	/*** ÖĞ¿ØÇĞ»»Çé¾°Ä£Ê½ÃüÁî µÄ»Ø¸´ */
+	/*** ä¸­æ§åˆ‡æ¢æƒ…æ™¯æ¨¡å¼å‘½ä»¤ çš„å›å¤ */
 	private static final short SWITCH_ROOM_PROFILE_ACK			=	COMMAND_START+4+COMMAND_ACK_OFFSET;
 	
-	/*** ÇëÇó Çé¾°Ä£Ê½¼¯ */	
+	/*** è¯·æ±‚ æƒ…æ™¯æ¨¡å¼é›† */	
 	private static final short GET_RROFILE_SET					=	COMMAND_START+21;
-	/*** ÇëÇó Çé¾°Ä£Ê½¼¯ µÄ»Ø¸´*/	
+	/*** è¯·æ±‚ æƒ…æ™¯æ¨¡å¼é›† çš„å›å¤*/	
 	private static final short GET_RROFILE_SET_ACK				=	COMMAND_START+21+COMMAND_ACK_OFFSET;
 	
-	/*** ÉèÖÃ Çé¾°Ä£Ê½¼¯*/
+	/*** è®¾ç½® æƒ…æ™¯æ¨¡å¼é›†*/
 	private static final short SET_RROFILE_SET					=	COMMAND_START+22;
-	/*** ÉèÖÃ Çé¾°Ä£Ê½¼¯ µÄ»Ø¸´*/
+	/*** è®¾ç½® æƒ…æ™¯æ¨¡å¼é›† çš„å›å¤*/
 	private static final short SET_RROFILE_SET_ACK				=	COMMAND_START+22+COMMAND_ACK_OFFSET;
 
-	/*** É¾³ı Çé¾°Ä£Ê½¼¯*/
+	/*** åˆ é™¤ æƒ…æ™¯æ¨¡å¼é›†*/
 	private static final short DELETE_RROFILE_SET				=	COMMAND_START+23;
-	/*** É¾³ı Çé¾°Ä£Ê½¼¯ µÄ»Ø¸´*/
+	/*** åˆ é™¤ æƒ…æ™¯æ¨¡å¼é›† çš„å›å¤*/
 	private static final short DELETE_RROFILE_SET_ACK			=	COMMAND_START+23+COMMAND_ACK_OFFSET;
 	
-	/*** Çé¾°Ä£Ê½¼¯ÇĞ»» */
+	/*** æƒ…æ™¯æ¨¡å¼é›†åˆ‡æ¢ */
 	private static final short SWITCH_RROFILE_SET				=	COMMAND_START+24;	
-	/*** Çé¾°Ä£Ê½¼¯ÇĞ»» µÄ»Ø¸´*/
+	/*** æƒ…æ™¯æ¨¡å¼é›†åˆ‡æ¢ çš„å›å¤*/
 	private static final short SWITCH_RROFILE_SET_ACK			=	COMMAND_START+24+COMMAND_ACK_OFFSET;
 
 	
-	/*** ÇëÇó¼ÒµçÁĞ±í*/
+	/*** è¯·æ±‚å®¶ç”µåˆ—è¡¨*/
 	private static final short GET_ONE_DEVICE				=	COMMAND_START+41;
-	/*** ÇëÇó¼ÒµçÁĞ±í µÄ»Ø¸´*/
+	/*** è¯·æ±‚å®¶ç”µåˆ—è¡¨ çš„å›å¤*/
 	private static final short GET_ONE_DEVICE_ACK			=	COMMAND_START+41+COMMAND_ACK_OFFSET;	
 	
-	/*** ÉèÖÃ ¼ÒµçÁĞ±í*/
+	/*** è®¾ç½® å®¶ç”µåˆ—è¡¨*/
 	private static final short SET_ONE_DEVICE				=	COMMAND_START+42;
-	/*** ÉèÖÃ ¼ÒµçÁĞ±í µÄ»Ø¸´*/
+	/*** è®¾ç½® å®¶ç”µåˆ—è¡¨ çš„å›å¤*/
 	private static final short SET_ONE_DEVICE_ACK			=	COMMAND_START+42+COMMAND_ACK_OFFSET;	
 
-	/*** É¾³ıÄ³Ò»¸ö ¼Òµç*/
+	/*** åˆ é™¤æŸä¸€ä¸ª å®¶ç”µ*/
 	private static final short DELETE_ONE_DEVICE			=	COMMAND_START+43;
-	/*** É¾³ıÄ³Ò»¸ö ¼Òµç*/
+	/*** åˆ é™¤æŸä¸€ä¸ª å®¶ç”µ*/
 	private static final short DELETE_ONE_DEVICE_ACK		=	COMMAND_START+43+COMMAND_ACK_OFFSET;
 	
-	/*** ÇĞ»»Ä³¸ö¼Òµç×´Ì¬*/
+	/*** åˆ‡æ¢æŸä¸ªå®¶ç”µçŠ¶æ€*/
 	private static final short SWITCH_DEVICE_STATE		    =	COMMAND_START+44;
-	/*** ÇĞ»»Ä³¸ö¼Òµç×´Ì¬ µÄ»Ø¸´*/
+	/*** åˆ‡æ¢æŸä¸ªå®¶ç”µçŠ¶æ€ çš„å›å¤*/
 	private static final short SWITCH_DEVICE_STATE_ACK		=	COMMAND_START+44+COMMAND_ACK_OFFSET;
 		
-    /*** ¸æ¾¯ÏûÏ¢   */
+    /*** å‘Šè­¦æ¶ˆæ¯   */
 	private static final short WARNING_MSG				 	=	COMMAND_START+61;
-    /*** ¸æ¾¯ÏûÏ¢  µÄ»Ø¸´  */
+    /*** å‘Šè­¦æ¶ˆæ¯  çš„å›å¤  */
 	private static final short WARNING_MSG_ACK				=	COMMAND_START+61+COMMAND_ACK_OFFSET;	
 	
 	
@@ -106,9 +106,9 @@ public class LogicControl {
 	private static final int SUCCESS                  =	0;
 	private static final int RECEIVED                 = -50000;
 	
-	/** Çé¾°Ä£Ê½³Â¾É*/
+	/** æƒ…æ™¯æ¨¡å¼é™ˆæ—§*/
 	private static final int PROFILE_OBSOLETE         =	-50001;	
-	/** Çé¾°Ä£Ê½²»´æÔÚ*/
+	/** æƒ…æ™¯æ¨¡å¼ä¸å­˜åœ¨*/
 	private static final int PROFILE_NOT_EXIST        = -50002;		
 	private static final int PROFILE_SET_OBSOLETE     =	-50003;	
 	private static final int PROFILE_SET_NOT_EXIST    = -50004;	
@@ -116,11 +116,11 @@ public class LogicControl {
 	private static final int DEVICE_OBSOLETE   	  	  = -50011;
 	private static final int DEVICE_NOT_EXIST   	  = -50012;
 	
-	/*** ÏûÏ¢¿ÉÒÔÊ¶±ğ£¬µ«ÊÇÊÕ¼şÈË´íÎó£¬ÀıÈçÊÕµ½×Ô¼º·¢ËÍµÄÏûÏ¢*/
+	/*** æ¶ˆæ¯å¯ä»¥è¯†åˆ«ï¼Œä½†æ˜¯æ”¶ä»¶äººé”™è¯¯ï¼Œä¾‹å¦‚æ”¶åˆ°è‡ªå·±å‘é€çš„æ¶ˆæ¯*/
 	private static final int COMMAND_NOT_ENCODED   	  = -50021;
-	/** ÃüÁî³¬Ê±Ã»ÓĞÏìÓ¦*/
+	/** å‘½ä»¤è¶…æ—¶æ²¡æœ‰å“åº”*/
 	public static final int TIME_OUT		   	      = -50022;
-	/**ÃüÁîºÅÂë¶Î²»¶Ô*/
+	/**å‘½ä»¤å·ç æ®µä¸å¯¹*/
 	public static final int WRONG_COMMAND		   	  = -50023;
 	
 
@@ -332,27 +332,27 @@ public class LogicControl {
 		}		
 	}
 	
-    /*** ÇëÇó²éÑ¯Çé¾°Ä£Ê½
-     * <pre>´«ÈëµÄjson¸ñÊ½Îª£º
+    /*** è¯·æ±‚æŸ¥è¯¢æƒ…æ™¯æ¨¡å¼
+     * <pre>ä¼ å…¥çš„jsonæ ¼å¼ä¸ºï¼š
      * { 
-     *   sender:    ÖĞ¿Ø:0 ; ÊÖ»ú:1 ; ÔÆ:2; 3:Ö÷·şÎñ; 4 ÏûÏ¢·şÎñ; ...
-     *   receiver:  ÖĞ¿Ø:0 ; ÊÖ»ú:1 ; ÔÆ:2; 3:Ö÷·şÎñ; 4 ÏûÏ¢·şÎñ; ...
+     *   sender:    ä¸­æ§:0 ; æ‰‹æœº:1 ; äº‘:2; 3:ä¸»æœåŠ¡; 4 æ¶ˆæ¯æœåŠ¡; ...
+     *   receiver:  ä¸­æ§:0 ; æ‰‹æœº:1 ; äº‘:2; 3:ä¸»æœåŠ¡; 4 æ¶ˆæ¯æœåŠ¡; ...
      *   CtrolID:1234567
      *   profileID:7654321
      * }
      * @throws JSONException 
-     * @return message µÄjson¸ñÊ½£º
-     *   £¨1£©Èç¹û²éÑ¯µÄÇé¾°Ä£Ê½²»´æÔÚ£¬·µ»Øjason£º {"errorCode": XXXX}
-     *   £¨2£©Èç¹û²éÑ¯µÄÇé¾°Ä£Ê½´æÔÚ£¬Ôò·µ»Ø:
+     * @return message çš„jsonæ ¼å¼ï¼š
+     *   ï¼ˆ1ï¼‰å¦‚æœæŸ¥è¯¢çš„æƒ…æ™¯æ¨¡å¼ä¸å­˜åœ¨ï¼Œè¿”å›jasonï¼š {"errorCode": XXXX}
+     *   ï¼ˆ2ï¼‰å¦‚æœæŸ¥è¯¢çš„æƒ…æ™¯æ¨¡å¼å­˜åœ¨ï¼Œåˆ™è¿”å›:
      *  { 
      *  errorCode:SUCCESS,
-     *   sender:    ÖĞ¿Ø:0 ; ÊÖ»ú:1 ; ÔÆ:2; 3:Ö÷·şÎñ; 4 ÏûÏ¢·şÎñ; ...
-     *   receiver:  ÖĞ¿Ø:0 ; ÊÖ»ú:1 ; ÔÆ:2; 3:Ö÷·şÎñ; 4 ÏûÏ¢·şÎñ; ...
+     *   sender:    ä¸­æ§:0 ; æ‰‹æœº:1 ; äº‘:2; 3:ä¸»æœåŠ¡; 4 æ¶ˆæ¯æœåŠ¡; ...
+     *   receiver:  ä¸­æ§:0 ; æ‰‹æœº:1 ; äº‘:2; 3:ä¸»æœåŠ¡; 4 æ¶ˆæ¯æœåŠ¡; ...
      *   CtrolID:1234567,
      *   profileID:7654321,
      *   profile: 
      *         {
-     *          Çé¾°Ä£Ê½µÄjson¸ñÊ½ 
+     *          æƒ…æ™¯æ¨¡å¼çš„jsonæ ¼å¼ 
      *         }
      * }
      *                      
@@ -385,22 +385,22 @@ public class LogicControl {
 		}    	
     }
      
-    /*** ±£´æ»òÕßÉÏ´«Ò»¸öÇé¾°Ä£Ê½
+    /*** ä¿å­˜æˆ–è€…ä¸Šä¼ ä¸€ä¸ªæƒ…æ™¯æ¨¡å¼
      *<pre> @throws JSONException 
      * @throws SQLException 
-     * @return messageµÄjson¸ñÊ½:
-     *  (1)Èç¹ûÔÆ¶Ë²»´æÔÚ¸ÃÇé¾°Ä£Ê½£¬Ö±½Ó±£´æ£¬·µ»Øjson: {"errorCode":SUCCESS}£»
-     *  (2)Èç¹ûÉÏ´«µÄprofileµÄĞŞ¸ÄÊ±¼äÍíÓÚÔÆ¶Ë£¬Ôò½«ÉÏ±¨µÄprofile±£´æÔÚÊı¾İ¿â£¬·µ»Ø{"errorCode":SUCCESS}£»
-     *  (2)Èç¹ûÉÏ´«µÄprofileµÄĞŞ¸ÄÊ±¼äÔçÓÚÔÆ¶Ë£¬ÔòĞèÒª½«ÔÆ¶ËµÄÇé¾°Ä£Ê½ÏÂ·¢µ½ ÖÕ¶Ë£¨ÊÖ»ú¡¢ÖĞ¿Ø£©,·µ»Ø{"errorCode":OBSOLTE_PROFILE}  £»     *         
-     *@param message ´«ÈëµÄjson¸ñÊ½Îª£º £¨ÒªÉÏ´«»òÕß±£´æµÄprifileµÄjson¸ñÊ½£©
+     * @return messageçš„jsonæ ¼å¼:
+     *  (1)å¦‚æœäº‘ç«¯ä¸å­˜åœ¨è¯¥æƒ…æ™¯æ¨¡å¼ï¼Œç›´æ¥ä¿å­˜ï¼Œè¿”å›json: {"errorCode":SUCCESS}ï¼›
+     *  (2)å¦‚æœä¸Šä¼ çš„profileçš„ä¿®æ”¹æ—¶é—´æ™šäºäº‘ç«¯ï¼Œåˆ™å°†ä¸ŠæŠ¥çš„profileä¿å­˜åœ¨æ•°æ®åº“ï¼Œè¿”å›{"errorCode":SUCCESS}ï¼›
+     *  (2)å¦‚æœä¸Šä¼ çš„profileçš„ä¿®æ”¹æ—¶é—´æ—©äºäº‘ç«¯ï¼Œåˆ™éœ€è¦å°†äº‘ç«¯çš„æƒ…æ™¯æ¨¡å¼ä¸‹å‘åˆ° ç»ˆç«¯ï¼ˆæ‰‹æœºã€ä¸­æ§ï¼‰,è¿”å›{"errorCode":OBSOLTE_PROFILE}  ï¼›     *         
+     *@param message ä¼ å…¥çš„jsonæ ¼å¼ä¸ºï¼š ï¼ˆè¦ä¸Šä¼ æˆ–è€…ä¿å­˜çš„prifileçš„jsonæ ¼å¼ï¼‰
      * {
-     *  "senderRole":    ÖĞ¿Ø:0 ; ÊÖ»ú:1 ; ÔÆ:2;
-     *  "receiverRole":  ÖĞ¿Ø:0 ; ÊÖ»ú:1 ; ÔÆ:2;
+     *  "senderRole":    ä¸­æ§:0 ; æ‰‹æœº:1 ; äº‘:2;
+     *  "receiverRole":  ä¸­æ§:0 ; æ‰‹æœº:1 ; äº‘:2;
      *  profile:
      *   {
 			"profileID":123456789,
 			"CtrolID":12345677,
-			"profileName":"Î´ÖªÇé¾°",
+			"profileName":"æœªçŸ¥æƒ…æ™¯",
 			"profileSetID":12345,
 			"profileTemplateID":0,
 			"roomID":203,
@@ -434,9 +434,9 @@ public class LogicControl {
     	
     	if((dbProfile=this.profileMap.get(key))==null && (dbProfile=Profile.getOneProfileFromDB(mysql, CtrolID, profileID))==null){
 			msg.json.put("errorCode",PROFILE_NOT_EXIST);    		
-    	}else if(  dbProfile.modifyTime.after(msgModifyTime)){	//ÔÆ¶Ë½ÏĞÂ  
+    	}else if(  dbProfile.modifyTime.after(msgModifyTime)){	//äº‘ç«¯è¾ƒæ–°  
 			msg.json.put("errorCode",PROFILE_OBSOLETE);    		
-    	}else if(  dbProfile.modifyTime.before(msgModifyTime)){ //ÔÆ¶Ë½Ï¾É£¬Ôò±£´æ
+    	}else if(  dbProfile.modifyTime.before(msgModifyTime)){ //äº‘ç«¯è¾ƒæ—§ï¼Œåˆ™ä¿å­˜
     		this.profileMap.put(key, msgProfile);
 			msg.json=new JSONObject();
 			msg.json.put("errorCode",SUCCESS);   
@@ -454,17 +454,17 @@ public class LogicControl {
 		}     	
     }
     
-    /*** É¾³ıÇé¾°Ä£Ê½
-     * <pre>´«ÈëµÄjson¸ñÊ½Îª£º
+    /*** åˆ é™¤æƒ…æ™¯æ¨¡å¼
+     * <pre>ä¼ å…¥çš„jsonæ ¼å¼ä¸ºï¼š
      * { 
-     *   senderRole:    ÖĞ¿Ø:0 ; ÊÖ»ú:1 ; ÔÆ:2;
-     *   receiverRole:  ÖĞ¿Ø:0 ; ÊÖ»ú:1 ; ÔÆ:2;
+     *   senderRole:    ä¸­æ§:0 ; æ‰‹æœº:1 ; äº‘:2;
+     *   receiverRole:  ä¸­æ§:0 ; æ‰‹æœº:1 ; äº‘:2;
      *   CtrolID:1234567
      *   profileID:7654321
      * }
      * @throws JSONException 
-     * @return message µÄjson¸ñÊ½£º
-     *   £¨1£©Èç¹û²éÑ¯µÄÇé¾°Ä£Ê½²»´æÔÚ£¬·µ»Øjason£º {"errorCode":-50002}
+     * @return message çš„jsonæ ¼å¼ï¼š
+     *   ï¼ˆ1ï¼‰å¦‚æœæŸ¥è¯¢çš„æƒ…æ™¯æ¨¡å¼ä¸å­˜åœ¨ï¼Œè¿”å›jasonï¼š {"errorCode":-50002}
            
      */
     public void delete_room_profile(Message msg) throws JSONException, SQLException{
@@ -500,11 +500,11 @@ public class LogicControl {
     }
 	
     
-    /*** ÇëÇóÇĞ»»Çé¾°Ä£Ê½,¸ù¾İÃüÁîµÄ·¢ËÍ·½ÓĞ²»Í¬µÄÏìÓ¦·½Ê½
-     * <pre>´«ÈëµÄjson¸ñÊ½Îª£º
+    /*** è¯·æ±‚åˆ‡æ¢æƒ…æ™¯æ¨¡å¼,æ ¹æ®å‘½ä»¤çš„å‘é€æ–¹æœ‰ä¸åŒçš„å“åº”æ–¹å¼
+     * <pre>ä¼ å…¥çš„jsonæ ¼å¼ä¸ºï¼š
     * { 
-     *   sender:    ÖĞ¿Ø:0;  ÊÖ»ú:1;  ÔÆ:2;  web:3;  Ö÷·şÎñ:4;  ÏûÏ¢·şÎñ:4; ...
-     *   receiver:  ÖĞ¿Ø:0;  ÊÖ»ú:1;  ÔÆ:2;  web:3;  Ö÷·şÎñ:4;  ÏûÏ¢·şÎñ:5; ...
+     *   sender:    ä¸­æ§:0;  æ‰‹æœº:1;  äº‘:2;  web:3;  ä¸»æœåŠ¡:4;  æ¶ˆæ¯æœåŠ¡:4; ...
+     *   receiver:  ä¸­æ§:0;  æ‰‹æœº:1;  äº‘:2;  web:3;  ä¸»æœåŠ¡:4;  æ¶ˆæ¯æœåŠ¡:5; ...
     *   CtrolID:1234567
     *   roomID: 203
     *   profileID:7654321
@@ -542,11 +542,11 @@ public class LogicControl {
     	CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
     }
     
-    /*** ÇëÇóÇĞ»»Çé¾°Ä£Ê½,·µ»ØÖµ
-     * <pre>´«ÈëµÄjson¸ñÊ½Îª£º
+    /*** è¯·æ±‚åˆ‡æ¢æƒ…æ™¯æ¨¡å¼,è¿”å›å€¼
+     * <pre>ä¼ å…¥çš„jsonæ ¼å¼ä¸ºï¼š
     * { 
-     *   sender:    ÖĞ¿Ø:0;  ÊÖ»ú:1;  ÔÆ:2;  web:3;  Ö÷·şÎñ:4;  ÏûÏ¢·şÎñ:4; ...
-     *   receiver:  ÖĞ¿Ø:0;  ÊÖ»ú:1;  ÔÆ:2;  web:3;  Ö÷·şÎñ:4;  ÏûÏ¢·şÎñ:5; ...
+     *   sender:    ä¸­æ§:0;  æ‰‹æœº:1;  äº‘:2;  web:3;  ä¸»æœåŠ¡:4;  æ¶ˆæ¯æœåŠ¡:4; ...
+     *   receiver:  ä¸­æ§:0;  æ‰‹æœº:1;  äº‘:2;  web:3;  ä¸»æœåŠ¡:4;  æ¶ˆæ¯æœåŠ¡:5; ...
          errorCode: SUCCESS/ PROFILE_NOT_EXIST /TIME_OUT /WRONG_RECEIVER  /WRONG_COMMAND
     * }
      * @throws InterruptedException 
@@ -556,27 +556,27 @@ public class LogicControl {
 		to.start();
     }
     
-    /*** ²éÑ¯Çé¾°Ä£Ê½¼¯
-     * <pre>´«ÈëµÄjson¸ñÊ½Îª£º
+    /*** æŸ¥è¯¢æƒ…æ™¯æ¨¡å¼é›†
+     * <pre>ä¼ å…¥çš„jsonæ ¼å¼ä¸ºï¼š
      * { 
-     *   sender:    ÖĞ¿Ø:0;  ÊÖ»ú:1;  ÔÆ:2;  web:3;  Ö÷·şÎñ:4;  ÏûÏ¢·şÎñ:4; ...
-     *   receiver:  ÖĞ¿Ø:0;  ÊÖ»ú:1;  ÔÆ:2;  web:3;  Ö÷·şÎñ:4;  ÏûÏ¢·şÎñ:5; ...
+     *   sender:    ä¸­æ§:0;  æ‰‹æœº:1;  äº‘:2;  web:3;  ä¸»æœåŠ¡:4;  æ¶ˆæ¯æœåŠ¡:4; ...
+     *   receiver:  ä¸­æ§:0;  æ‰‹æœº:1;  äº‘:2;  web:3;  ä¸»æœåŠ¡:4;  æ¶ˆæ¯æœåŠ¡:5; ...
      *   CtrolID:1234567
      *   profileSetID:7654321
      * }
      * @throws JSONException 
-     * @return message µÄjson¸ñÊ½£º
-     *   £¨1£©Èç¹û²éÑ¯µÄÇé¾°Ä£Ê½²»´æÔÚ£¬·µ»Øjason£º {"errorCode":-50004}
-     *   £¨2£©Èç¹û²éÑ¯µÄÇé¾°Ä£Ê½¼¯´æÔÚ£¬Ôò·µ»Ø:
+     * @return message çš„jsonæ ¼å¼ï¼š
+     *   ï¼ˆ1ï¼‰å¦‚æœæŸ¥è¯¢çš„æƒ…æ™¯æ¨¡å¼ä¸å­˜åœ¨ï¼Œè¿”å›jasonï¼š {"errorCode":-50004}
+     *   ï¼ˆ2ï¼‰å¦‚æœæŸ¥è¯¢çš„æƒ…æ™¯æ¨¡å¼é›†å­˜åœ¨ï¼Œåˆ™è¿”å›:
      *  { 
      *   errorCode:SUCCESS,
-     *   sender:    ÖĞ¿Ø:0 ; ÊÖ»ú:1 ; ÔÆ:2; 3:Ö÷·şÎñ; 4 ÏûÏ¢·şÎñ; ...
-     *   receiver:  ÖĞ¿Ø:0 ; ÊÖ»ú:1 ; ÔÆ:2; 3:Ö÷·şÎñ; 4 ÏûÏ¢·şÎñ; ...
+     *   sender:    ä¸­æ§:0 ; æ‰‹æœº:1 ; äº‘:2; 3:ä¸»æœåŠ¡; 4 æ¶ˆæ¯æœåŠ¡; ...
+     *   receiver:  ä¸­æ§:0 ; æ‰‹æœº:1 ; äº‘:2; 3:ä¸»æœåŠ¡; 4 æ¶ˆæ¯æœåŠ¡; ...
      *   CtrolID:1234567,
      *   profileSetID:7654321,
      *   profile: 
      *         {
-     *          Çé¾°Ä£Ê½¼¯µÄjson¸ñÊ½ 
+     *          æƒ…æ™¯æ¨¡å¼é›†çš„jsonæ ¼å¼ 
      *         }
      * }              
      */
@@ -609,16 +609,16 @@ public class LogicControl {
     
 
 	
-	/*** ÉèÖÃ Çé¾°Ä£Ê½¼¯
+	/*** è®¾ç½® æƒ…æ™¯æ¨¡å¼é›†
 
-	 * <pre>Json¸ñÊ½ºÍ ÉèÖÃÇé¾°Ä£Ê½ ºÍ {@link control.LogicControl#SET_ROOM_RROFILE SET_ROOM_RROFILE} ÀàËÆ£º
+	 * <pre>Jsonæ ¼å¼å’Œ è®¾ç½®æƒ…æ™¯æ¨¡å¼ å’Œ {@link control.LogicControl#SET_ROOM_RROFILE SET_ROOM_RROFILE} ç±»ä¼¼ï¼š
 
      * { 
-     *  "senderRole":    ÖĞ¿Ø:0 ; ÊÖ»ú:1 ; ÔÆ:2;
-     *  "receiverRole":  ÖĞ¿Ø:0 ; ÊÖ»ú:1 ; ÔÆ:2; 
+     *  "senderRole":    ä¸­æ§:0 ; æ‰‹æœº:1 ; äº‘:2;
+     *  "receiverRole":  ä¸­æ§:0 ; æ‰‹æœº:1 ; äº‘:2; 
      *   profileSet:
      *     {  
-     *      Çé¾°Ä£Ê½¼¯ µÄjson¸ñÊ½ £º¼´¶à¸öÇé¾°Ä£Ê½×é³ÉµÄjsonÊı×é    
+     *      æƒ…æ™¯æ¨¡å¼é›† çš„jsonæ ¼å¼ ï¼šå³å¤šä¸ªæƒ…æ™¯æ¨¡å¼ç»„æˆçš„jsonæ•°ç»„    
      *     }  
      * }
 	 * */
@@ -638,7 +638,7 @@ public class LogicControl {
     	
     	if((dbProfileSet=profileSetMap.get(key))==null && (dbProfileSet=ProfileSet.getProfileSetFromDB(mysql, CtrolID, profileSetID))==null ){
 			msg.json.put("errorCode",PROFILE_SET_NOT_EXIST);     		
-    	}else if( dbProfileSet.modifyTime.after(msgModifyTime)){	//ÔÆ¶Ë½ÏĞÂ  
+    	}else if( dbProfileSet.modifyTime.after(msgModifyTime)){	//äº‘ç«¯è¾ƒæ–°  
 			msg.json.put("errorCode",PROFILE_SET_OBSOLETE);    		
     	}else if( dbProfileSet.modifyTime.before(msgModifyTime)){
     		profileSetMap.put(key, msgProfileSet);
@@ -655,16 +655,16 @@ public class LogicControl {
 		} 	
 	}
 	
-    /*** É¾³ıÇé¾°Ä£Ê½¼¯
-     * <pre>´«ÈëµÄjson¸ñÊ½Îª£º
+    /*** åˆ é™¤æƒ…æ™¯æ¨¡å¼é›†
+     * <pre>ä¼ å…¥çš„jsonæ ¼å¼ä¸ºï¼š
      * { 
      *   CtrolID:1234567
      *   profileSetID:7654321
      * }
      * @throws JSONException 
-     * @return message µÄjson¸ñÊ½£º
-     *   £¨1£©Èç¹û²éÑ¯µÄÇé¾°Ä£Ê½²»´æÔÚ£¬·µ»Øjason£º {"errorCode":-50002}
-     *   £¨2£©Èç¹û²éÑ¯µÄÇé¾°Ä£Ê½´æÔÚ£¬Ôò·µ»ØÇé¾°Ä£Ê½µÄjson¸ñÊ½                  
+     * @return message çš„jsonæ ¼å¼ï¼š
+     *   ï¼ˆ1ï¼‰å¦‚æœæŸ¥è¯¢çš„æƒ…æ™¯æ¨¡å¼ä¸å­˜åœ¨ï¼Œè¿”å›jasonï¼š {"errorCode":-50002}
+     *   ï¼ˆ2ï¼‰å¦‚æœæŸ¥è¯¢çš„æƒ…æ™¯æ¨¡å¼å­˜åœ¨ï¼Œåˆ™è¿”å›æƒ…æ™¯æ¨¡å¼çš„jsonæ ¼å¼                  
      */
     public void delete_profile_set(Message msg) throws JSONException, SQLException{
     	//JSONObject json=msg.json;
@@ -700,8 +700,8 @@ public class LogicControl {
 	
 
 	
-	/*** Çé¾°Ä£Ê½¼¯ÇĞ»» 
-	 * 	 <pre>¶ÔÓ¦jsonÏûÏ¢ÌåÎª£º
+	/*** æƒ…æ™¯æ¨¡å¼é›†åˆ‡æ¢ 
+	 * 	 <pre>å¯¹åº”jsonæ¶ˆæ¯ä½“ä¸ºï¼š
 	 *   {
 	 *     senderRole:"control"/"mobile"/"cloud"
 	 *     CtrolID:1234567
@@ -741,11 +741,11 @@ public class LogicControl {
 		
 	}
 	
-    /*** ÇëÇóÇĞ»»Çé¾°Ä£Ê½¼¯,·µ»ØÖµ
-     * <pre>´«ÈëµÄjson¸ñÊ½Îª£º
+    /*** è¯·æ±‚åˆ‡æ¢æƒ…æ™¯æ¨¡å¼é›†,è¿”å›å€¼
+     * <pre>ä¼ å…¥çš„jsonæ ¼å¼ä¸ºï¼š
     * { 
-     *   sender:    ÖĞ¿Ø:0;  ÊÖ»ú:1;  ÔÆ:2;  web:3;  Ö÷·şÎñ:4;  ÏûÏ¢·şÎñ:4; ...
-     *   receiver:  ÖĞ¿Ø:0;  ÊÖ»ú:1;  ÔÆ:2;  web:3;  Ö÷·şÎñ:4;  ÏûÏ¢·şÎñ:5; ...
+     *   sender:    ä¸­æ§:0;  æ‰‹æœº:1;  äº‘:2;  web:3;  ä¸»æœåŠ¡:4;  æ¶ˆæ¯æœåŠ¡:4; ...
+     *   receiver:  ä¸­æ§:0;  æ‰‹æœº:1;  äº‘:2;  web:3;  ä¸»æœåŠ¡:4;  æ¶ˆæ¯æœåŠ¡:5; ...
          errorCode: SUCCESS/ PROFILE_SET_NOT_EXIST /TIME_OUT /WRONG_RECEIVER  /WRONG_COMMAND
     * }
      * @throws InterruptedException 
@@ -755,13 +755,13 @@ public class LogicControl {
 		to.start();
     }
     
-	/*** »ñÈ¡Ò»¸öÉè±¸
-	 * 	 <pre>¶ÔÓ¦jsonÏûÏ¢ÌåÎª£º
+	/*** è·å–ä¸€ä¸ªè®¾å¤‡
+	 * 	 <pre>å¯¹åº”jsonæ¶ˆæ¯ä½“ä¸ºï¼š
 	 *   {
 	 *     CtrolID:1234567
 	 *     deviceID:
      *   }
-     *   @return List< Device > ¼ÓµçÁĞ±í µÄjson¸ñÊ½
+     *   @return List< Device > åŠ ç”µåˆ—è¡¨ çš„jsonæ ¼å¼
 	 * @throws JSONException 
      *   */
 	public void get_one_device(Message msg) throws JSONException{
@@ -792,10 +792,10 @@ public class LogicControl {
 	}
 	
 	
-	/*** ÉèÖÃ Ò»¸ö¼Òµç
-	 * 	 <pre>¶ÔÓ¦µÄjsonArray:* 
+	/*** è®¾ç½® ä¸€ä¸ªå®¶ç”µ
+	 * 	 <pre>å¯¹åº”çš„jsonArray:* 
 	 *   {
-	 *     ½«Õâ¸ö¼ÒµçµÄjsonObject¸ñÊ½
+	 *     å°†è¿™ä¸ªå®¶ç”µçš„jsonObjectæ ¼å¼
      *   }
 	 * @throws JSONException 
 	 * @throws ParseException */
@@ -814,9 +814,9 @@ public class LogicControl {
     	
     	if((dbDevice=this.deviceMap.get(key))==null  && (dbDevice=Device.getOneDeviceFromDB(mysql, CtrolID, deviceID))==null ){	
     		msg.json.put("errorCode",DEVICE_NOT_EXIST);    		
-    	}else if(dbDevice.modifyTime.after(msgModifyTime)){ ////ÔÆ¶Ë½ÏĞÂ  
+    	}else if(dbDevice.modifyTime.after(msgModifyTime)){ ////äº‘ç«¯è¾ƒæ–°  
 			msg.json.put("errorCode",DEVICE_OBSOLETE);   
-		}else if (dbDevice.modifyTime.before(msgModifyTime)){ //ÔÆ¶Ë½Ï¾É
+		}else if (dbDevice.modifyTime.before(msgModifyTime)){ //äº‘ç«¯è¾ƒæ—§
     		this.deviceMap.put(key, msgDevice);
     		msg.json=new JSONObject();
 			msg.json.put("errorCode",SUCCESS); 
@@ -831,16 +831,16 @@ public class LogicControl {
 		} 		
 	}
 	
-    /*** É¾³ıÇé¾°Ä£Ê½¼¯
-     * <pre>´«ÈëµÄjson¸ñÊ½Îª£º
+    /*** åˆ é™¤æƒ…æ™¯æ¨¡å¼é›†
+     * <pre>ä¼ å…¥çš„jsonæ ¼å¼ä¸ºï¼š
      * { 
      *   CtrolID:1234567
      *   deviceID:7654321
      * }
      * @throws JSONException 
-     * @return message µÄjson¸ñÊ½£º
-     *   £¨1£©Èç¹û²éÑ¯µÄÇé¾°Ä£Ê½²»´æÔÚ£¬·µ»Øjason£º {"errorCode":-50002}
-     *   £¨2£©Èç¹û²éÑ¯µÄÇé¾°Ä£Ê½´æÔÚ£¬Ôò·µ»ØÇé¾°Ä£Ê½µÄjson¸ñÊ½                  
+     * @return message çš„jsonæ ¼å¼ï¼š
+     *   ï¼ˆ1ï¼‰å¦‚æœæŸ¥è¯¢çš„æƒ…æ™¯æ¨¡å¼ä¸å­˜åœ¨ï¼Œè¿”å›jasonï¼š {"errorCode":-50002}
+     *   ï¼ˆ2ï¼‰å¦‚æœæŸ¥è¯¢çš„æƒ…æ™¯æ¨¡å¼å­˜åœ¨ï¼Œåˆ™è¿”å›æƒ…æ™¯æ¨¡å¼çš„jsonæ ¼å¼                  
      */
     public void delete_one_device(Message msg) throws JSONException, SQLException{
     	//JSONObject json=msg.json;
@@ -870,11 +870,11 @@ public class LogicControl {
 		}    	
     }
 	
-	/*** ÇĞ»»Ä³¸ö¼Òµç×´Ì¬
-	 * 	 <pre>ÀıÈç¶ÔÓ¦jsonÏûÏ¢ÌåÈçÏÂ¸ñÊ½ £º
+	/*** åˆ‡æ¢æŸä¸ªå®¶ç”µçŠ¶æ€
+	 * 	 <pre>ä¾‹å¦‚å¯¹åº”jsonæ¶ˆæ¯ä½“å¦‚ä¸‹æ ¼å¼ ï¼š
 	 *   {
-         sender:    ÖĞ¿Ø:0;  ÊÖ»ú:1;  ÔÆ:2;  web:3;  Ö÷·şÎñ:4;  ÏûÏ¢·şÎñ:5; ...
-     *   receiver:  ÖĞ¿Ø:0;  ÊÖ»ú:1;  ÔÆ:2;  web:3;  Ö÷·şÎñ:4;  ÏûÏ¢·şÎñ:5; ...
+         sender:    ä¸­æ§:0;  æ‰‹æœº:1;  äº‘:2;  web:3;  ä¸»æœåŠ¡:4;  æ¶ˆæ¯æœåŠ¡:5; ...
+     *   receiver:  ä¸­æ§:0;  æ‰‹æœº:1;  äº‘:2;  web:3;  ä¸»æœåŠ¡:4;  æ¶ˆæ¯æœåŠ¡:5; ...
 	 *     senderRole:"control"/"mobile"/"cloud"
 	 *     CtrolID:1234567
 	 *     deviceID:7654321
@@ -915,11 +915,11 @@ public class LogicControl {
 		}
 	}
 	
-    /*** ÇëÇóÇĞ»»Ä³¸ö¼Òµç×´Ì¬,·µ»ØÖµ
-     * <pre>´«ÈëµÄjson¸ñÊ½Îª£º
+    /*** è¯·æ±‚åˆ‡æ¢æŸä¸ªå®¶ç”µçŠ¶æ€,è¿”å›å€¼
+     * <pre>ä¼ å…¥çš„jsonæ ¼å¼ä¸ºï¼š
     * { 
-     *   sender:    ÖĞ¿Ø:0;  ÊÖ»ú:1;  ÔÆ:2;  web:3;  Ö÷·şÎñ:4;  ÏûÏ¢·şÎñ:4; ...
-     *   receiver:  ÖĞ¿Ø:0;  ÊÖ»ú:1;  ÔÆ:2;  web:3;  Ö÷·şÎñ:4;  ÏûÏ¢·şÎñ:5; ...
+     *   sender:    ä¸­æ§:0;  æ‰‹æœº:1;  äº‘:2;  web:3;  ä¸»æœåŠ¡:4;  æ¶ˆæ¯æœåŠ¡:4; ...
+     *   receiver:  ä¸­æ§:0;  æ‰‹æœº:1;  äº‘:2;  web:3;  ä¸»æœåŠ¡:4;  æ¶ˆæ¯æœåŠ¡:5; ...
          errorCode: SUCCESS/ PROFILE_SET_NOT_EXIST /TIME_OUT /WRONG_COMMAND
     * }
      * @throws InterruptedException 
@@ -929,12 +929,12 @@ public class LogicControl {
 		to.start();
     }
 	
-  /*** ¸æ¾¯ÏûÏ¢
-  <pre>ÀıÈç¶ÔÓ¦jsonÏûÏ¢ÌåÈçÏÂ¸ñÊ½ £º
+  /*** å‘Šè­¦æ¶ˆæ¯
+  <pre>ä¾‹å¦‚å¯¹åº”jsonæ¶ˆæ¯ä½“å¦‚ä¸‹æ ¼å¼ ï¼š
   {
     "warnID",  123456      
-    "warnName","³ø·¿Â©Æø"      
-    "warnContent", "¼ì²âÄãµÄ³ø·¿¿ÉÈ¼ÆøÌå³¬±ê£¬ÒÑ×Ô¶¯°ïÄã´ò¿ª³ø·¿µÄ´°»§~"  
+    "warnName","å¨æˆ¿æ¼æ°”"      
+    "warnContent", "æ£€æµ‹ä½ çš„å¨æˆ¿å¯ç‡ƒæ°”ä½“è¶…æ ‡ï¼Œå·²è‡ªåŠ¨å¸®ä½ æ‰“å¼€å¨æˆ¿çš„çª—æˆ·~"  
     "type",  1  	
     "channel",0      
     "createTime","2014-12-25 12:13:14"    

@@ -1,7 +1,7 @@
-package device;
+ï»¿package device;
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created£º2014Äê12ÔÂ15ÈÕ ÏÂÎç3:03:30 
+ * @version Createdï¼š2014å¹´12æœˆ15æ—¥ ä¸‹åˆ3:03:30 
  */
 
 import java.sql.SQLException;
@@ -20,7 +20,7 @@ import util.MySqlClass;
 
 
 /***
- * Ò»¸ö·¿¼äµÄÇé¾°Ä£Ê½£¬¿ÉÄÜ°üº¬¶à¸öÇé¾°ÒòËØ(¼Òµç¡¢»·¾³µÈ)
+ * ä¸€ä¸ªæˆ¿é—´çš„æƒ…æ™¯æ¨¡å¼ï¼Œå¯èƒ½åŒ…å«å¤šä¸ªæƒ…æ™¯å› ç´ (å®¶ç”µã€ç¯å¢ƒç­‰)
  * */
 public class Profile {
 	
@@ -90,7 +90,7 @@ public class Profile {
 	}
 	
 	/**
-	 * ½«Çé¾°Ä£Ê½¶ÔÏó ×ª»»ÎªÒ»¸öJSONObject ´æ´¢
+	 * å°†æƒ…æ™¯æ¨¡å¼å¯¹è±¡ è½¬æ¢ä¸ºä¸€ä¸ªJSONObject å­˜å‚¨
 	 * @return JSONObject
 	 * */
 	public JSONObject toJsonObj(){	
@@ -150,8 +150,8 @@ public class Profile {
 	 * @table profileDetailTable :  info_user_room_st_factor
 	 * @table profileIndexTable  :	info_user_room_st
 	 * @throws SQLException
-	 * @returns 0 :profileÎª¿Õ£»
-	 * 			1   £º±£´æ³É¹¦
+	 * @returns 0 :profileä¸ºç©ºï¼›
+	 * 			1   ï¼šä¿å­˜æˆåŠŸ
 	 * */
 	public int saveProfileToDB(MySqlClass mysql) throws SQLException{
 		if(this.isEmpty()){
@@ -222,7 +222,7 @@ public class Profile {
 	}
 
    /*** 
-   * ´ÓÈëMYSQL¶ÁÈ¡profile
+   * ä»å…¥MYSQLè¯»å–profile
    * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
@@ -328,7 +328,7 @@ public class Profile {
 	}
 	
    /*** 
-   * ´ÓÈëMYSQL¶ÁÈ¡profile
+   * ä»å…¥MYSQLè¯»å–profile
    * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
@@ -369,7 +369,7 @@ public class Profile {
 	
 	
    /*** 
-   * ´ÓÈëMYSQL¶ÁÈ¡profileµÄ Çé¾°ÏêÇé
+   * ä»å…¥MYSQLè¯»å–profileçš„ æƒ…æ™¯è¯¦æƒ…
    * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
@@ -438,7 +438,7 @@ public class Profile {
 		}
 	
 	   /*** 
-	   * ´ÓÈëMYSQL¶ÁÈ¡profileµÄ »ù±¾Çé¿ö
+	   * ä»å…¥MYSQLè¯»å–profileçš„ åŸºæœ¬æƒ…å†µ
 	   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 	   * @table  info_user_room_st
 	   * @throws SQLException 
@@ -495,12 +495,12 @@ public class Profile {
 		
 		Profile target=Profile.getProfileHeadFromDB(mysql, srcProfile.CtrolID, srcProfile.profileID);
 		
-		if(target.modifyTime.before(srcProfile.modifyTime)){ //mysql±íµÄÊ±¼ä±È½Ï¾É£¬Ôò±£´æÉÏ±¨µÄprofile
+		if(target.modifyTime.before(srcProfile.modifyTime)){ //mysqlè¡¨çš„æ—¶é—´æ¯”è¾ƒæ—§ï¼Œåˆ™ä¿å­˜ä¸ŠæŠ¥çš„profile
 			if(srcProfile.saveProfileToDB(mysql)>0){
 				return true;
 			}else
 				return false;
-		}else { //mysql±íµÄÊ±¼äµÄÊ±¼ä±È½ÏĞÂ£¬ÔòÏÂ·¢mysqlµÄprofile                                              
+		}else { //mysqlè¡¨çš„æ—¶é—´çš„æ—¶é—´æ¯”è¾ƒæ–°ï¼Œåˆ™ä¸‹å‘mysqlçš„profile                                              
 			
 		}
 		

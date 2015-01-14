@@ -1,8 +1,8 @@
-package device;
+ï»¿package device;
 
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created£º2014Äê12ÔÂ15ÈÕ ÏÂÎç2:48:17 
+ * @version Createdï¼š2014å¹´12æœˆ15æ—¥ ä¸‹åˆ2:48:17 
  */
 import java.sql.SQLException;
 import java.text.DateFormat;
@@ -19,16 +19,16 @@ import org.json.JSONObject;
 import util.MySqlClass;
 
 
-/***Çé¾°Ä£Ê½¼¯£º
- * <p>Éæ¼°µ½¶à¸ö·¿¼äµÄÇé¾°Ä£Ê½£¬ÕâÀïÖ»ÁĞ³ö¶à¸ö·¿¼äµÄÇé¾°Ä£Ê½ID£¬¾ßÌåÇé¾°Ä£Ê½¶¨ÒåÒª¸ù¾İIDÈ¥Çé¾°Ä£Ê½Àï²éÕÒ</p>*/
+/***æƒ…æ™¯æ¨¡å¼é›†ï¼š
+ * <p>æ¶‰åŠåˆ°å¤šä¸ªæˆ¿é—´çš„æƒ…æ™¯æ¨¡å¼ï¼Œè¿™é‡Œåªåˆ—å‡ºå¤šä¸ªæˆ¿é—´çš„æƒ…æ™¯æ¨¡å¼IDï¼Œå…·ä½“æƒ…æ™¯æ¨¡å¼å®šä¹‰è¦æ ¹æ®IDå»æƒ…æ™¯æ¨¡å¼é‡ŒæŸ¥æ‰¾</p>*/
 public class ProfileSet {
 	int CtrolID;
 	int profileSetID;
 	String profileSetName;
-	/***<br>0£ºÍêÈ«ÓÃ»§È«ĞÂ´´½¨£»<br>1£ºÏµÍ³Ä£°æID£»*/
+	/***<br>0ï¼šå®Œå…¨ç”¨æˆ·å…¨æ–°åˆ›å»ºï¼›<br>1ï¼šç³»ç»Ÿæ¨¡ç‰ˆIDï¼›*/
 	int profileSetTemplateID;
 	
-	/*** Ëù°üº¬µÄÇé¾°Ä£Ê½ID ÁĞ±í*/
+	/*** æ‰€åŒ…å«çš„æƒ…æ™¯æ¨¡å¼ID åˆ—è¡¨*/
 	List<Integer> profileList;	
 	Date createTime;
 	public Date modifyTime;
@@ -157,7 +157,7 @@ public class ProfileSet {
 	}
 
    /*** 
-   * ´ÓÈëMYSQL¶ÁÈ¡profile
+   * ä»å…¥MYSQLè¯»å–profile
    * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
@@ -214,7 +214,7 @@ public class ProfileSet {
 		}
 	
   /*** 
-   * ´ÓÈëMYSQLÉ¾³ıÒ»¸öprofile
+   * ä»å…¥MYSQLåˆ é™¤ä¸€ä¸ªprofile
    * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 

@@ -1,4 +1,4 @@
-package util;
+ï»¿package util;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,17 +13,17 @@ import socket.CtrolSocketServer;
 
 /**
  * 
- * ¸ù¾İÏµÍ³ÈÕÆÚÃüÃûÈÕÖ¾ÎÄ¼ş
+ * æ ¹æ®ç³»ç»Ÿæ—¥æœŸå‘½åæ—¥å¿—æ–‡ä»¶
  * @author richard@cooxm.com
  *
  */
 public class LoggerUtil {
     
-    /** ´æ·ÅµÄÎÄ¼ş¼Ğ **/
-    private static String file_name ="log"; //= "ÓÊÕş´¢ĞîÈÕÖ¾";
+    /** å­˜æ”¾çš„æ–‡ä»¶å¤¹ **/
+    private static String file_name ="log"; //= "é‚®æ”¿å‚¨è“„æ—¥å¿—";
     
     /**
-     * µÃµ½Òª¼ÇÂ¼µÄÈÕÖ¾µÄÂ·¾¶¼°ÎÄ¼şÃû³Æ
+     * å¾—åˆ°è¦è®°å½•çš„æ—¥å¿—çš„è·¯å¾„åŠæ–‡ä»¶åç§°
      * @return
      * @throws IOException 
      */
@@ -43,7 +43,7 @@ public class LoggerUtil {
     }
     
     /**
-     * ÅäÖÃLogger¶ÔÏóÊä³öÈÕÖ¾ÎÄ¼şÂ·¾¶
+     * é…ç½®Loggerå¯¹è±¡è¾“å‡ºæ—¥å¿—æ–‡ä»¶è·¯å¾„
      * @param logger 
      * @throws SecurityException
      * @throws IOException
@@ -53,9 +53,9 @@ public class LoggerUtil {
     }
     
     /**
-     * ÅäÖÃLogger¶ÔÏóÊä³öÈÕÖ¾ÎÄ¼şÂ·¾¶
+     * é…ç½®Loggerå¯¹è±¡è¾“å‡ºæ—¥å¿—æ–‡ä»¶è·¯å¾„
      * @param logger
-     * @param level ÔÚÈÕÖ¾ÎÄ¼şÖĞÊä³ölevel¼¶±ğÒÔÉÏµÄĞÅÏ¢
+     * @param level åœ¨æ—¥å¿—æ–‡ä»¶ä¸­è¾“å‡ºlevelçº§åˆ«ä»¥ä¸Šçš„ä¿¡æ¯
      * @throws SecurityException
      * @throws IOException
      */
@@ -63,14 +63,14 @@ public class LoggerUtil {
         FileHandler fh;
         try {
             fh = new FileHandler(getLogName(),true);
-            logger.addHandler(fh);//ÈÕÖ¾Êä³öÎÄ¼ş
+            logger.addHandler(fh);//æ—¥å¿—è¾“å‡ºæ–‡ä»¶
             //logger.setLevel(level);
-            fh.setFormatter(new SimpleFormatter());//Êä³ö¸ñÊ½
-            //logger.addHandler(new ConsoleHandler());//Êä³öµ½¿ØÖÆÌ¨
+            fh.setFormatter(new SimpleFormatter());//è¾“å‡ºæ ¼å¼
+            //logger.addHandler(new ConsoleHandler());//è¾“å‡ºåˆ°æ§åˆ¶å°
         } catch (SecurityException e) {
-            logger.log(Level.SEVERE, "°²È«ĞÔ´íÎó", e);
+            logger.log(Level.SEVERE, "å®‰å…¨æ€§é”™è¯¯", e);
         } catch (IOException e) {
-            logger.log(Level.SEVERE,"¶ÁÈ¡ÎÄ¼şÈÕÖ¾´íÎó", e);
+            logger.log(Level.SEVERE,"è¯»å–æ–‡ä»¶æ—¥å¿—é”™è¯¯", e);
         }
     }
     
@@ -94,4 +94,4 @@ public class LoggerUtil {
     }
 }
 
-//×¢Òâ£ºLogger logger = Logger.getLogger("sgg");  sggÖ»ÄÜ³öÏÖÒ»´Î£¬·ñÔò»ØÖØ¸´Êä³öÖµ
+//æ³¨æ„ï¼šLogger logger = Logger.getLogger("sgg");  sggåªèƒ½å‡ºç°ä¸€æ¬¡ï¼Œå¦åˆ™å›é‡å¤è¾“å‡ºå€¼

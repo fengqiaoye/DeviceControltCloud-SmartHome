@@ -1,4 +1,4 @@
-package socket;
+ï»¿package socket;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,9 +17,9 @@ import control.LogicControl;
 
 
 public class ServerThread extends Thread  {
-    Socket clientRequest;// ÓÃ»§Á¬½ÓµÄÍ¨ĞÅÌ×½Ó×Ö  
-    BufferedReader input;// ÊäÈëÁ÷  
-    PrintWriter output;// Êä³öÁ÷  
+    Socket clientRequest;// ç”¨æˆ·è¿æ¥çš„é€šä¿¡å¥—æ¥å­—  
+    BufferedReader input;// è¾“å…¥æµ  
+    PrintWriter output;// è¾“å‡ºæµ  
     Message msg = null;
     String str = null;  
 
@@ -28,16 +28,16 @@ public class ServerThread extends Thread  {
     
     
   
-    // serverThreadµÄ¹¹ÔìÆ÷  
+    // serverThreadçš„æ„é€ å™¨  
     public ServerThread(Socket s)  
     {  
         this.clientRequest = s;  
-        // ½ÓÊÕreceiveServer´«À´µÄÌ×½Ó×Ö 
+        // æ¥æ”¶receiveServerä¼ æ¥çš„å¥—æ¥å­— 
 
         OutputStreamWriter writer;  
         InputStreamReader reader;  
         try  
-        { // ³õÊ¼»¯ÊäÈë¡¢Êä³öÁ÷              
+        { // åˆå§‹åŒ–è¾“å…¥ã€è¾“å‡ºæµ              
             writer = new OutputStreamWriter(clientRequest.getOutputStream());   
             output = new PrintWriter(writer, true); 
             reader = new InputStreamReader(clientRequest.getInputStream(),"utf-8");  
@@ -49,21 +49,24 @@ public class ServerThread extends Thread  {
         }  
         output.println("Welcome to DeviceControl server!"); 
         output.flush();
-        // ¿Í»§»úÁ¬½Ó»¶Ó­´Ê  
+        // å®¢æˆ·æœºè¿æ¥æ¬¢è¿è¯  
     }  
   
     @Override 
     public void run()  
-    { // Ïß³ÌµÄÖ´ĞĞ·½·¨  
+    { // çº¿ç¨‹çš„æ‰§è¡Œæ–¹æ³•  
 
         while (true)  
         { 
         	if(!CtrolSocketServer.sendCommandQueue.isEmpty()){
         		Message outMsg=null;
 				try {
-					outMsg = CtrolSocketServer.sendCommandQueue.poll(100, TimeUnit.MICROSECONDS);
-					outMsg.writeToSock(clientRequest);
-
+					outMsg=CtrolSocketServer.sendCommandQueue.peek();
+					String clientIP=getClientIP(outMsg.getServerID());
+					if(null!=outMsg && this.clientRequest.getInetAddress().getHostAddress()==clientIP ){
+						outMsg = CtrolSocketServer.sendCommandQueue.poll(100, TimeUnit.MICROSECONDS);
+						outMsg.writeToSock(clientRequest);
+					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}       		     		
@@ -82,6 +85,10 @@ public class ServerThread extends Thread  {
 			}
         }   
     } 
+    
+	public String getClientIP(int clientID){
+		return CtrolSocketServer.clientMap.get(clientID);		
+	}
     
 /*	private void readTest() 
     {  
@@ -167,14 +174,14 @@ public class ServerThread extends Thread  {
         command = str.trim().toUpperCase();  
         if (command.equals("HELP"))  
         {  
-            // ÃüÁîhelp²éÑ¯±¾·şÎñÆ÷¿É½ÓÊÜµÄÃüÁî 
+            // å‘½ä»¤helpæŸ¥è¯¢æœ¬æœåŠ¡å™¨å¯æ¥å—çš„å‘½ä»¤ 
         	output.println("This is DeviseControl server,only following command can be accepted:");
             output.println("SynRoomProfile");  
             output.println("SwitchToRoomProfile");  
             output.println("SynApplianceList");  
             output.println("SwitchApplicanceState");  
         } else if (command.startsWith("QUERY"))  
-        { // ÃüÁîquery  
+        { // å‘½ä»¤query  
             output.println("Command Accept !");  
             try {
             	receiveCommandQueue.put(command);
@@ -183,7 +190,7 @@ public class ServerThread extends Thread  {
 				e.printStackTrace();
 			}
         }  
-        // else if ¡­¡­.. //ÔÚ´Ë¿É¼ÓÈë·şÎñÆ÷µÄÆäËûÖ¸Áî  
+        // else if â€¦â€¦.. //åœ¨æ­¤å¯åŠ å…¥æœåŠ¡å™¨çš„å…¶ä»–æŒ‡ä»¤  
         else if (!command.startsWith("HELP") && !command.startsWith("QUIT")  
                 && !command.startsWith("QUERY"))  
         {  
@@ -199,11 +206,11 @@ public class ServerThread extends Thread  {
         	str = input.readLine(); 
             return str;  
         }  
-        //Èç¹û²¶×½µ½Òì³££¬±íÃ÷¸ÃSocket¶ÔÓ¦µÄ¿Í»§¶ËÒÑ¾­¹Ø±Õ  
+        //å¦‚æœæ•æ‰åˆ°å¼‚å¸¸ï¼Œè¡¨æ˜è¯¥Socketå¯¹åº”çš„å®¢æˆ·ç«¯å·²ç»å…³é—­  
         catch (IOException e)  
         {  
-            //É¾³ı¸ÃSocket¡£  
-            CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress());    //¢Ù 
+            //åˆ é™¤è¯¥Socketã€‚  
+            CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress());    //â‘  
             //System.out.println("error:exception happened,connection from "+clientRequest.getInetAddress().getHostAddress() + " has been closed!");  
         }  
         return null;  

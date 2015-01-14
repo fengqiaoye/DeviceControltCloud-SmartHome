@@ -1,4 +1,4 @@
-package socket;
+Ôªøpackage socket;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,6 +16,7 @@ import java.util.concurrent.BlockingQueue;
 
 import org.apache.log4j.Logger;
 
+import util.MySqlClass;
 import control.Config;
 
 public class CtrolSocketServer {
@@ -37,6 +38,13 @@ public class CtrolSocketServer {
      */
 	public static Map<String,Thread> threadMap;//= new HashMap<String,Thread>();
 	
+    /**<pre>
+     * Map   < serverID,serverIP >
+     * @key clientID
+     * @value clientIP
+     */
+	public static Map<Integer,String> clientMap;
+	
    // public static BlockingQueue<Message> receiveCommandQueue;
    // public static BlockingQueue<Message> sendCommandQueue;
 	public static ReceiveCommandQueue receiveCommandQueue;
@@ -45,7 +53,7 @@ public class CtrolSocketServer {
 	static Logger log =Logger.getLogger(CtrolSocketServer.class);	
 	
 	
-	/***@param serverPort: ¥”≈‰÷√Œƒº˛÷–∂¡»°: ./conf/control.conf */
+	/***@param serverPort: ‰ªéÈÖçÁΩÆÊñá‰ª∂‰∏≠ËØªÂèñ: ./conf/control.conf */
 	public CtrolSocketServer(Config config) {
 		log.info("starting device control socket server...");
 		threadMap= new HashMap<String,Thread>();
@@ -62,11 +70,47 @@ public class CtrolSocketServer {
         }
         catch(IOException e)
         {
-            //System.out.println(e);
-        	log.error(e);
+         	log.error(e);
             System.exit(1);
         }
+        initclientMap(config);
 	}
+	
+	public static  void initclientMap(Config cf){
+		clientMap=new HashMap<Integer, String>();
+		String mysql_ip			=cf.getValue("mysql_ip");
+		String mysql_port		=cf.getValue("mysql_port");
+		String mysql_user		=cf.getValue("mysql_user");
+		String mysql_password	=cf.getValue("mysql_password");
+		String mysql_database	=cf.getValue("mysql_database_main");
+		
+		MySqlClass mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
+		
+		String sql="select  "
+				+" serverid       ,"
+				+"serverip "
+				+ "  from "				
+				+"info_server"
+				+ ";";
+		System.out.println("query:"+sql);
+		String res=mysql.select(sql);
+		if(res==null ) {
+			log.error("ERROR:exception happened: "+sql);
+			return ;
+		}else if(res=="") {
+			log.error("ERROR:query result is empty: "+sql);
+			return ;
+		}
+		String[] resArray=res.split("\n");
+		for(String line:resArray){
+			String[]  cells=line.split(",");
+		  clientMap.put(Integer.parseInt(cells[0]), cells[1]);
+		}
+		
+		//System.out.println("1");
+	}
+	
+
 	
 	public void listen() throws IOException, Exception  
 	{
@@ -81,7 +125,7 @@ public class CtrolSocketServer {
             ServerThread th = new ServerThread(sock);    
        		th.start(); 
        		threadMap.put(clientAdress.getHostAddress(), th);
-			//Thread.sleep(200);  
+
        		log.info(" Started the "+threadMap.size()+"th thread!");
         }
 	}
@@ -97,7 +141,7 @@ public class CtrolSocketServer {
     public static String readLineFromScok(Socket sock) throws IOException   
     {
     	InputStreamReader reader = new InputStreamReader(sock.getInputStream()); 
-    	BufferedReader input=new BufferedReader(reader) ;//  ‰»Î¡˜  
+    	BufferedReader input=new BufferedReader(reader) ;// ËæìÂÖ•ÊµÅ  
     	String str = input.readLine();
     	return str;
     }
@@ -105,7 +149,8 @@ public class CtrolSocketServer {
     public static void main(String [] args) throws IOException, Exception      
     {  
     	Config cf = new Config();
-		new CtrolSocketServer(cf).listen();
+		//new CtrolSocketServer(cf).listen();
+    	initclientMap(cf);    	
     }
 
     

@@ -1,8 +1,8 @@
-/**
+ï»¿/**
  * Copyright 2014 Cooxm.com
  * All right reserved.
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created£º2014Äê12ÔÂ15ÈÕ ÏÂÎç2:34:49 
+ * @version Createdï¼š2014å¹´12æœˆ15æ—¥ ä¸‹åˆ2:34:49 
  */
 package util;
 
@@ -56,7 +56,7 @@ public class MySqlClass {
    }
    
  
-   /***Ö´ĞĞSQLÓï¾ä£¬Ê§°Ü·µ»Ø-1£¬³É¹¦Ôò·µ»Ø³É¹¦Ö´ĞĞµÄ¼ÇÂ¼ÌõÊı */
+   /***æ‰§è¡ŒSQLè¯­å¥ï¼Œå¤±è´¥è¿”å›-1ï¼ŒæˆåŠŸåˆ™è¿”å›æˆåŠŸæ‰§è¡Œçš„è®°å½•æ¡æ•° */
    public int query(String sqlStatement){
        int row=-1;
        try{
@@ -96,14 +96,14 @@ public class MySqlClass {
    
    public static void main(String[] args) throws SQLException{
 	   
-	   MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
-
-  
+	   MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_main", "root", "cooxm");
+	   
+	   System.out.println(mysql==null?false:true);  
 	   
        //mysql=new MySqlClass("172.20.36.247","3306","realTimeTraffic", "ghchen", "ghchen");
 	   //String s=mysql.select("show databases;");
-	   String ss=mysql.select("select * from HIS_Mobile_Operation_1507;");
-	   System.out.println(ss);
+	   //String ss=mysql.select("select * from HIS_Mobile_Operation_1507;");
+	   //System.out.println(ss);
 	   
  	   
    }

@@ -1,7 +1,7 @@
-package socket;
+ï»¿package socket;
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created£º2014Äê12ÔÂ15ÈÕ ÏÂÎç3:03:30 
+ * @version Createdï¼š2014å¹´12æœˆ15æ—¥ ä¸‹åˆ3:03:30 
  */
 
 import java.io.DataOutputStream;

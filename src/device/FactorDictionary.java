@@ -1,4 +1,4 @@
-package device;
+ï»¿package device;
 
 import java.sql.SQLException;
 import java.text.DateFormat;
@@ -11,7 +11,7 @@ import util.MySqlClass;
 
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created£º17 Dec 2014 18:30:11 
+ * @version Createdï¼š17 Dec 2014 18:30:11 
  */
 
 public class FactorDictionary extends Factor {
@@ -19,34 +19,34 @@ public class FactorDictionary extends Factor {
 	static Map<Integer, FactorDictionary> factorDictMap=new HashMap<Integer, FactorDictionary>(); 
 	
 	/***
-    10£ºµÆ
-    20£ºµçÊÓ
-    40: ¿Õµ÷
-    41: ¿Õµ÷¿ª¹Ø
-    42£º¿Õµ÷ÎÂ¶È
-    43£º¿Õµ÷·çËÙ
-    60£º´°»§
-    80£º´°Á±
-    90£ºÅ¯Æ÷
-    201£º¹â
-    301£ºPM2.5 
-    401£ºÓĞº¦ÆøÌå
-    501£ºÊª¶È
-    601£ºÎÂ¶È
-    701£ºÌìÆø£¨Ô¤±¨£©
-    901£ºÉùÒô'
+    10ï¼šç¯
+    20ï¼šç”µè§†
+    40: ç©ºè°ƒ
+    41: ç©ºè°ƒå¼€å…³
+    42ï¼šç©ºè°ƒæ¸©åº¦
+    43ï¼šç©ºè°ƒé£é€Ÿ
+    60ï¼šçª—æˆ·
+    80ï¼šçª—å¸˜
+    90ï¼šæš–å™¨
+    201ï¼šå…‰
+    301ï¼šPM2.5 
+    401ï¼šæœ‰å®³æ°”ä½“
+    501ï¼šæ¹¿åº¦
+    601ï¼šæ¸©åº¦
+    701ï¼šå¤©æ°”ï¼ˆé¢„æŠ¥ï¼‰
+    901ï¼šå£°éŸ³'
     */
 	int  factorid       ;
 	
-	/*** 0:¼ÒµçÒòËØ£¬ÈçµÆ ¿Õµ÷;  
-          1£º»·¾³ÒòËØ£¬Èç¹âÇ¿¶È'
+	/*** 0:å®¶ç”µå› ç´ ï¼Œå¦‚ç¯ ç©ºè°ƒ;  
+          1ï¼šç¯å¢ƒå› ç´ ï¼Œå¦‚å…‰å¼ºåº¦'
     */
 	int  factortype     ;
 	String  factorname     ;
 	String   description    ;
 	String   measurement    ;
 	
-	/***1¡¢¾ø¶ÔÖµ£»2¡¢Ïà¶ÔÖµ,*/
+	/***1ã€ç»å¯¹å€¼ï¼›2ã€ç›¸å¯¹å€¼,*/
 	int  mstype         ;
 	String  createoperator ;
 	String  modifyoperator ;

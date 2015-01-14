@@ -1,4 +1,4 @@
-package control;
+ï»¿package control;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,7 +14,7 @@ import org.apache.log4j.Logger;
 
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created£º24 Dec 2014 14:22:48 
+ * @version Createdï¼š24 Dec 2014 14:22:48 
  */
 
 public class Config extends Properties {
@@ -33,12 +33,13 @@ public class Config extends Properties {
 		    	checkExist(configFile);
 		        pps.load(new FileInputStream(configFile));	        	
 		        //Enumeration<?> enum = pps.propertyNames();
-	            if(!pps.containsKey("server_port"))   	{pps.setProperty("server_port", "64415");  }
+	            if(!pps.containsKey("server_port"))   	{pps.setProperty("server_port", "20190");  }
 	            if(!pps.containsKey("mysql_ip"))   		{pps.setProperty("mysql_ip", "172.16.35.170");  }
 	            if(!pps.containsKey("mysql_port")) 		{pps.setProperty("mysql_port", "3306");  }
 	            if(!pps.containsKey("mysql_user")) 		{pps.setProperty("mysql_user", "root");  }
 	            if(!pps.containsKey("mysql_password"))	{pps.setProperty("mysql_password", "cooxm");  }
-	            if(!pps.containsKey("mysql_database"))	{pps.setProperty("mysql_database", "cooxm_device_control"); } 
+	            if(!pps.containsKey("mysql_database"))	{pps.setProperty("mysql_database", "cooxm_device_control"); }
+	            if(!pps.containsKey("mysql_database_main"))	{pps.setProperty("mysql_database_main", "cooxm_main"); }
 	            if(!pps.containsKey("redis_ip"))	    {pps.setProperty("redis_ip", "172.16.35.170"); }
 	            if(!pps.containsKey("redis_port"))	    {pps.setProperty("redis_port", "6379"); }
 	            if(!pps.containsKey("max_send_msg_queue"))	    {pps.setProperty("max_send_msg_queue", "10000"); }

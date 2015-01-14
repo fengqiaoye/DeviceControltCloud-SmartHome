@@ -1,12 +1,6 @@
-2015-01-12 09:36:51[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
-2015-01-12 09:36:51[INFO ] control.Config.<init>(Config.java:53): System config finished. 
-2015-01-12 16:35:53[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
-2015-01-12 16:35:53[INFO ] control.Config.<init>(Config.java:53): System config finished. 
-2015-01-12 16:36:09[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
-2015-01-12 16:36:09[INFO ] control.Config.<init>(Config.java:53): System config finished. 
-2015-01-12 16:42:45[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
-2015-01-12 16:42:45[INFO ] control.Config.<init>(Config.java:53): System config finished. 
-2015-01-12 16:42:46[ERROR] util.MySqlClass.query(MySqlClass.java:69): com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException: Duplicate entry '87654321' for key 'PRIMARY'
+2015-01-13 09:33:22[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-13 09:33:22[INFO ] control.Config.<init>(Config.java:53): System config finished. 
+2015-01-13 09:33:22[ERROR] util.MySqlClass.query(MySqlClass.java:69): com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException: Duplicate entry '87654321' for key 'PRIMARY'
 com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException: Duplicate entry '87654321' for key 'PRIMARY'
 	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
 	at sun.reflect.NativeConstructorAccessorImpl.newInstance(Unknown Source)
@@ -23,10 +17,153 @@ com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException: Dupl
 	at com.mysql.jdbc.StatementImpl.executeUpdate(StatementImpl.java:1811)
 	at com.mysql.jdbc.StatementImpl.executeUpdate(StatementImpl.java:1725)
 	at util.MySqlClass.query(MySqlClass.java:63)
-	at socket.Event.toReplyDB(Event.java:191)
-	at socket.SendCommandQueue.put(SendCommandQueue.java:89)
-	at socket.SendCommandQueue.main(SendCommandQueue.java:132)
-2015-01-12 16:43:08[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
-2015-01-12 16:43:08[INFO ] control.Config.<init>(Config.java:53): System config finished. 
-2015-01-12 16:43:15[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
-2015-01-12 16:43:15[INFO ] control.Config.<init>(Config.java:53): System config finished. 
+	at socket.Event.toReceiveDB(Event.java:156)
+	at socket.ReceiveCommandQueue.put(ReceiveCommandQueue.java:77)
+	at socket.ReceiveCommandQueue.main(ReceiveCommandQueue.java:124)
+2015-01-13 18:04:17[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-13 18:04:17[INFO ] control.Config.<init>(Config.java:53): System config finished. 
+2015-01-13 18:04:18[ERROR] util.MySqlClass.select(MySqlClass.java:53): com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'from info_server' at line 1
+com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException: You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'from info_server' at line 1
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(Unknown Source)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(Unknown Source)
+	at java.lang.reflect.Constructor.newInstance(Unknown Source)
+	at com.mysql.jdbc.Util.handleNewInstance(Util.java:411)
+	at com.mysql.jdbc.Util.getInstance(Util.java:386)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:1054)
+	at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:4190)
+	at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:4122)
+	at com.mysql.jdbc.MysqlIO.sendCommand(MysqlIO.java:2570)
+	at com.mysql.jdbc.MysqlIO.sqlQueryDirect(MysqlIO.java:2731)
+	at com.mysql.jdbc.ConnectionImpl.execSQL(ConnectionImpl.java:2812)
+	at com.mysql.jdbc.ConnectionImpl.execSQL(ConnectionImpl.java:2761)
+	at com.mysql.jdbc.StatementImpl.executeQuery(StatementImpl.java:1612)
+	at util.MySqlClass.select(MySqlClass.java:37)
+	at socket.CtrolSocketServer.initclientMap(CtrolSocketServer.java:95)
+	at socket.CtrolSocketServer.main(CtrolSocketServer.java:150)
+2015-01-13 18:04:18[ERROR] socket.CtrolSocketServer.initclientMap(CtrolSocketServer.java:97): ERROR:exception happened: select   serverid       ,serverip,  from info_server;
+2015-01-13 18:04:53[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-13 18:04:53[INFO ] control.Config.<init>(Config.java:53): System config finished. 
+2015-01-13 18:04:53[ERROR] util.MySqlClass.select(MySqlClass.java:53): com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException: Table 'cooxm_device_control.info_server' doesn't exist
+com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException: Table 'cooxm_device_control.info_server' doesn't exist
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(Unknown Source)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(Unknown Source)
+	at java.lang.reflect.Constructor.newInstance(Unknown Source)
+	at com.mysql.jdbc.Util.handleNewInstance(Util.java:411)
+	at com.mysql.jdbc.Util.getInstance(Util.java:386)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:1054)
+	at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:4190)
+	at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:4122)
+	at com.mysql.jdbc.MysqlIO.sendCommand(MysqlIO.java:2570)
+	at com.mysql.jdbc.MysqlIO.sqlQueryDirect(MysqlIO.java:2731)
+	at com.mysql.jdbc.ConnectionImpl.execSQL(ConnectionImpl.java:2812)
+	at com.mysql.jdbc.ConnectionImpl.execSQL(ConnectionImpl.java:2761)
+	at com.mysql.jdbc.StatementImpl.executeQuery(StatementImpl.java:1612)
+	at util.MySqlClass.select(MySqlClass.java:37)
+	at socket.CtrolSocketServer.initclientMap(CtrolSocketServer.java:95)
+	at socket.CtrolSocketServer.main(CtrolSocketServer.java:150)
+2015-01-13 18:04:53[ERROR] socket.CtrolSocketServer.initclientMap(CtrolSocketServer.java:97): ERROR:exception happened: select   serverid       ,serverip   from info_server;
+2015-01-13 18:07:27[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-13 18:07:27[INFO ] control.Config.<init>(Config.java:54): System config finished. 
+2015-01-13 18:07:28[FATAL] util.MySqlClass.<init>(MySqlClass.java:28): Unknown database 'null'
+com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException: Unknown database 'null'
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(Unknown Source)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(Unknown Source)
+	at java.lang.reflect.Constructor.newInstance(Unknown Source)
+	at com.mysql.jdbc.Util.handleNewInstance(Util.java:411)
+	at com.mysql.jdbc.Util.getInstance(Util.java:386)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:1054)
+	at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:4190)
+	at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:4122)
+	at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:927)
+	at com.mysql.jdbc.MysqlIO.proceedHandshakeWithPluggableAuthentication(MysqlIO.java:1709)
+	at com.mysql.jdbc.MysqlIO.doHandshake(MysqlIO.java:1252)
+	at com.mysql.jdbc.ConnectionImpl.coreConnect(ConnectionImpl.java:2486)
+	at com.mysql.jdbc.ConnectionImpl.connectOneTryOnly(ConnectionImpl.java:2519)
+	at com.mysql.jdbc.ConnectionImpl.createNewIO(ConnectionImpl.java:2304)
+	at com.mysql.jdbc.ConnectionImpl.<init>(ConnectionImpl.java:834)
+	at com.mysql.jdbc.JDBC4Connection.<init>(JDBC4Connection.java:47)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(Unknown Source)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(Unknown Source)
+	at java.lang.reflect.Constructor.newInstance(Unknown Source)
+	at com.mysql.jdbc.Util.handleNewInstance(Util.java:411)
+	at com.mysql.jdbc.ConnectionImpl.getInstance(ConnectionImpl.java:416)
+	at com.mysql.jdbc.NonRegisteringDriver.connect(NonRegisteringDriver.java:346)
+	at java.sql.DriverManager.getConnection(Unknown Source)
+	at java.sql.DriverManager.getConnection(Unknown Source)
+	at util.MySqlClass.<init>(MySqlClass.java:24)
+	at socket.CtrolSocketServer.initclientMap(CtrolSocketServer.java:86)
+	at socket.CtrolSocketServer.main(CtrolSocketServer.java:150)
+2015-01-13 18:07:28[ERROR] util.MySqlClass.select(MySqlClass.java:53): java.lang.NullPointerException
+java.lang.NullPointerException
+	at util.MySqlClass.select(MySqlClass.java:37)
+	at socket.CtrolSocketServer.initclientMap(CtrolSocketServer.java:95)
+	at socket.CtrolSocketServer.main(CtrolSocketServer.java:150)
+2015-01-13 18:07:28[ERROR] socket.CtrolSocketServer.initclientMap(CtrolSocketServer.java:97): ERROR:exception happened: select   serverid       ,serverip   from info_server;
+2015-01-13 18:08:40[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-13 18:08:40[INFO ] control.Config.<init>(Config.java:54): System config finished. 
+2015-01-13 18:08:40[ERROR] util.MySqlClass.select(MySqlClass.java:53): com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException: SELECT command denied to user 'root'@'172.16.35.67' for table 'info_server'
+com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException: SELECT command denied to user 'root'@'172.16.35.67' for table 'info_server'
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(Unknown Source)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(Unknown Source)
+	at java.lang.reflect.Constructor.newInstance(Unknown Source)
+	at com.mysql.jdbc.Util.handleNewInstance(Util.java:411)
+	at com.mysql.jdbc.Util.getInstance(Util.java:386)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:1054)
+	at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:4190)
+	at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:4122)
+	at com.mysql.jdbc.MysqlIO.sendCommand(MysqlIO.java:2570)
+	at com.mysql.jdbc.MysqlIO.sqlQueryDirect(MysqlIO.java:2731)
+	at com.mysql.jdbc.ConnectionImpl.execSQL(ConnectionImpl.java:2812)
+	at com.mysql.jdbc.ConnectionImpl.execSQL(ConnectionImpl.java:2761)
+	at com.mysql.jdbc.StatementImpl.executeQuery(StatementImpl.java:1612)
+	at util.MySqlClass.select(MySqlClass.java:37)
+	at socket.CtrolSocketServer.initclientMap(CtrolSocketServer.java:95)
+	at socket.CtrolSocketServer.main(CtrolSocketServer.java:150)
+2015-01-13 18:08:40[ERROR] socket.CtrolSocketServer.initclientMap(CtrolSocketServer.java:97): ERROR:exception happened: select   serverid       ,serverip   from info_server;
+2015-01-13 18:09:34[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-13 18:09:34[INFO ] control.Config.<init>(Config.java:54): System config finished. 
+2015-01-13 18:10:29[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-13 18:10:29[INFO ] control.Config.<init>(Config.java:54): System config finished. 
+2015-01-13 18:25:53[INFO ] control.MainEntry.main(MainEntry.java:29): Starting from main entry...
+2015-01-13 18:25:53[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-13 18:25:53[INFO ] control.Config.<init>(Config.java:54): System config finished. 
+2015-01-13 18:25:53[INFO ] control.LogicControl.<init>(LogicControl.java:144): Starting logic control module ... 
+2015-01-13 18:25:54[ERROR] util.MySqlClass.select(MySqlClass.java:53): com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException: Table 'cooxm_main.info_user_room_st' doesn't exist
+com.mysql.jdbc.exceptions.jdbc4.MySQLSyntaxErrorException: Table 'cooxm_main.info_user_room_st' doesn't exist
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(Unknown Source)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(Unknown Source)
+	at java.lang.reflect.Constructor.newInstance(Unknown Source)
+	at com.mysql.jdbc.Util.handleNewInstance(Util.java:411)
+	at com.mysql.jdbc.Util.getInstance(Util.java:386)
+	at com.mysql.jdbc.SQLError.createSQLException(SQLError.java:1054)
+	at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:4190)
+	at com.mysql.jdbc.MysqlIO.checkErrorPacket(MysqlIO.java:4122)
+	at com.mysql.jdbc.MysqlIO.sendCommand(MysqlIO.java:2570)
+	at com.mysql.jdbc.MysqlIO.sqlQueryDirect(MysqlIO.java:2731)
+	at com.mysql.jdbc.ConnectionImpl.execSQL(ConnectionImpl.java:2812)
+	at com.mysql.jdbc.ConnectionImpl.execSQL(ConnectionImpl.java:2761)
+	at com.mysql.jdbc.StatementImpl.executeQuery(StatementImpl.java:1612)
+	at util.MySqlClass.select(MySqlClass.java:37)
+	at device.ProfileMap.getProfileMapFromDB(ProfileMap.java:71)
+	at device.ProfileMap.<init>(ProfileMap.java:40)
+	at control.LogicControl.<init>(LogicControl.java:158)
+	at control.MainEntry.main(MainEntry.java:31)
+2015-01-13 18:27:37[INFO ] control.MainEntry.main(MainEntry.java:29): Starting from main entry...
+2015-01-13 18:27:37[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-13 18:27:37[INFO ] control.Config.checkExist(Config.java:63): config file not existed,create a default one. 
+2015-01-13 18:27:37[INFO ] control.Config.<init>(Config.java:54): System config finished. 
+2015-01-13 18:27:37[INFO ] control.LogicControl.<init>(LogicControl.java:144): Starting logic control module ... 
+2015-01-13 18:27:37[INFO ] control.LogicControl.<init>(LogicControl.java:165): Initialization of map successful :  profileMap,size=2;profileSetMap size=2; deviceMap, size=4; roomMap, size=2
+2015-01-13 18:27:37[INFO ] control.LogicControl.<init>(LogicControl.java:170): Initialization of Logic control module finished. 
+2015-01-13 18:27:37[INFO ] socket.CtrolSocketServer.<init>(CtrolSocketServer.java:58): starting device control socket server...
+2015-01-13 18:27:37[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-13 18:27:37[INFO ] control.Config.<init>(Config.java:54): System config finished. 
+2015-01-13 18:27:37[INFO ] control.Config.<init>(Config.java:32): Starting reading system config file : ./conf/control.conf...
+2015-01-13 18:27:37[INFO ] control.Config.<init>(Config.java:54): System config finished. 
+2015-01-13 18:27:38[INFO ] socket.CtrolSocketServer.listen(CtrolSocketServer.java:119):  Listening at port:20190...

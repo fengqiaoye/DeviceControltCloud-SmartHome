@@ -1,8 +1,8 @@
-/**
+ï»¿/**
  * Copyright 2014 Cooxm.com
  * All right reserved.
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * Created£º17 Dec 2014 17:51:32 
+ * Createdï¼š17 Dec 2014 17:51:32 
  */
 package device;
 
@@ -36,7 +36,7 @@ public class DeviceMap extends HashMap<String, Device> {
 	}
 
 /*** 
-   * ´ÓÈëMYSQL¶ÁÈ¡deviceÁĞ±í
+   * ä»å…¥MYSQLè¯»å–deviceåˆ—è¡¨
    * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
@@ -94,7 +94,7 @@ public class DeviceMap extends HashMap<String, Device> {
 		return deviceMap;
 	}
 	
-	/*** »ñÈ¡ ¸Ã¼ÒÍ¥ËùÓĞÉè±¸£¬°üº¬¼ÓµçºÍ ´«¸ĞÆ÷
+	/*** è·å– è¯¥å®¶åº­æ‰€æœ‰è®¾å¤‡ï¼ŒåŒ…å«åŠ ç”µå’Œ ä¼ æ„Ÿå™¨
 	 * 
 	 * */
 	public List<Device> getDevicesByCtrolID(int CtrolID){
@@ -107,7 +107,7 @@ public class DeviceMap extends HashMap<String, Device> {
 		return deviceList;
 	}
 	
-	/*** »ñÈ¡ ¸Ã¼ÒÍ¥ËùÓĞÉè±¸£¬Ö»°üº¬¼Óµç
+	/*** è·å– è¯¥å®¶åº­æ‰€æœ‰è®¾å¤‡ï¼ŒåªåŒ…å«åŠ ç”µ
 	 *   <pre> device.type=0;
 	 **/
 	//@SuppressWarnings("null")
@@ -122,7 +122,7 @@ public class DeviceMap extends HashMap<String, Device> {
 	}
 	
 	/**
-	 *ÖØĞ´¸¸ÀàµÄ·½·¨£¬µ±ÏòÕâ¸ömapÌí¼ÓÒ»¸öÇé¾°Ä£Ê½Ê±£¬×Ô¶¯°ÑÕâ¸öÇé¾°Ä£Ê½Ğ´ÈëÊı¾İ¿â
+	 *é‡å†™çˆ¶ç±»çš„æ–¹æ³•ï¼Œå½“å‘è¿™ä¸ªmapæ·»åŠ ä¸€ä¸ªæƒ…æ™¯æ¨¡å¼æ—¶ï¼Œè‡ªåŠ¨æŠŠè¿™ä¸ªæƒ…æ™¯æ¨¡å¼å†™å…¥æ•°æ®åº“
 	 *  */
 	@Override
 	public Device put(String key,Device device) {
@@ -133,7 +133,7 @@ public class DeviceMap extends HashMap<String, Device> {
 	}	
 	
 	/**
-	 *ÖØĞ´¸¸ÀàµÄ·½·¨£¬µ±ÏòÕâ¸ömapÉ¾³ıÒ»¸öÇé¾°Ä£Ê½Ê±£¬×Ô¶¯°ÑÕâ¸öÇé¾°Ä£Ê½´ÓÊı¾İ¿âÉ¾³ı
+	 *é‡å†™çˆ¶ç±»çš„æ–¹æ³•ï¼Œå½“å‘è¿™ä¸ªmapåˆ é™¤ä¸€ä¸ªæƒ…æ™¯æ¨¡å¼æ—¶ï¼Œè‡ªåŠ¨æŠŠè¿™ä¸ªæƒ…æ™¯æ¨¡å¼ä»æ•°æ®åº“åˆ é™¤
 	 *  */
 	@Override
 	public Device remove(Object CtrolID_deviceID) {		

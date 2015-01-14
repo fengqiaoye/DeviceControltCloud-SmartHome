@@ -1,8 +1,8 @@
-/**
+ï»¿/**
  * Copyright 2014 Cooxm.com
  * All right reserved.
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * Created£º2014Äê12ÔÂ15ÈÕ ÏÂÎç4:48:54 
+ * Createdï¼š2014å¹´12æœˆ15æ—¥ ä¸‹åˆ4:48:54 
  */
 package device;
 
@@ -18,8 +18,8 @@ import util.MySqlClass;
 
 /**
  * <pre>Map < CtrolID+profileID,Profile >
- * @key CtrolID+profileID×Ö·û´®
- * @value ¶ÔÓ¦µÄÇé¾°Ä£Ê½
+ * @key CtrolID+profileIDå­—ç¬¦ä¸²
+ * @value å¯¹åº”çš„æƒ…æ™¯æ¨¡å¼
  */
 public class ProfileMap extends HashMap<String, Profile>{
 
@@ -42,7 +42,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 	}
 	
    /*** 
-   * ´ÓÈëMYSQL¶ÁÈ¡Çé¾°Ä£Ê½ÁĞ±í
+   * ä»å…¥MYSQLè¯»å–æƒ…æ™¯æ¨¡å¼åˆ—è¡¨
    * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
@@ -101,7 +101,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 
 	
 	/**
-	 *ÖØĞ´¸¸ÀàµÄ·½·¨£¬µ±ÏòÕâ¸ömapÌí¼ÓÒ»¸öÇé¾°Ä£Ê½Ê±£¬×Ô¶¯°ÑÕâ¸öÇé¾°Ä£Ê½Ğ´ÈëÊı¾İ¿â
+	 *é‡å†™çˆ¶ç±»çš„æ–¹æ³•ï¼Œå½“å‘è¿™ä¸ªmapæ·»åŠ ä¸€ä¸ªæƒ…æ™¯æ¨¡å¼æ—¶ï¼Œè‡ªåŠ¨æŠŠè¿™ä¸ªæƒ…æ™¯æ¨¡å¼å†™å…¥æ•°æ®åº“
 	 *  */
 	@Override
 	public Profile put(String key,Profile profile) {
@@ -118,7 +118,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 	}	
 	
 	/**
-	 *ÖØĞ´¸¸ÀàµÄ·½·¨£¬µ±ÏòÕâ¸ömapÉ¾³ıÒ»¸öÇé¾°Ä£Ê½Ê±£¬×Ô¶¯°ÑÕâ¸öÇé¾°Ä£Ê½´ÓÊı¾İ¿âÉ¾³ı
+	 *é‡å†™çˆ¶ç±»çš„æ–¹æ³•ï¼Œå½“å‘è¿™ä¸ªmapåˆ é™¤ä¸€ä¸ªæƒ…æ™¯æ¨¡å¼æ—¶ï¼Œè‡ªåŠ¨æŠŠè¿™ä¸ªæƒ…æ™¯æ¨¡å¼ä»æ•°æ®åº“åˆ é™¤
 	 *  */
 	@Override
 	public Profile remove(Object key) {
@@ -133,9 +133,9 @@ public class ProfileMap extends HashMap<String, Profile>{
 	}
 	
 
-	/*** »ñÈ¡Ò»¸ö¼ÒÍ¥ËùÓĞÇé¾°Ä£Ê½
+	/*** è·å–ä¸€ä¸ªå®¶åº­æ‰€æœ‰æƒ…æ™¯æ¨¡å¼
 	 * @param CtrolID
-	 * @return  List < Profile > Çé¾°Ä£Ê½ÁĞ±í	 * 
+	 * @return  List < Profile > æƒ…æ™¯æ¨¡å¼åˆ—è¡¨	 * 
 	 * */
 	public List<Profile> getProfilesByCtrolID(int CtrolID){	
 		List<Profile> profileList=new ArrayList<Profile>();
@@ -148,7 +148,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 	}
 
 
-	/*** »ñÈ¡Ò»¸ö·¿¼äËùÓĞÇé¾°Ä£Ê½
+	/*** è·å–ä¸€ä¸ªæˆ¿é—´æ‰€æœ‰æƒ…æ™¯æ¨¡å¼
 	 * @param: roomID
 	 * @param: CtrolID 
 	 * */

@@ -1,7 +1,7 @@
-package device;
+ï»¿package device;
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created£º2014Äê12ÔÂ15ÈÕ ÏÂÎç3:03:30 
+ * @version Createdï¼š2014å¹´12æœˆ15æ—¥ ä¸‹åˆ3:03:30 
  */
 
 import java.sql.SQLException;
@@ -17,7 +17,7 @@ import util.*;
 
 
 /** 
- * Õû¸ö¼ÒÍ¥¼Òµç¡¢´«¸ÐÆ÷ÁÐ±í 
+ * æ•´ä¸ªå®¶åº­å®¶ç”µã€ä¼ æ„Ÿå™¨åˆ—è¡¨ 
  */
 public class Device {	
 	int deviceID;
@@ -25,51 +25,51 @@ public class Device {
 	String deviceSN;
 	int roomID;
 	/***deviceType
-	0-10£º±£Áô
-	10£ºµÆ
-	20£ºµçÊÓ
-	40: ¿Õµ÷
-	60£º´°»§
-	80£º´°Á±
-	90£ºÅ¯Æ÷
+	0-10ï¼šä¿ç•™
+	10ï¼šç¯
+	20ï¼šç”µè§†
+	40: ç©ºè°ƒ
+	60ï¼šçª—æˆ·
+	80ï¼šçª—å¸˜
+	90ï¼šæš–å™¨
 
-	1010:Éù¸ÐÆ÷
-	1020:¹â¸ÐÆ÷
-	1030£ºÎÂ¸ÐÆ÷
-	1040£ºÊª¸ÐÆ÷
-	1050£ºÉù¹âÎÂÊªËÄºÏÒ»´«¸ÐÆ÷
-	1051:ËÄºÏÒ»Éù¸Ð
-	1052£ºËÄºÏÒ»¹â¸Ð
-	1053£ºËÄºÏÒ»ÎÂ¸Ð
-	1054£ºËÄºÏÒ»Êª¸Ð
-	1060:PM2.5¼ì²âÆ÷
-	1070:ÓÐº¦ÆøÌå¼ì²âÆ÷
-	1080:ÖÇÄÜ²å×ù
+	1010:å£°æ„Ÿå™¨
+	1020:å…‰æ„Ÿå™¨
+	1030ï¼šæ¸©æ„Ÿå™¨
+	1040ï¼šæ¹¿æ„Ÿå™¨
+	1050ï¼šå£°å…‰æ¸©æ¹¿å››åˆä¸€ä¼ æ„Ÿå™¨
+	1051:å››åˆä¸€å£°æ„Ÿ
+	1052ï¼šå››åˆä¸€å…‰æ„Ÿ
+	1053ï¼šå››åˆä¸€æ¸©æ„Ÿ
+	1054ï¼šå››åˆä¸€æ¹¿æ„Ÿ
+	1060:PM2.5æ£€æµ‹å™¨
+	1070:æœ‰å®³æ°”ä½“æ£€æµ‹å™¨
+	1080:æ™ºèƒ½æ’åº§
 
-	2040:ÉäÆµ·¢ÉäÆ÷
-	2050:ºìÍâ·¢ÉäÆ÷
+	2040:å°„é¢‘å‘å°„å™¨
+	2050:çº¢å¤–å‘å°„å™¨
 	
-	3000ÒÔÉÏ£ºÓÃ»§×Ô¼ºÌí¼ÓµÄÎ´ÖªÉè±¸
+	3000ä»¥ä¸Šï¼šç”¨æˆ·è‡ªå·±æ·»åŠ çš„æœªçŸ¥è®¾å¤‡
 	*/
 	int deviceType;
 	
-	/***0£º¼Òµç   ;	1£º´«¸ÐÆ÷*/
+	/***0ï¼šå®¶ç”µ   ;	1ï¼šä¼ æ„Ÿå™¨*/
 	int type;
 	/***
-	 £¨Ë³Ê±Õë·½Ïò£©
-	1£º»Æ
-	2:»ÆÀ¶
-	3£ºÀ¶
-	4£ºÀ¶ÂÌ
-	5: ÂÌ
-	6£ººìÂÌ
-	7£ººì
-	8£ººé»Ä
-	9£ºÖÐ¼ä,ÓëÇ½±ÚÎÞ¹Ø
+	 ï¼ˆé¡ºæ—¶é’ˆæ–¹å‘ï¼‰
+	1ï¼šé»„
+	2:é»„è“
+	3ï¼šè“
+	4ï¼šè“ç»¿
+	5: ç»¿
+	6ï¼šçº¢ç»¿
+	7ï¼šçº¢
+	8ï¼šæ´ªè’
+	9ï¼šä¸­é—´,ä¸Žå¢™å£æ— å…³
 	 */
 	int wall; 
 	
-	/***relatedDevType¶¨Òå²Î¼ûdeviceType, ´ú±íÃ»ÓÐ¹ØÁª*/
+	/***relatedDevTypeå®šä¹‰å‚è§deviceType, ä»£è¡¨æ²¡æœ‰å…³è”*/
 	int relatedDevType; 
 	Date createTime;
 	public Date modifyTime;
@@ -158,29 +158,29 @@ public class Device {
 	 * get device name:
 	 * @return deviceName : a string name of a device depends on device ID
 	 * <br> deviceType: <br>	
-	0-10£º±£Áô
-	10£ºµÆ
-	20£ºµçÊÓ
-	40: ¿Õµ÷
-	60£º´°»§
-	80£º´°Á±
-	90£ºÅ¯Æ÷
+	0-10ï¼šä¿ç•™
+	10ï¼šç¯
+	20ï¼šç”µè§†
+	40: ç©ºè°ƒ
+	60ï¼šçª—æˆ·
+	80ï¼šçª—å¸˜
+	90ï¼šæš–å™¨
 
-	1010:Éù¸ÐÆ÷
-	1020:¹â¸ÐÆ÷
-	1030£ºÎÂ¸ÐÆ÷
-	1040£ºÊª¸ÐÆ÷
-	1050£ºÉù¹âÎÂÊªËÄºÏÒ»´«¸ÐÆ÷
-	1051:ËÄºÏÒ»Éù¸Ð
-	1052£ºËÄºÏÒ»¹â¸Ð
-	1053£ºËÄºÏÒ»ÎÂ¸Ð
-	1054£ºËÄºÏÒ»Êª¸Ð
-	1060:PM2.5¼ì²âÆ÷
-	1070:ÓÐº¦ÆøÌå¼ì²âÆ÷
-	1080:ÖÇÄÜ²å×ù
+	1010:å£°æ„Ÿå™¨
+	1020:å…‰æ„Ÿå™¨
+	1030ï¼šæ¸©æ„Ÿå™¨
+	1040ï¼šæ¹¿æ„Ÿå™¨
+	1050ï¼šå£°å…‰æ¸©æ¹¿å››åˆä¸€ä¼ æ„Ÿå™¨
+	1051:å››åˆä¸€å£°æ„Ÿ
+	1052ï¼šå››åˆä¸€å…‰æ„Ÿ
+	1053ï¼šå››åˆä¸€æ¸©æ„Ÿ
+	1054ï¼šå››åˆä¸€æ¹¿æ„Ÿ
+	1060:PM2.5æ£€æµ‹å™¨
+	1070:æœ‰å®³æ°”ä½“æ£€æµ‹å™¨
+	1080:æ™ºèƒ½æ’åº§
 
-	2040:ÉäÆµ·¢ÉäÆ÷
-	2050:ºìÍâ·¢ÉäÆ÷	 
+	2040:å°„é¢‘å‘å°„å™¨
+	2050:çº¢å¤–å‘å°„å™¨	 
 	 */
 	public String getDeviceName(){
 		switch (this.deviceID) {

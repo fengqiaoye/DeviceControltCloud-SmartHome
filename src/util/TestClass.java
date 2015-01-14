@@ -1,19 +1,21 @@
-package util;
+Ôªøpackage util;
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created£∫6 Jan 2015 09:48:27 
+ * @version CreatedÔºö6 Jan 2015 09:48:27 
  */
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.Socket;
 import java.util.Date;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import redis.clients.jedis.Jedis;
+import socket.Header;
 import socket.Message;
 
 
@@ -53,7 +55,7 @@ public class TestClass {
 	public static Object unserialize(byte[] bytes) {
 		ByteArrayInputStream bais = null;
 		try {
-		//∑¥–Ú¡–ªØ
+		//ÂèçÂ∫èÂàóÂåñ
 		bais = new ByteArrayInputStream(bytes);
 		ObjectInputStream ois = new ObjectInputStream(bais);
 		  return ois.readObject();
@@ -107,19 +109,50 @@ public class TestClass {
 		}
 	}
 	
+	public static void sendMsgTest(){
+    	Message msg= new Message();
+    	
+    	String headTag="#XRPC#";			
+    	byte mainVersion=1;
+    	byte subVersion=2;
+    	short msgLen=15;
+    	short commandID=0x1601;
+    	int sequeeceNo=123456;
+    	short encType=1; 
+    	short cookieLen=4;
+    	int reserve=0;
+    	
+    	JSONObject json=new JSONObject();
+    	try {
+			json.put("CtrolID", 1234567);
+	    	json.put("sender", 1);
+	    	json.put("roomID", 103);
+	    	json.put("errorCode", -12);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+
+
+    	
+    	Header head= new Header(headTag, mainVersion, subVersion, msgLen, commandID, sequeeceNo, encType, cookieLen, reserve);
+    	msg.header=head;
+    	msg.cookie="87654321";
+    	msg.json=json;
+    	msg.receiveTime=new Date();
+    	msg.replyTime=new Date();
+    	
+    	try {
+			Socket sock= new Socket("172.16.35.210", 10290);
+		 	msg.writeBytesToSock(sock);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+   
+    	
+	}
+	
 	public static void referenceTest(){
-//		String a= new String("  test a  ");
-//		System.out.println(a.length());
-//		String b=a;
-//		b=b.trim();
-//		System.out.println(b.length());
-//		System.out.println(a.length());
-		
-//		Test a= new Test("1", "one");
-//		Test b= new Test();
-//		 b=a;
-//		b.name="two";
-//		System.out.println(a.name);
+
 		
 		Message a = new Message();
 		a.cookie="test A";
@@ -148,6 +181,9 @@ public class TestClass {
 		 
 //		 testJson();
 		
-		referenceTest();
+		//referenceTest();
+		
+		sendMsgTest();
+		
 		}
 }

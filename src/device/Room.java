@@ -1,4 +1,4 @@
-package device;
+ï»¿package device;
 
 import java.util.*;
 import java.io.IOException;
@@ -20,13 +20,13 @@ public class Room {
 	String roomName;
 	int CtrolID;
 	
-	/***1£º¿ÍÌü£»	2£ºÎÔÊÒ;	  3£º³ø·¿;	 4£ºÎÀÉú¼ä*/
+	/***1ï¼šå®¢å…ï¼›	2ï¼šå§å®¤;	  3ï¼šå¨æˆ¿;	 4ï¼šå«ç”Ÿé—´*/
 	int roomType;
 	
-	/***Õâ¸ö·¿¼äËùÓĞµÄÇé¾°Ä£Ê½ID ÁĞ±í */
+	/***è¿™ä¸ªæˆ¿é—´æ‰€æœ‰çš„æƒ…æ™¯æ¨¡å¼ID åˆ—è¡¨ */
 	List<Integer> profileList; 
 	
-	/***Õâ¸ö·¿¼äËùÓĞµÄÉè±¸ID ÁĞ±í */
+	/***è¿™ä¸ªæˆ¿é—´æ‰€æœ‰çš„è®¾å¤‡ID åˆ—è¡¨ */
 	List<Integer> deviceList;
 	Date createTime;
 	Date modifyTime;
@@ -114,7 +114,7 @@ public class Room {
 		return roomJson;
 	}
 
-	/*** ÅĞ¶ÏÕâ¸ö·¿¼äÊÇ·ñ´æÔÚÄ³¸öÉè±¸ */
+	/*** åˆ¤æ–­è¿™ä¸ªæˆ¿é—´æ˜¯å¦å­˜åœ¨æŸä¸ªè®¾å¤‡ */
 	public boolean isDeviceExist(int deviceID){
 		for (int i = 0; i < this.deviceList.size(); i++) {
 			if(this.deviceList.get(i)==deviceID){
@@ -124,7 +124,7 @@ public class Room {
 		return false;		
 	}
 	
-	/*** ÅĞ¶ÏÕâ¸ö·¿¼äÊÇ·ñ´æÔÚÄ³¸öÇé¾°Ä£Ê½ */
+	/*** åˆ¤æ–­è¿™ä¸ªæˆ¿é—´æ˜¯å¦å­˜åœ¨æŸä¸ªæƒ…æ™¯æ¨¡å¼ */
 	public boolean isProfileExist(int profileID){
 		for (int i = 0; i < this.profileList.size(); i++) {
 			if(this.profileList.get(i)==profileID){
@@ -155,29 +155,29 @@ public class Room {
 	}*/
 	
 	/***@deviceType
-	0-10£º±£Áô
-	10£ºµÆ
-	20£ºµçÊÓ
-	40: ¿Õµ÷
-	60£º´°»§
-	80£º´°Á±
-	90£ºÅ¯Æ÷
+	0-10ï¼šä¿ç•™
+	10ï¼šç¯
+	20ï¼šç”µè§†
+	40: ç©ºè°ƒ
+	60ï¼šçª—æˆ·
+	80ï¼šçª—å¸˜
+	90ï¼šæš–å™¨
 
-	1010:Éù¸ĞÆ÷
-	1020:¹â¸ĞÆ÷
-	1030£ºÎÂ¸ĞÆ÷
-	1040£ºÊª¸ĞÆ÷
-	1050£ºÉù¹âÎÂÊªËÄºÏÒ»´«¸ĞÆ÷
-	1051:ËÄºÏÒ»Éù¸Ğ
-	1052£ºËÄºÏÒ»¹â¸Ğ
-	1053£ºËÄºÏÒ»ÎÂ¸Ğ
-	1054£ºËÄºÏÒ»Êª¸Ğ
-	1060:PM2.5¼ì²âÆ÷
-	1070:ÓĞº¦ÆøÌå¼ì²âÆ÷
-	1080:ÖÇÄÜ²å×ù
+	1010:å£°æ„Ÿå™¨
+	1020:å…‰æ„Ÿå™¨
+	1030ï¼šæ¸©æ„Ÿå™¨
+	1040ï¼šæ¹¿æ„Ÿå™¨
+	1050ï¼šå£°å…‰æ¸©æ¹¿å››åˆä¸€ä¼ æ„Ÿå™¨
+	1051:å››åˆä¸€å£°æ„Ÿ
+	1052ï¼šå››åˆä¸€å…‰æ„Ÿ
+	1053ï¼šå››åˆä¸€æ¸©æ„Ÿ
+	1054ï¼šå››åˆä¸€æ¹¿æ„Ÿ
+	1060:PM2.5æ£€æµ‹å™¨
+	1070:æœ‰å®³æ°”ä½“æ£€æµ‹å™¨
+	1080:æ™ºèƒ½æ’åº§
 
-	2040:ÉäÆµ·¢ÉäÆ÷
-	2050:ºìÍâ·¢ÉäÆ÷
+	2040:å°„é¢‘å‘å°„å™¨
+	2050:çº¢å¤–å‘å°„å™¨
 	*/
 	public List<Device> getDevicesByDeviceType(int deviceType){	
 		List<Device> deviceList =new ArrayList<Device> ();
@@ -189,8 +189,8 @@ public class Room {
 		return deviceList;
 	}
 	
-	/*** @param£º type
-	 * 0£º¼Òµç   ;	1£º´«¸ĞÆ÷*/
+	/*** @paramï¼š type
+	 * 0ï¼šå®¶ç”µ   ;	1ï¼šä¼ æ„Ÿå™¨*/
 	public List<Device> getDevicesByType(int type){	
 		List<Device> deviceList =new ArrayList<Device> ();
 		for (Device d:deviceList)  {
@@ -242,7 +242,7 @@ public class Room {
 	}
 	
    /*** 
-   * ´ÓÈëMYSQL¶ÁÈ¡roomµÄ »ù±¾Çé¿ö
+   * ä»å…¥MYSQLè¯»å–roomçš„ åŸºæœ¬æƒ…å†µ
    * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
    * @table  info_user_room_st
    * @throws SQLException 

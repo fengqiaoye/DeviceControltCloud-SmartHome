@@ -1,4 +1,4 @@
-package socket;
+ï»¿package socket;
 
 import java.io.UnsupportedEncodingException;
 
@@ -7,23 +7,23 @@ import util.BytesUtil;
 
 
 public class Header{
-	/*** 6×Ö½Ú  Ä¬ÈÏ£º#XRPC#*/
+	/*** 6å­—èŠ‚  é»˜è®¤ï¼š#XRPC#*/
 	 String headTag; 
-	/***Ğ­ÒéÖ÷°æ±¾ºÅ*/
+	/***åè®®ä¸»ç‰ˆæœ¬å·*/
 	 byte mainVersion ;
-	/***Ğ­Òé×Ó°æ±¾ºÅ*/
+	/***åè®®å­ç‰ˆæœ¬å·*/
 	 byte subVersion ;
-	/***°üÌå×Ü³¤¶È£¬cookie+ÏûÏ¢Ìå+°üÎ²*/
+	/***åŒ…ä½“æ€»é•¿åº¦ï¼Œcookie+æ¶ˆæ¯ä½“+åŒ…å°¾*/
      short msgLen ;
-	/***ÃüÁîºÅ*/
+	/***å‘½ä»¤å·*/
 	public short commandID;	
-	/***ĞòÁĞºÅ*/
+	/***åºåˆ—å·*/
 	public int sequeeceNo ;
-	/***¼ÓÃÜ·½Ê½: 0²»¼ÓÃÜ, ÆäËûÖµÎªÔ¼¶¨µÄ¼ÓÃÜ·½Ê½*/
+	/***åŠ å¯†æ–¹å¼: 0ä¸åŠ å¯†, å…¶ä»–å€¼ä¸ºçº¦å®šçš„åŠ å¯†æ–¹å¼*/
  	public short encType; 
- 	/***cookie³¤¶È,cookie´Ó°üÍ·½áÊøÎ»ÖÃ¿ªÊ¼*/
+ 	/***cookieé•¿åº¦,cookieä»åŒ…å¤´ç»“æŸä½ç½®å¼€å§‹*/
  	public short cookieLen; 
- 	/*±£Áô×Ö¶Î*/	
+ 	/*ä¿ç•™å­—æ®µ*/	
  	public int reserve; 
  	
  	private static final int commandMax=0x19FF;
@@ -70,7 +70,7 @@ public class Header{
 			 byte[] cookieLen	= {header[17],header[18]};
 			 byte[] reserve	    ={header[19],header[20],header[21],header[22]} ;
 			 
-			//´ó¶Ë×Ö½ÚĞò 
+			//å¤§ç«¯å­—èŠ‚åº 
 			this.headTag=new String(headTag,"UTF-8");;			
 			this.mainVersion=mainVersion;
 			this.subVersion=subVersion;

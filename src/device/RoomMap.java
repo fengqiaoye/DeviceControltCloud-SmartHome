@@ -1,7 +1,7 @@
-package device;
+ï»¿package device;
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created£º2014Äê12ÔÂ15ÈÕ ÏÂÎç4:32:50 
+ * @version Createdï¼š2014å¹´12æœˆ15æ—¥ ä¸‹åˆ4:32:50 
  */
 
 import java.sql.SQLException;
@@ -42,7 +42,7 @@ public class RoomMap  extends HashMap<String, Room>{
 	}
 	
    /*** 
-   * ´ÓÈëMYSQL¶ÁÈ¡·¿¼äÁĞ±í
+   * ä»å…¥MYSQLè¯»å–æˆ¿é—´åˆ—è¡¨
    * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
@@ -91,7 +91,7 @@ public class RoomMap  extends HashMap<String, Room>{
 	}
 	
 	/**
-	 *ÖØĞ´¸¸ÀàµÄ·½·¨£¬µ±ÏòÕâ¸ömapÌí¼ÓÒ»¸öÇé¾°Ä£Ê½Ê±£¬×Ô¶¯°ÑÕâ¸öÇé¾°Ä£Ê½Ğ´ÈëÊı¾İ¿â
+	 *é‡å†™çˆ¶ç±»çš„æ–¹æ³•ï¼Œå½“å‘è¿™ä¸ªmapæ·»åŠ ä¸€ä¸ªæƒ…æ™¯æ¨¡å¼æ—¶ï¼Œè‡ªåŠ¨æŠŠè¿™ä¸ªæƒ…æ™¯æ¨¡å¼å†™å…¥æ•°æ®åº“
 	 *  */
 	@Override
 	public Room put(String key,Room room) {
@@ -108,7 +108,7 @@ public class RoomMap  extends HashMap<String, Room>{
 	}	
 	
 	/**
-	 *ÖØĞ´¸¸ÀàµÄ·½·¨£¬µ±ÏòÕâ¸ömapÉ¾³ıÒ»¸öÇé¾°Ä£Ê½Ê±£¬×Ô¶¯°ÑÕâ¸öÇé¾°Ä£Ê½´ÓÊı¾İ¿âÉ¾³ı
+	 *é‡å†™çˆ¶ç±»çš„æ–¹æ³•ï¼Œå½“å‘è¿™ä¸ªmapåˆ é™¤ä¸€ä¸ªæƒ…æ™¯æ¨¡å¼æ—¶ï¼Œè‡ªåŠ¨æŠŠè¿™ä¸ªæƒ…æ™¯æ¨¡å¼ä»æ•°æ®åº“åˆ é™¤
 	 *  */
 	@Override
 	public Room remove(Object key) {

@@ -1,8 +1,8 @@
-package control;
+ï»¿package control;
 
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created£º24 Dec 2014 14:11:29 
+ * @version Createdï¼š24 Dec 2014 14:11:29 
  */
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -20,10 +20,10 @@ public class MainEntry {
 	static Logger log =Logger.getLogger(MainEntry.class);	
 	
 	/*** 
-	 * Õû¸ö³ÌĞò°üµÄÈë¿Ú
-	 * @param  Config ÅäÖÃÎÄ¼ş
+	 * æ•´ä¸ªç¨‹åºåŒ…çš„å…¥å£
+	 * @param  Config é…ç½®æ–‡ä»¶
 	 * 
-	 * @throws InterruptedException  ´Ó½ÓÊÕµ½µÄÏûÏ¢¶ÓÁĞpoll³öÒ»¸öÏûÏ¢Ê±£¬¿ÉÄÜ»á·¢ÉúÒì³£
+	 * @throws InterruptedException  ä»æ¥æ”¶åˆ°çš„æ¶ˆæ¯é˜Ÿåˆ—pollå‡ºä¸€ä¸ªæ¶ˆæ¯æ—¶ï¼Œå¯èƒ½ä¼šå‘ç”Ÿå¼‚å¸¸
 	 * */
 	public static void main(String[] args)  {
 		log.info("Starting from main entry...");		

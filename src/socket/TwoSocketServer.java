@@ -1,4 +1,4 @@
-package socket;
+ï»¿package socket;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -18,7 +18,7 @@ public class TwoSocketServer
 	
 	public static void main(String[] args)
 	{
-		//ÔÚmainº¯ÊıÖĞ£¬Æô¶¯·şÎñÆ÷µÄsocket
+		//åœ¨mainå‡½æ•°ä¸­ï¼Œå¯åŠ¨æœåŠ¡å™¨çš„socket
 		new TwoSocketServer().OpenServer();
 		
 	}
@@ -60,7 +60,7 @@ public class TwoSocketServer
 				DataInputStream input = new DataInputStream(socket.getInputStream());
 				while((msg = input.readUTF())!=null)
 				{
-					System.out.println("ÊÕµ½ÏûÏ¢£º¡¾"+clientName+"¡¿ "+msg);	
+					System.out.println("æ”¶åˆ°æ¶ˆæ¯ï¼šã€"+clientName+"ã€‘ "+msg);	
 				}
 			}
 			catch(Exception e){System.out.println(e.toString());}
@@ -91,7 +91,7 @@ public class TwoSocketServer
 						if(userInput!="exit")
 						{
 							output.writeUTF(userInput);
-							System.out.println("ÒÑ·¢ËÍÏûÏ¢¸ø¡¾"+clientName+"¡¿"+userInput);
+							System.out.println("å·²å‘é€æ¶ˆæ¯ç»™ã€"+clientName+"ã€‘"+userInput);
 						}
 					}
 				}

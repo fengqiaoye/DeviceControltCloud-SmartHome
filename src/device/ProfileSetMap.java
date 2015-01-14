@@ -1,10 +1,10 @@
-package device;
+ï»¿package device;
 
 /**
  * Copyright 2014 Cooxm.com
  * All right reserved.
  * @author Chen Guanghua E-mail: richard@cooxm.com
- * Created£º2014Äê12ÔÂ15ÈÕ ÏÂÎç4:48:54 
+ * Createdï¼š2014å¹´12æœˆ15æ—¥ ä¸‹åˆ4:48:54 
  */
 
 import java.sql.SQLException;
@@ -35,7 +35,7 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 	}
 	
    /*** 
-   * ´ÓÈëMYSQL¶ÁÈ¡Çé¾°Ä£Ê½¼¯ÁĞ±í
+   * ä»å…¥MYSQLè¯»å–æƒ…æ™¯æ¨¡å¼é›†åˆ—è¡¨
    * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
    * @table  info_user_room_st_set
    * @throws SQLException 
@@ -91,7 +91,7 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 		return profileSetMap;
 	}
 
-	/*** »ñÈ¡Ò»¸ö¼ÒÍ¥ËùÓĞÇé¾°Ä£Ê½
+	/*** è·å–ä¸€ä¸ªå®¶åº­æ‰€æœ‰æƒ…æ™¯æ¨¡å¼
 	 * @param: roomID	 * 
 	 * */
 	public List<ProfileSet> getProfileSetsByCtrolID(int CtrolID){	
@@ -105,7 +105,7 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 	}
 
 	/**
-	 *ÖØĞ´¸¸ÀàµÄ·½·¨£¬µ±ÏòÕâ¸ömapÌí¼ÓÒ»¸öÇé¾°Ä£Ê½Ê±£¬×Ô¶¯°ÑÕâ¸öÇé¾°Ä£Ê½Ğ´ÈëÊı¾İ¿â
+	 *é‡å†™çˆ¶ç±»çš„æ–¹æ³•ï¼Œå½“å‘è¿™ä¸ªmapæ·»åŠ ä¸€ä¸ªæƒ…æ™¯æ¨¡å¼æ—¶ï¼Œè‡ªåŠ¨æŠŠè¿™ä¸ªæƒ…æ™¯æ¨¡å¼å†™å…¥æ•°æ®åº“
 	 *  */
 	@Override
 	public ProfileSet put(String key,ProfileSet profileSet) {
@@ -122,7 +122,7 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 	}	
 	
 	/**
-	 *ÖØĞ´¸¸ÀàµÄ·½·¨£¬µ±ÏòÕâ¸ömapÉ¾³ıÒ»¸öÇé¾°Ä£Ê½Ê±£¬×Ô¶¯°ÑÕâ¸öÇé¾°Ä£Ê½´ÓÊı¾İ¿âÉ¾³ı
+	 *é‡å†™çˆ¶ç±»çš„æ–¹æ³•ï¼Œå½“å‘è¿™ä¸ªmapåˆ é™¤ä¸€ä¸ªæƒ…æ™¯æ¨¡å¼æ—¶ï¼Œè‡ªåŠ¨æŠŠè¿™ä¸ªæƒ…æ™¯æ¨¡å¼ä»æ•°æ®åº“åˆ é™¤
 	 *  */
 	@Override
 	public ProfileSet remove(Object CtrolID_profileSetID) {
