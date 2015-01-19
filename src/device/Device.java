@@ -294,10 +294,10 @@ public class Device {
 		String res2=mysql.select(sql);
 		System.out.println("get from mysql:\n"+res2);
 		if(res2==null|| res2==""){
-			System.out.println("ERROR:empty query by : "+sql);
+			System.err.println("ERROR:empty query by : "+sql);
 			return null;
 		} else if(res2.split("\n").length!=1){
-			System.out.println("ERROR:Multi device retrieved from mysql. ");
+			System.err.println("ERROR:Multi device retrieved from mysql. ");
 			return null;
 		}else{
 			String[] index=res2.split(",");
@@ -350,7 +350,7 @@ public class Device {
 		String res2=mysql.select(sql);
 		System.out.println("get from mysql:\n"+res2);
 		if(res2==null|| res2==""){
-			System.out.println("ERROR:empty query by : "+sql);
+			System.err.println("ERROR:empty query by : "+sql);
 			return null;
 		} else{
 			String[] res3 =res2.split("\n");
@@ -395,7 +395,7 @@ public class Device {
 		int res2=mysql.query(sql);
 		System.out.println("deleted "+ res2 + "rows of recodes");
 		if(res2<=0){
-			System.out.println("ERROR:  "+sql);
+			System.err.println("ERROR:  "+sql);
 			return 0;
 		} 
 		return 1;
@@ -425,7 +425,7 @@ public class Device {
 		String res=mysql.select(sql);
 		System.out.println("get from mysql:\n"+res);
 		if(res==null|| res==""){
-			System.out.println("ERROR:empty query by : "+sql);
+			System.err.println("ERROR:empty query by : "+sql);
 			return null;
 		} 
 		

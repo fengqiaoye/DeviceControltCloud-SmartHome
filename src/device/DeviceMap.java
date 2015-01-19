@@ -65,7 +65,7 @@ public class DeviceMap extends HashMap<String, Device> {
 		String res=mysql.select(sql);
 		//System.out.println("get from mysql:\n"+res);
 		if(res==null|| res==""){
-			System.out.println("ERROR:empty query by : "+sql);
+			System.err.println("ERROR:empty query by : "+sql);
 			return null ;
 		} 
 		

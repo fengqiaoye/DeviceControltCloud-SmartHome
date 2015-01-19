@@ -4,7 +4,7 @@
  * @author Chen Guanghua E-mail: richard@cooxm.com
  * Created：17 Dec 2014 19:38:07 
  */
-package control;
+package device;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;

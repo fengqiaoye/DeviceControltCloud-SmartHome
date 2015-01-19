@@ -304,10 +304,10 @@ public class Profile {
 			String res2=mysql.select(sql2);
 			System.out.println("get from mysql:\n"+res2);
 			if(res2==null|| res2==""){
-				System.out.println("ERROR:empty query by : "+sql2);
+				System.err.println("ERROR:empty query by : "+sql2);
 				return null;
 			} else if(res2.split("\n").length!=1){
-				System.out.println("ERROR:Multi profile retrieved from mysql. ");
+				System.err.println("ERROR:Multi profile retrieved from mysql. ");
 				return null;
 			}else{
 				String[] index=res2.split(",");
@@ -346,7 +346,7 @@ public class Profile {
 			int res=mysql.query(sql);
 			System.out.println("deleted "+ res + " rows of records from table:"+profileDetailTable);
 			if(res<=0 ) {
-				System.out.println("ERROR: empty result: "+sql);
+				System.err.println("ERROR: empty result: "+sql);
 				return 0;
 			}
 			
@@ -360,7 +360,7 @@ public class Profile {
 			int res2=mysql.query(sql2);
 			System.out.println("deleted "+ res + " rows of records from table:"+profileIndexTable);
 			if(res2<0){
-				System.out.println("ERROR:exception happened: "+sql2);
+				System.err.println("ERROR:exception happened: "+sql2);
 				return 0;
 			} 
 		mysql.conn.commit();			
@@ -398,10 +398,10 @@ public class Profile {
 			String res=mysql.select(sql);
 			//System.out.println("get from mysql:\n"+res);
 			if(res==null ) {
-				System.out.println("ERROR:exception happened: "+sql);
+				System.err.println("ERROR:exception happened: "+sql);
 				return null;
 			}else if(res=="") {
-				System.out.println("ERROR:query result is empty: "+sql);
+				System.err.println("ERROR:query result is empty: "+sql);
 				return null;
 			}
 			String[] resArray=res.split("\n");
@@ -428,7 +428,7 @@ public class Profile {
 					factorList=new ArrayList<Factor>();
 					factorList.add(ft);					
 				}else {
-					System.out.println("ERROR:Columns mismatch between class Profile  and table  "+ profileDetailTable);
+					System.err.println("ERROR:Columns mismatch between class Profile  and table  "+ profileDetailTable);
 					return null;				
 				}
 			}		
@@ -466,10 +466,10 @@ public class Profile {
 		String res2=mysql.select(sql2);
 		System.out.println("get from mysql:\n"+res2);
 		if(res2==null|| res2==""){
-			System.out.println("ERROR:empty query by : "+sql2);
+			System.err.println("ERROR:empty query by : "+sql2);
 			return null;
 		} else if(res2.split("\n").length!=1){
-			System.out.println("ERROR:Multi profile retrieved from mysql. ");
+			System.err.println("ERROR:Multi profile retrieved from mysql. ");
 			return null;
 		}else{
 			String[] index=res2.split(",");

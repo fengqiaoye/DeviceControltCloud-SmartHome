@@ -183,7 +183,7 @@ public class ProfileSet {
 			String res=mysql.select(sql);
 			System.out.println("get from mysql:\n"+res);
 			if(res==""||res.length()==0) {
-				System.out.println("ERROR:query result is empty: "+sql);
+				System.err.println("ERROR:query result is empty: "+sql);
 				return null;
 			}
 			String[] resArray=res.split("\n");

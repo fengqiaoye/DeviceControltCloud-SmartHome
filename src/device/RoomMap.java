@@ -66,7 +66,7 @@ public class RoomMap  extends HashMap<String, Room>{
 		String res2=mysql.select(sql2);
 //		System.out.println("get from mysql:\n"+res2);
 		if(res2==null|| res2==""){
-			System.out.println("ERROR:empty query by : "+sql2);
+			System.err.println("ERROR:empty query by : "+sql2);
 			return null;
 		} 
 		String[] records=res2.split("\n");

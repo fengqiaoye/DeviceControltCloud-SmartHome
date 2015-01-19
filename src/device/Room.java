@@ -269,10 +269,10 @@ public class Room {
 		String res2=mysql.select(sql2);
 		logger.info("get from mysql:\n"+res2);
 		if(res2==null|| res2==""){
-			logger.info("ERROR:empty query by : "+sql2);
+			logger.error("ERROR:empty query by : "+sql2);
 			return null;
 		} else if(res2.split("\n").length!=1){
-			logger.info("ERROR:Multi profile retrieved from mysql. ");
+			logger.error("ERROR:Multi profile retrieved from mysql. ");
 			return null;
 		}else{
 			String[] index=res2.split(",");
