@@ -37,10 +37,12 @@ public class Message  {
 		this.cookie=cookie;
 		String jsonStr=new String(command,"utf-8");
 		this.json=new JSONObject(jsonStr);
+		this.header.msgLen=(short) (cookie.length()+jsonStr.length());
 	}
 	
 	Message(Header header,String cookie, String command) throws UnsupportedEncodingException, JSONException{
 		this.header=header;	
+		this.header.msgLen=(short) (cookie.length()+command.length());
 		this.cookie=cookie;
 		//String jsonStr=new String(command,"utf-8");
 		this.json=new JSONObject(command);
@@ -149,7 +151,6 @@ public class Message  {
 			   dataout.flush();
 			
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}    	
     }
@@ -173,13 +174,43 @@ public class Message  {
 			e.printStackTrace();
 		}    	
     }
+    
+    public Message getOneMsg() {
+    	Message msg= new Message();
+    	
+    	String headTag="#XRPC#";			
+    	byte mainVersion=1;
+    	byte subVersion=2;
+    	short msgLen=15;
+    	short commandID=0x1601;
+    	int sequeeceNo=123456;
+    	byte encType=1; 
+    	short cookieLen=4;
+    	int reserve=0;
+    	
+    	JSONObject json=new JSONObject();
+    	try {
+			json.put("CtrolID", 1234567);
+	    	json.put("sender", 1);
+	    	json.put("roomID", 103);
+	    	json.put("errorCode", -12);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+    	
+    	Header head= new Header(headTag, mainVersion, subVersion, msgLen, commandID, sequeeceNo, encType, cookieLen, reserve);
+    	msg.header=head;
+    	msg.cookie="87654321";
+    	msg.json=json;
+    	msg.receiveTime=new Date();
+    	msg.replyTime=new Date();
+    	
+    	return msg;
+	}
 	    
 	public static void main(String[] args) throws JSONException {
 		JSONObject jo= new JSONObject("{\"key\":\"value\"}");
 		
 		System.out.println(jo.toString());
 	}
-
-		
-
 }

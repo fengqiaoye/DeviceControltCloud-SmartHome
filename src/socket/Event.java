@@ -27,6 +27,8 @@ public class Event {
 	private static final String replyTable   ="info_devicecontrol_msg_reply";
 	MySqlClass mysql;
 	
+	private int month;
+	
 	/*** 填写序列号*/
 	int eventID;
 	
@@ -53,6 +55,7 @@ public class Event {
 	
 	Event() {}	
 	Event(
+			int month,
 			int eventID,
 			int commandID,
 			int CtrolID,
@@ -63,7 +66,8 @@ public class Event {
 			Date receiveTime,
 			Date replyTime,
 			String json
-			) {		
+			) {	
+		this.month=month;
 		this.eventID=eventID;
 		this.commandID=commandID;
 		//this.sender=sender;
@@ -77,6 +81,9 @@ public class Event {
 	}
 	
 	Event(Message msg)  {
+		DateFormat monthSDF=new SimpleDateFormat("yyyyMMdd");
+		//msg.receiveTime.getYear()+""+msg.receiveTime.getMonth()
+		this.month=Integer.parseInt(monthSDF.format(msg.receiveTime));
         this.eventID=Integer.parseInt(msg.cookie);
 		this.commandID=msg.header.commandID;
 		if(msg.json.has("CtrolID")){
@@ -128,7 +135,8 @@ public class Event {
 		mysql.conn.setAutoCommit(false);
 			String sql="insert into "+receiveTable
 					+" ( "
-					+ "eventid  ,"     
+				    + "month  ,"  
+					+ "cookie  ,"     
 					+"commandid ,"
 					+"ctrolid ,"
 					+"roomid ,"
@@ -141,6 +149,7 @@ public class Event {
 					+ ")"				
 					+"values "
 					+ "("
+					+this.month+","					
 					+this.eventID+","
 					+this.commandID+","
 					+this.CtrolID+","
@@ -163,7 +172,8 @@ public class Event {
 
 			String sql="insert into "+replyTable
 					+" ("
-					+ "eventid  ,"     
+				    + "month  ,"  				
+					+ "cookie  ,"     
 					+"commandid ,"
 					+"ctrolid ,"
 					+"roomid ,"
@@ -176,6 +186,7 @@ public class Event {
 					+ ")"				
 					+"values "
 					+ "("
+					+this.month+","
 					+this.eventID+","
 					+this.commandID+","
 					+this.CtrolID+","

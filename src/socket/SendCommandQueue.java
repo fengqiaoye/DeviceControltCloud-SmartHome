@@ -90,46 +90,14 @@ public class SendCommandQueue  extends ArrayBlockingQueue<Message>{
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}   	
-    }
-
-    
-
-    
+    }    
     
 
 	public static void main(String[] args) throws JSONException {
-    	Message msg= new Message();
-    	
-    	String headTag="#XRPC#";			
-    	byte mainVersion=1;
-    	byte subVersion=2;
-    	short msgLen=15;
-    	short commandID=0x1601;
-    	int sequeeceNo=123456;
-    	short encType=1; 
-    	short cookieLen=4;
-    	int reserve=0;
-    	
-    	JSONObject json=new JSONObject();
-    	json.put("CtrolID", 1234567);
-    	json.put("sender", 1);
-    	json.put("roomID", 103);
-    	json.put("errorCode", -12);
-
-    	
-    	Header head= new Header(headTag, mainVersion, subVersion, msgLen, commandID, sequeeceNo, encType, cookieLen, reserve);
-    	msg.header=head;
-    	msg.cookie="87654321";
-    	msg.json=json;
-    	msg.receiveTime=new Date();
-    	msg.replyTime=new Date();
-    	
-    	SendCommandQueue.getInstance().put(msg);
-    	
-    	SendCommandQueue qe=SendCommandQueue.getInstance();
-    	
-    	System.out.println(qe.size());
-		
+		Message msg=new Message().getOneMsg();     	
+    	SendCommandQueue.getInstance().put(msg);    	
+    	SendCommandQueue qe=SendCommandQueue.getInstance();    	
+    	System.out.println(qe.size());	
 
 	}
 

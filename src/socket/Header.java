@@ -20,7 +20,7 @@ public class Header{
 	/***序列号*/
 	public int sequeeceNo ;
 	/***加密方式: 0不加密, 其他值为约定的加密方式*/
- 	public short encType; 
+ 	public byte encType; 
  	/***cookie长度,cookie从包头结束位置开始*/
  	public short cookieLen; 
  	/*保留字段*/	
@@ -42,7 +42,7 @@ public class Header{
 			this.reserve=header.reserve;			
 	 }
  	
- public	Header(String headTag,byte mainVersion,byte subVersion,short msgLen,short commandID,int sequeeceNo,short encType,
+ public	Header(String headTag,byte mainVersion,byte subVersion,short msgLen,short commandID,int sequeeceNo,byte encType,
  			short cookieLen,
  			int reserve ){
 		this.headTag=headTag;			
@@ -66,7 +66,7 @@ public class Header{
 			 byte[] msgLen		= {header[8],header[9]};	
 			 byte[] commandID	= {header[10],header[11]};
 			 byte[] sequeeceNo	={header[12],header[13],header[14],header[15]} ;
-			 short   encType     =header[16];
+			 byte   encType     =header[16];
 			 byte[] cookieLen	= {header[17],header[18]};
 			 byte[] reserve	    ={header[19],header[20],header[21],header[22]} ;
 			 

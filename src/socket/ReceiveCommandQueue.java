@@ -99,7 +99,7 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
     	short msgLen=15;
     	short commandID=0x1601;
     	int sequeeceNo=123456;
-    	short encType=1; 
+    	byte encType=1; 
     	short cookieLen=4;
     	int reserve=0;
     	
@@ -108,7 +108,6 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
     	json.put("sender", 1);
     	json.put("roomID", 103);
     	json.put("errorCode", -12);
-
     	
     	Header head= new Header(headTag, mainVersion, subVersion, msgLen, commandID, sequeeceNo, encType, cookieLen, reserve);
     	msg.header=head;
@@ -120,8 +119,5 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
     	ReceiveCommandQueue qe=ReceiveCommandQueue.getInstance();
     	qe.put(msg);
     	System.out.println(qe.size());
-		
-
 	}
-
 }

@@ -71,6 +71,12 @@ public class BytesUtil {
         bytes[0] = (byte) ((data & 0xff00) >> 8);
         return bytes;
     }
+    public static byte[] getBytes(byte data)
+    {
+    	byte[] bytes=new byte[1];
+         bytes[0]=data;
+         return bytes;
+    }
 
     public static byte[] getBytes(char data)
     {

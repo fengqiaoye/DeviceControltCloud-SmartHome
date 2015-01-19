@@ -5,7 +5,6 @@
  */
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;  
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,9 +17,6 @@ import java.util.concurrent.TimeoutException;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.omg.CORBA.INTERNAL;
-
-import redis.clients.jedis.Jedis;
 import socket.CtrolSocketServer;
 import socket.Header;
 import socket.Message;
@@ -168,7 +164,7 @@ public class TimeOutTread extends Thread {
     	short msgLen=15;
     	short commandID=0x1601;
     	int sequeeceNo=123456;
-    	short encType=1; 
+    	byte encType=1; 
     	short cookieLen=4;
     	int reserve=0;
     	

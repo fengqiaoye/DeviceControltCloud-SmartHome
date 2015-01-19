@@ -110,45 +110,13 @@ public class TestClass {
 	}
 	
 	public static void sendMsgTest(){
-    	Message msg= new Message();
-    	
-    	String headTag="#XRPC#";			
-    	byte mainVersion=1;
-    	byte subVersion=2;
-    	short msgLen=15;
-    	short commandID=0x1601;
-    	int sequeeceNo=123456;
-    	short encType=1; 
-    	short cookieLen=4;
-    	int reserve=0;
-    	
-    	JSONObject json=new JSONObject();
-    	try {
-			json.put("CtrolID", 1234567);
-	    	json.put("sender", 1);
-	    	json.put("roomID", 103);
-	    	json.put("errorCode", -12);
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-
-
-    	
-    	Header head= new Header(headTag, mainVersion, subVersion, msgLen, commandID, sequeeceNo, encType, cookieLen, reserve);
-    	msg.header=head;
-    	msg.cookie="87654321";
-    	msg.json=json;
-    	msg.receiveTime=new Date();
-    	msg.replyTime=new Date();
-    	
+    Message msg=new Message().getOneMsg();    	
     	try {
 			Socket sock= new Socket("172.16.35.210", 10290);
 		 	msg.writeBytesToSock(sock);
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
-   
-    	
+		}    	
 	}
 	
 	public static void referenceTest(){

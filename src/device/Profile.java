@@ -515,11 +515,9 @@ public class Profile {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		Profile p =new Profile();
 		p=Profile.getOneProfileFromDB(mysql, 12345677, 123456789);
-	    JSONObject jo=p.toJsonObj();
-		
+	    JSONObject jo=p.toJsonObj();		
 
-		p.profileID++;
-		
+		p.profileID++;		
 		try {
 			p.saveProfileToDB(mysql);
 		} catch (SQLException e) {
