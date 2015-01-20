@@ -25,15 +25,15 @@ public class Factor {
 	601：温度
 	701：天气（预报）
 	901：声音*/
-	int factorID;
+	protected int factorID;
 	//int factorType;
 	//String factorName;
 	int minValue;
 	int maxValue;
 	int compareWay;
 	int validFlag;
-	Date createTime;
-	Date modifyTime;
+	protected Date createTime;
+	protected Date modifyTime;
 	
 	public Factor() {
 		// TODO Auto-generated constructor stub
@@ -76,6 +76,8 @@ public class Factor {
 		this.maxValue=maxValue;
 		this.compareWay=compareWay;
 		this.validFlag=validFlag;	
+		
+		
 	}
 	
 
