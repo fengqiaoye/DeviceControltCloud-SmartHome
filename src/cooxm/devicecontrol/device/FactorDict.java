@@ -32,8 +32,8 @@ public class FactorDict extends Factor {
 	
 	/***1、绝对值；2、相对值,*/
 	int  mstype         ;
-	String  createoperator ;
-	String  modifyoperator ;
+	int  createOperator ;
+	int  modifyOperator ;
 
 	
 	public FactorDict(
@@ -43,8 +43,8 @@ public class FactorDict extends Factor {
 			String  description    ,
 			String  measurement    ,
 			int  mstype         ,
-			String  createoperator ,
-			String  modifyoperator ,
+			int  createoperator ,
+			int  modifyoperator ,
 			Date  createtime     ,
 			Date  modifytime		)
 	{	
@@ -54,8 +54,8 @@ public class FactorDict extends Factor {
 		this.description    =  description    ;
 		this.unit    =  measurement    ;
 		this.mstype         =  mstype         ;
-		this.createoperator =  createoperator ;
-		this.modifyoperator =  modifyoperator ;
+		this.createOperator =  createoperator ;
+		this.modifyOperator =  modifyoperator ;
 		this.createTime     =  createtime     ;
 		this.modifyTime		=  modifytime	  ;
 		
@@ -99,8 +99,8 @@ public class FactorDict extends Factor {
 			fd.description=index[3];	
 			fd.unit=index[4]; 
 			fd.mstype=Integer.parseInt(index[5]);	
-			fd.createoperator=index[6];	
-			fd.modifyoperator=index[7]; 
+			fd.createOperator=Integer.parseInt(index[6]);	
+			fd.modifyOperator=Integer.parseInt(index[7]); 
 			try {
 				fd.createTime=sdf.parse(index[8]);
 				fd.modifyTime=sdf.parse(index[9]);
@@ -148,8 +148,8 @@ public class FactorDict extends Factor {
 			fd.description=index[3];	
 			fd.unit=index[4]; 
 			fd.mstype=Integer.parseInt(index[5]);	
-			fd.createoperator=index[6];	
-			fd.modifyoperator=index[7]; 
+			fd.createOperator=Integer.parseInt(index[6]);	
+			fd.modifyOperator=Integer.parseInt(index[7]); 
 			try {
 				fd.createTime=sdf.parse(index[8]);
 				fd.modifyTime=sdf.parse(index[9]);

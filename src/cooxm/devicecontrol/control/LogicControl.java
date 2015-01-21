@@ -7,6 +7,9 @@
  */
 
 
+import java.io.IOException;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -24,6 +27,7 @@ import cooxm.devicecontrol.device.Profile;
 import cooxm.devicecontrol.device.ProfileMap;
 import cooxm.devicecontrol.device.ProfileSet;
 import cooxm.devicecontrol.device.ProfileSetMap;
+import cooxm.devicecontrol.device.ProfileTemplate;
 import cooxm.devicecontrol.device.RoomMap;
 import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.socket.Message;
@@ -34,6 +38,7 @@ public class LogicControl {
 	
 	public static final short COMMAND_START            		   =  0x1600;
 	public static final short COMMAND_ACK_OFFSET       		   =  0x4000; 
+	public static final short WARNING_START            		   =  0x2000;	
 	
     /*** 请求 情景模式命令    @see get_room_profile() */
 	private static final short GET_ROOM_PROFILE					=	COMMAND_START+1;	
@@ -75,6 +80,15 @@ public class LogicControl {
 	/*** 情景模式集切换 的回复*/
 	private static final short SWITCH_RROFILE_SET_ACK			=	COMMAND_START+24+COMMAND_ACK_OFFSET;
 
+	/*** 请求情景模式模板 */
+	private static final short GET_RROFILE_TEMPLATE				=	COMMAND_START+25;	
+	/*** 请求情景模式模板 的回复*/
+	private static final short GET_RROFILE_TEMPLATE_ACK			=	COMMAND_START+25+COMMAND_ACK_OFFSET;
+	
+	/*** 上报或者下发 情景模板 */
+	private static final short SET_RROFILE_TEMPLATE				=	COMMAND_START+26;	
+	/*** 上报或者下发 情景模板 回复*/
+	private static final short SET_RROFILE_TEMPLATE_ACK			=	COMMAND_START+26+COMMAND_ACK_OFFSET;
 	
 	/*** 请求家电列表*/
 	private static final short GET_ONE_DEVICE				=	COMMAND_START+41;
@@ -97,9 +111,9 @@ public class LogicControl {
 	private static final short SWITCH_DEVICE_STATE_ACK		=	COMMAND_START+44+COMMAND_ACK_OFFSET;
 		
     /*** 告警消息   */
-	private static final short WARNING_MSG				 	=	COMMAND_START+61;
+	private static final short WARNING_MSG				 	=	WARNING_START+3;
     /*** 告警消息  的回复  */
-	private static final short WARNING_MSG_ACK				=	COMMAND_START+61+COMMAND_ACK_OFFSET;	
+	private static final short WARNING_MSG_ACK				=	WARNING_START+3+COMMAND_ACK_OFFSET;	
 	
 	
 	/***********************  ERROR CODE :-50000  :  -59999 ************/
@@ -109,9 +123,13 @@ public class LogicControl {
 	/** 情景模式陈旧*/
 	private static final int PROFILE_OBSOLETE         =	-50001;	
 	/** 情景模式不存在*/
-	private static final int PROFILE_NOT_EXIST        = -50002;		
+	private static final int PROFILE_NOT_EXIST        = -50002;	
+	
 	private static final int PROFILE_SET_OBSOLETE     =	-50003;	
 	private static final int PROFILE_SET_NOT_EXIST    = -50004;	
+	
+	private static final int PROFILE_TEMPLATE_OBSOLETE     =	-50005;	
+	private static final int PROFILE_TEMPLATE_NOT_EXIST    = -50006;
 	
 	private static final int DEVICE_OBSOLETE   	  	  = -50011;
 	private static final int DEVICE_NOT_EXIST   	  = -50012;
@@ -129,6 +147,7 @@ public class LogicControl {
 	/***********************   resource needed   ************************/	
 	static Logger log= Logger.getLogger(LogicControl.class);
 	static MySqlClass mysql=null;
+	Socket msgSock=null;
 	Jedis jedis=null;// new Jedis("172.16.35.170", 6379,200);
 	ProfileMap profileMap =null;
 	ProfileSetMap profileSetMap =null;
@@ -136,9 +155,10 @@ public class LogicControl {
 	RoomMap roomMap=null;
 	private final static String currentProfile= "currentProfile";
 	private final static String currentProfileSet= "currentProfileSet";
+	private final static String currentDeviceState= "currentDeviceState";	
 	private final static String commandQueue= "commandQueue";
 	
-    public LogicControl() {}
+    //public LogicControl() {}
     
     public LogicControl(Config cf) {
     	log.info("Starting logic control module ... ");
@@ -147,19 +167,26 @@ public class LogicControl {
 		String mysql_port		=cf.getValue("mysql_port");
 		String mysql_user		=cf.getValue("mysql_user");
 		String mysql_password	=cf.getValue("mysql_password");
-		String mysql_database	=cf.getValue("mysql_database");
-		
+		String mysql_database	=cf.getValue("mysql_database");		
 		String redis_ip         =cf.getValue("redis_ip");
-		int redis_port       	=Integer.parseInt(cf.getValue("redis_port"));		
+		int redis_port       	=Integer.parseInt(cf.getValue("redis_port"));	
+		String msg_server_IP=cf.getValue("msg_server_ip");
+		int msg_server_port =Integer.parseInt(cf.getValue("msg_server_port"));
+		
 		
 		mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
 		this.jedis= new Jedis(redis_ip, redis_port,200);
 		try {
+			this.msgSock=new Socket(msg_server_IP, msg_server_port);
 			this.profileMap= new ProfileMap(mysql);
 			this.profileSetMap= new ProfileSetMap(mysql);
 			this.deviceMap=new DeviceMap(mysql);
 			this.roomMap=new RoomMap(mysql);
 		} catch (SQLException e) {
+			e.printStackTrace();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		log.info("Initialization of map successful :  profileMap,size="+profileMap.size()
@@ -230,7 +257,6 @@ public class LogicControl {
 			} catch (SQLException e) {
 				e.printStackTrace();
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			break;	
@@ -238,7 +264,6 @@ public class LogicControl {
 			try {
 				delete_room_profile(msg);
 			} catch (JSONException | SQLException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			break;
@@ -253,6 +278,24 @@ public class LogicControl {
 				e1.printStackTrace();
 			}
 			break;
+		case GET_RROFILE_TEMPLATE: 	
+			try {
+				get_profile_set(msg);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			break;
+		case SET_RROFILE_TEMPLATE:	
+			try {
+				get_profile_set(msg);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			break;	
 		case GET_ONE_DEVICE:	
 			try {
 				get_profile_set(msg);
@@ -288,13 +331,7 @@ public class LogicControl {
 			}
 			break;
 		case WARNING_MSG:	
-			try {
-				get_profile_set(msg);
-			} catch (JSONException e) {
-				e.printStackTrace();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			send_warning_msg(msg);
 			break;
 		default:
 			int sender=0;
@@ -755,6 +792,150 @@ public class LogicControl {
 		to.start();
     }
     
+    /*** 请求查询情景模板
+     * <pre>传入的json格式为：
+     * { 
+     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   CtrolID:1234567
+     *   profileTemplateID:7654321
+     * }
+     * @throws JSONException 
+     * @return message 的json格式：
+     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode": XXXX_NOT_EXIST}
+     *   （2）如果查询的情景模式存在，则返回:
+     *  { 
+     *  errorCode:SUCCESS,
+     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   CtrolID:1234567,
+     *   profileTemplateID:7654321,
+     *   profileTemplate: 
+     *         {
+     *          情景模式模板的json格式 
+     *         }
+     * }
+     *                      
+     */
+    public void get_profile_template(Message msg) throws JSONException, SQLException{
+    	ProfileTemplate profileTemplat=null;
+    	int profileTemplatID=msg.json.getInt("profileTemplateID");
+    	int sender=0;
+    	if(  (profileTemplat=ProfileTemplate.getFromDB(mysql,  profileTemplatID))!=null){
+    		msg.json.put("profileTemplate", profileTemplat.toJsonObj());
+    		msg.json.put("errorCode",SUCCESS);
+    	}else {
+			log.warn("Can't get_profile_template, profileTemplatID:"+profileTemplatID+" from Mysql.");
+			msg.json.put("errorCode",PROFILE_TEMPLATE_NOT_EXIST);
+    	}
+    	msg.header.commandID= GET_RROFILE_TEMPLATE_ACK;
+		msg.json.put("sender",2);
+		if(msg.json.has("sender")){
+		   sender=msg.json.getInt("sender");
+		}
+		msg.json.put("receiver",sender);  
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}    	
+    }
+    
+    /*** 请求情景模板,返回值
+     * <pre>传入的json格式为：
+    * { 
+     *   sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:4; ...
+     *   receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
+         errorCode: SUCCESS/ PROFILE_SET_NOT_EXIST /TIME_OUT /WRONG_RECEIVER  /WRONG_COMMAND
+    * }
+     * @throws InterruptedException 
+ 	* */
+    public void get_profile_template_ack(final Message msg)throws JSONException, SQLException, InterruptedException{
+		TimeOutTread to=new TimeOutTread(10,msg);
+		to.start();
+    }
+     
+    /*** 保存或者上传一个情景模式
+     *<pre> @throws JSONException 
+     * @throws SQLException 
+     * @return message的json格式:
+     *  (1)如果云端不存在该情景模式，直接保存，返回json: {"errorCode":SUCCESS}；
+     *  (2)如果上传的profile的修改时间晚于云端，则将上报的profile保存在数据库，返回{"errorCode":SUCCESS}；
+     *  (2)如果上传的profile的修改时间早于云端，则需要将云端的情景模式下发到 终端（手机、中控）,返回{"errorCode":OBSOLTE_PROFILE}  ；     *         
+     *@param message 传入的json格式为： （要上传或者保存的prifile的json格式）
+     * {
+     *  "senderRole":    中控:0 ; 手机:1 ; 云:2;
+     *  "receiverRole":  中控:0 ; 手机:1 ; 云:2;
+     *  profileTemplat:
+     *   {
+			"profileTemplatID":123456789,
+			"CtrolID":12345677,
+			"profileName":"未知情景",
+			"profileSetID":12345,
+			"profileTemplateID":0,
+			"roomID":203,
+			"roomType":2,
+			"factorList":
+			[
+				{"factorID":40,"minValue":20,"compareWay":0,"modifyTime":"2014-12-13 14:15:17","validFlag":false,
+				"createTime":"Fri Dec 12 12:30:00 CST 2014","maxValue":30
+				},
+	
+				{"factorID":60,"minValue":1,"compareWay":0,"modifyTime":"2014-12-13 14:15:17","validFlag":false,
+				"createTime":"2014-12-13 14:15:17","maxValue":1
+				}
+			],
+			"modifyTime":"2014-12-13 14:15:17",
+			"createTime":"2014-12-13 14:15:17"
+		}
+	  }
+     * @throws ParseException 
+	*/
+    public void set_profile_template( Message msg) throws JSONException, SQLException, ParseException{
+    	//JSONObject json=msg.json;
+    	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    	//ProfileTemplate msgProfile=new ProfileTemplate(msg.json.getJSONObject("profileTemplate"));
+    	ProfileTemplate dbProfile;
+    	int profileTemplatID=msg.json.getInt("profileTemplatID");
+    	Date msgModifyTime=sdf.parse(msg.json.getString("modifyTime"));
+    	int sender=0;
+    	
+    	if((dbProfile=ProfileTemplate.getFromDB(mysql, profileTemplatID))==null){
+			msg.json.put("errorCode",PROFILE_TEMPLATE_NOT_EXIST);    		
+    	}else if(  dbProfile.getModifyTime().after(msgModifyTime)){	//云端较新  
+			msg.json.put("errorCode",PROFILE_TEMPLATE_OBSOLETE);    		
+    	}else if(  dbProfile.getModifyTime().before(msgModifyTime)){ //云端较旧，则保存
+			msg.json=new JSONObject();
+			msg.json.put("errorCode",SUCCESS);   
+			}    	
+  		msg.header.commandID=SET_RROFILE_TEMPLATE_ACK;
+		msg.json.put("sender",2);
+		if(msg.json.has("sender")){
+		   sender=msg.json.getInt("sender");
+		}
+		msg.json.put("receiver",sender); 
+    	try {
+			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}     	
+    }
+    
+    /*** 上传或者下发情景模板,返回值
+     * <pre>传入的json格式为：
+    * { 
+     *   sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:4; ...
+     *   receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
+         errorCode: SUCCESS/ PROFILE_SET_NOT_EXIST /TIME_OUT /WRONG_RECEIVER  /WRONG_COMMAND
+    * }
+     * @throws InterruptedException 
+ 	* */
+    public void set_profile_template_ack(final Message msg)throws JSONException, SQLException, InterruptedException{
+		TimeOutTread to=new TimeOutTread(10,msg);
+		to.start();
+    }
+    
+    
 	/*** 获取一个设备
 	 * 	 <pre>对应json消息体为：
 	 *   {
@@ -893,7 +1074,7 @@ public class LogicControl {
     	String key=CtrolID+"_"+deviceID;
     	if((device= deviceMap.get(key))!=null || (device=Device.getOneDeviceFromDB(mysql, CtrolID, deviceID))!=null){
     		jedis.publish(commandQueue, device.toJsonObj().toString());
-    		jedis.hset(currentProfile, key, device.toJsonObj().toString());
+    		jedis.hset(currentDeviceState, key, device.toJsonObj().toString());
     		if(sender==0){
 	    		replyMsg.json=new JSONObject();
 	    		replyMsg.json.put("errorCode",SUCCESS); 	    		
@@ -929,26 +1110,24 @@ public class LogicControl {
 		to.start();
     }
 	
-  /*** 告警消息
-  <pre>例如对应json消息体如下格式 ：
-  {
-    "warnID",  123456      
-    "warnName","厨房漏气"      
-    "warnContent", "检测你的厨房可燃气体超标，已自动帮你打开厨房的窗户~"  
-    "type",  1  	
-    "channel",0      
-    "createTime","2014-12-25 12:13:14"    
-    "modifyTime","2014-12-25 12:13:14"  
-  }
-  */
-	public void warn(){
-		
-	}
+	  /*** 告警消息
+	  <pre>例如对应json消息体如下格式 ：
+	  {
+	    "warnContent", "检测你的厨房可燃气体超标，已自动帮你打开厨房的窗户~"  
+	    "warnType",  1  	
+	    "channel",0 
+	    "timeout",30
+	    "createTime","2014-12-25 12:13:14"    
+	  }
+	  */
+	public void send_warning_msg(final Message msg){
+		if(this.msgSock!=null &&  !this.msgSock.isOutputShutdown()  && !this.msgSock.isClosed())
+		msg.writeToSock(this.msgSock);		
+	}    
 
-    
-
-	public static void main(String[] args) {		
-		LogicControl lc= new LogicControl();
+	public static void main(String[] args) {
+		Config cf= new Config();
+		LogicControl lc= new LogicControl(cf);
 	}	
 	
 }

@@ -8,7 +8,7 @@ import java.util.Date;
  */
 
 public class ProfileTemplatFactor extends FactorDict {
-	protected int spacerange;
+	protected int spaceRange;
 	
 
 	public static void main(String[] args) {
@@ -17,26 +17,24 @@ public class ProfileTemplatFactor extends FactorDict {
 
 
 	public int getSpacerange() {
-		return spacerange;
+		return spaceRange;
 	}
 
 
 	public void setSpacerange(int spacerange) {
-		this.spacerange = spacerange;
+		this.spaceRange = spacerange;
 	}
 
 	public ProfileTemplatFactor(int factorid, int factortype,
 			String factorname, String description, String measurement,
-			int mstype, String createoperator, String modifyoperator,
+			int mstype, int createoperator, int modifyoperator,
 			Date createtime, Date modifytime,int spaceRange) {
 		super(factorid, factortype, factorname, description, measurement, mstype,
 				createoperator, modifyoperator, createtime, modifytime);
-		this.spacerange=spaceRange;		
+		this.spaceRange=spaceRange;		
 	}
 
 
 	public ProfileTemplatFactor() {
 	}
-	
-
 }

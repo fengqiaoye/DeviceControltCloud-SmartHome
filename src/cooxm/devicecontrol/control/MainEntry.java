@@ -41,12 +41,11 @@ public class MainEntry {
 		if(!CtrolSocketServer.receiveCommandQueue.isEmpty()){
 			Message msg;
 			try {
-				msg = CtrolSocketServer.receiveCommandQueue.poll(10, TimeUnit.MICROSECONDS);
+				msg = CtrolSocketServer.receiveCommandQueue.poll(100, TimeUnit.MICROSECONDS);
 				if(msg!=null){
 					lcontrol.decodeCommand(msg);					
 				}
 			} catch (InterruptedException e) {
-				//e.printStackTrace();
 				log.error(e);
 			}
 		}

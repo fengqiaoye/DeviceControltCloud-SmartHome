@@ -43,7 +43,6 @@ public class Profile {
 	public Profile (Profile pf){
 		this.profileID=pf.profileID;
 		this.profileName=pf.profileName;
-		this.profileID=pf.profileID;
 		this.CtrolID=pf.CtrolID;
 		this.roomID=pf.roomID;
 		this.roomType=pf.roomType;
@@ -60,7 +59,6 @@ public class Profile {
 		try {
 			this.profileID=profileJson.getInt("profileID");
 			this.profileName=profileJson.getString("profileName");
-			this.profileID=profileJson.getInt("profileID");
 			this.CtrolID=profileJson.getInt("CtrolID");
 			this.roomID=profileJson.getInt("roomID");
 			this.roomType=profileJson.getInt("roomType");

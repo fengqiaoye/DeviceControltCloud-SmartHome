@@ -7,6 +7,7 @@
 package cooxm.devicecontrol.device;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -14,65 +15,138 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Warn {	
+	/**中控ID*/
+	int    ctrolID;
+	/** 1:网络推送；2:SMS 3:Both*/
+	int    channel;
+	/**推送目标: 1:移动终端；2：中控器终端；3：两者都推送*/
+	int    target;
+	/**消息超时时间，0表示永远不超时*/
+	int    timeOut;
+	/**产生时间*/
+	Date   createTime; 
 	
+	/**告警产生系统:1：中控系统；2：安防系统;3：云端*/
+	int    madeFrom;
+	/**告警类型:1：有害气体过高；2：PM2.5指标严重；3：温度过高 ；4：火警；5：入侵告警；6：防盗大门未关；7：台风告警；8：暴雨告警*/	
+	int  warnType;
+	/**告警内容 中文UTF-8*/
+	String msgContent; 
 
-	int  warnID       ;  
-	String  warnName     ; 
-	String warnContent;
 	
-	int  type       ; 
-	/*** 
-	 * 告警渠道： 0：网络； 1：SMS; 2 :both
-	 * */
-	int  channel    ;  
-	Date  createTime ;  
-	Date  modifyTime ;   
+	public int getctrolID() {
+		return ctrolID;
+	}
 
-	Warn(
-		int  warnID       ,  
-		String  warnName       ,  
-		String  warnContent,  
-		int  type       ,  
-		int  channel    ,  
-		Date  createTime ,  
-		Date  modifyTime )
-	{
-		this.warnID     = warnID       ;  
-		this.warnName   = warnName       ;  
-		this.warnContent= warnContent;  
-		this.type       = type       ;  
-		this.channel    = channel    ;  
-		this.createTime = createTime ;  
-		this.modifyTime = modifyTime ;		
+	public void setctrolID(int ctrolID) {
+		this.ctrolID=ctrolID;
+	}
+
+	public int getChannel() {
+		return channel;
+	}
+
+	public void setChannel(int channel) {
+		this.channel = channel;
+	}
+
+	public int getTarget() {
+		return target;
+	}
+
+	public void setTarget(int target) {
+		this.target = target;
+	}
+
+	public int gettimeOut() {
+		return timeOut;
+	}
+
+	public void settimeOut(int timeOut) {
+		this.timeOut = timeOut;
+	}
+
+	public Date getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(Date createTime) {
+		this.createTime = createTime;
+	}
+
+	public int getMadeFrom() {
+		return madeFrom;
+	}
+
+	public void setMadeFrom(int madeFrom) {
+		this.madeFrom = madeFrom;
+	}
+
+	public int getWarnType() {
+		return warnType;
+	}
+
+	public void setWarnType(int warnType) {
+		this.warnType = warnType;
+	}
+
+	public String getmsgContent() {
+		return msgContent;
+	}
+
+	public void setmsgContent(String msgContent) {
+		this.msgContent = msgContent;
 	}
 	
+	public Warn(int ctrolID, int channel, int target, int timeOut,
+			Date createTime, int madeFrom, int warnType, String msgContent) {
+		this.ctrolID = ctrolID;
+		this.channel = channel;
+		this.target = target;
+		this.timeOut = timeOut;
+		this.createTime = createTime;
+		this.madeFrom = madeFrom;
+		this.warnType = warnType;
+		this.msgContent = msgContent;
+	}
+	
+	public Warn(JSONObject warnJson) {
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		try {
+			this.ctrolID = warnJson.getInt("ctrolID");
+			this.channel=warnJson.getInt("channel");
+			this.target=warnJson.getInt("target");
+			this.timeOut=warnJson.getInt("timeOut");
+			this.createTime=sdf.parse(warnJson.getString("createTime")); 
+			this.madeFrom=warnJson.getInt("madeFrom");
+			this.warnType=warnJson.getInt("warnType");
+			this.msgContent=warnJson.getString("msgContent");
+		} catch (JSONException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+	}
+
 	public JSONObject toJsonObject(){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	    JSONObject warnJson = new JSONObject();  
 	    try {
-			warnJson.put("warnID",         this.warnID      );
-		    warnJson.put("warnName",        this.warnName      );
-		    warnJson.put("warnContent",        this.warnContent       );
-		    warnJson.put("type",     		   this.type        );
-		    warnJson.put("channel",            this.channel    );
-		    warnJson.put("createTime",      sdf.format(this.createTime  )  );
-		    warnJson.put("modifyTime",      sdf.format(this.modifyTime  )  );
+			warnJson.put("ctrolID",        this.ctrolID      );
+		    warnJson.put("channel",        this.channel      );
+		    warnJson.put("target",         this.target    );
+		    warnJson.put("timeOut",        this.timeOut    );	
+		    warnJson.put("createTime",     sdf.format(this.createTime  )  );
+		    warnJson.put("madeFrom",       this.madeFrom    );		    
+		    warnJson.put("warnType",       this.warnType        );
+		    warnJson.put("msgContent",    this.msgContent       );
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}	    
 	    return warnJson;
 	}
 
-	/*** 
-	 * @Title: main 
-	 * @Description: TODO
-	 * @param @param args    
-	 * @return void    
-	 * @throws 
-	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
+	public static void main(String[] args) {	
 
 	}
 
