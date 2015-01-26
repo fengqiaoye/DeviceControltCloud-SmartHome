@@ -179,7 +179,7 @@ public class TimeOutTread extends Thread {
     	msg.json=json;
      	System.out.println(msg.json.toString());
 
-    	Config conf =new Config();
+    	Config conf =MainEntry.getConfig();
     	CtrolSocketServer cServer=new CtrolSocketServer(conf);
     	Callable<Boolean> task= new waitForReply(msg);
     	

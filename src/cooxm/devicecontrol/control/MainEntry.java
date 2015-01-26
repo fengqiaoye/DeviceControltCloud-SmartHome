@@ -18,7 +18,7 @@ import cooxm.devicecontrol.socket.Message;
 public class MainEntry {
 	
 	static Logger log =Logger.getLogger(MainEntry.class);	
-	
+	private static Config cf ;
 	/*** 
 	 * 整个程序包的入口
 	 * @param  Config 配置文件
@@ -27,7 +27,7 @@ public class MainEntry {
 	 * */
 	public static void main(String[] args)  {
 		log.info("Starting from main entry...");		
-		Config cf = new Config();	
+		cf = new Config();	
 		LogicControl lcontrol=new LogicControl(cf);
 
 			try {
@@ -49,5 +49,9 @@ public class MainEntry {
 				log.error(e);
 			}
 		}
+	}
+	
+	public static Config getConfig() {
+		return cf;		
 	}
 }

@@ -31,6 +31,7 @@ import cooxm.devicecontrol.device.ProfileTemplate;
 import cooxm.devicecontrol.device.RoomMap;
 import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.socket.Message;
+import cooxm.devicecontrol.socket.MsgSocketClient;
 import cooxm.devicecontrol.util.MySqlClass;
 import redis.clients.jedis.Jedis;
 
@@ -177,12 +178,12 @@ public class LogicControl {
 		mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
 		this.jedis= new Jedis(redis_ip, redis_port,200);
 		try {
-			this.msgSock=new Socket(msg_server_IP, msg_server_port);
+			this.msgSock=new MsgSocketClient(msg_server_IP, msg_server_port);
 			this.profileMap= new ProfileMap(mysql);
 			this.profileSetMap= new ProfileSetMap(mysql);
 			this.deviceMap=new DeviceMap(mysql);
 			this.roomMap=new RoomMap(mysql);
-		} catch (SQLException e) {
+		} catch (SQLException  e) {
 			e.printStackTrace();
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
@@ -1122,7 +1123,7 @@ public class LogicControl {
 	  */
 	public void send_warning_msg(final Message msg){
 		if(this.msgSock!=null &&  !this.msgSock.isOutputShutdown()  && !this.msgSock.isClosed())
-		msg.writeToSock(this.msgSock);		
+		msg.writeBytesToSock(this.msgSock);		
 	}    
 
 	public static void main(String[] args) {

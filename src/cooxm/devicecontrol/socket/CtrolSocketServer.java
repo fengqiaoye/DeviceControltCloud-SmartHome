@@ -92,7 +92,7 @@ public class CtrolSocketServer {
 				+ "  from "				
 				+"info_server"
 				+ ";";
-		System.out.println("query:"+sql);
+		//System.out.println("query:"+sql);
 		String res=mysql.select(sql);
 		if(res==null ) {
 			log.error("ERROR:exception happened: "+sql);
@@ -105,8 +105,7 @@ public class CtrolSocketServer {
 		for(String line:resArray){
 			String[]  cells=line.split(",");
 		  clientMap.put(Integer.parseInt(cells[0]), cells[1]);
-		}
-		
+		}		
 		//System.out.println("1");
 	}
 	

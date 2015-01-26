@@ -30,7 +30,7 @@ public class Event {
 	private int month;
 	
 	/*** 填写序列号*/
-	int eventID;
+	String eventID;
 	
 	/**
 	 * <pre>事件类型:
@@ -56,7 +56,7 @@ public class Event {
 	Event() {}	
 	Event(
 			int month,
-			int eventID,
+			String eventID,
 			int commandID,
 			int CtrolID,
 			int roomID,
@@ -81,11 +81,21 @@ public class Event {
 	}
 	
 	Event(Message msg)  {
-		DateFormat monthSDF=new SimpleDateFormat("yyyyMMdd");
+		DateFormat monthSDF=new SimpleDateFormat("yyyyMM");
 		//msg.receiveTime.getYear()+""+msg.receiveTime.getMonth()
-		this.month=Integer.parseInt(monthSDF.format(msg.receiveTime));
-        this.eventID=Integer.parseInt(msg.cookie);
-		this.commandID=msg.header.commandID;
+		if(msg.receiveTime!=null){
+			this.receiveTime=msg.receiveTime;
+			this.month=Integer.parseInt(monthSDF.format(msg.receiveTime));
+		}else {
+			msg.receiveTime=new Date();
+		}
+		if(msg.replyTime!=null){
+			this.replyTime=msg.replyTime;
+		}else{
+			this.replyTime=new Date();
+		}
+        this.eventID=msg.cookie;
+        this.commandID=msg.header.commandID;
 		if(msg.json.has("CtrolID")){
 			try {
 				this.CtrolID=msg.json.getInt("CtrolID");
@@ -93,8 +103,7 @@ public class Event {
 				e.printStackTrace();
 			}
 		}else {
-			System.out.println("In contact message received, cant parse CtrolID in json："+msg.msgToString());
-			return;
+			this.CtrolID=123456;
 		}
 		if(msg.json.has("roomID")){
 			try {
@@ -103,10 +112,8 @@ public class Event {
 				e.printStackTrace();
 			}
 		}else {
-			this.CtrolID=0;
-			System.out.println("In contact message received, cant parse roomID in json:"+msg.msgToString());
+			this.roomID=10;
 		}
-		//this.sender=msg.cookie;
 		if(msg.json.has("sender")){
 			try {
 				this.senderRole=msg.json.getInt("sender");
@@ -122,12 +129,10 @@ public class Event {
 				e.printStackTrace();
 			}
 		}else {
-			System.out.println("In contact message received, cant parse errorCode in json:"+msg.msgToString());
-			return;
+			this.errorCode=0;
 		}
-		this.receiveTime=msg.receiveTime;
-		this.replyTime=msg.replyTime;
 		this.json=msg.json.toString();
+		//System.out.println(this.json);
 	}
 	
 	public void toReceiveDB(MySqlClass mysql) throws SQLException {
@@ -149,8 +154,8 @@ public class Event {
 					+ ")"				
 					+"values "
 					+ "("
-					+this.month+","					
-					+this.eventID+","
+					+this.month+",'"					
+					+this.eventID+"',"
 					+this.commandID+","
 					+this.CtrolID+","
 					+this.roomID+",'"
@@ -186,8 +191,8 @@ public class Event {
 					+ ")"				
 					+"values "
 					+ "("
-					+this.month+","
-					+this.eventID+","
+					+this.month+",'"
+					+this.eventID+"',"
 					+this.commandID+","
 					+this.CtrolID+","
 					+this.roomID+",'"

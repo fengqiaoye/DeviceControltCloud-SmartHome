@@ -31,7 +31,7 @@ public class ServerThread extends Thread  {
     // serverThread的构造器  
     public ServerThread(Socket s)  
     {  
-        this.clientRequest = s;  
+        clientRequest = s;  
         // 接收receiveServer传来的套接字 
 
         OutputStreamWriter writer;  
@@ -63,7 +63,7 @@ public class ServerThread extends Thread  {
 				try {
 					outMsg=CtrolSocketServer.sendCommandQueue.peek();
 					String clientIP=getClientIP(outMsg.getServerID());
-					if(null!=outMsg && this.clientRequest.getInetAddress().getHostAddress()==clientIP ){
+					if(null!=outMsg && clientRequest.getInetAddress().getHostAddress()==clientIP ){
 						outMsg = CtrolSocketServer.sendCommandQueue.poll(100, TimeUnit.MICROSECONDS);
 						outMsg.writeToSock(clientRequest);
 					}
@@ -72,12 +72,9 @@ public class ServerThread extends Thread  {
 				}       		     		
         	}
         	
-            try {
-				msg= readFromClient();
-				//readTest();
-			} catch (UnsupportedEncodingException | JSONException e) {
-				e.printStackTrace();
-			} 
+            msg= Message.readFromClient(clientRequest);
+           
+			//readTest(); 
             try {
 				CtrolSocketServer.receiveCommandQueue.offer(msg,100, TimeUnit.MICROSECONDS);
 			} catch (InterruptedException e) {
@@ -124,82 +121,8 @@ public class ServerThread extends Thread  {
 		}		
     }*/
 
-	private Message readFromClient() throws UnsupportedEncodingException, JSONException    
-    {  
-		byte[] b23=new byte[23]; 
-		Header head=new Header();
-		Message msg=new Message();
-    	try {
-			clientRequest.getInputStream().read(b23,0,23);
-			head=new Header(b23);
-			head.printHeader();
-		} catch (IOException e) {
-			e.printStackTrace();
-			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress());  
-		}
-    	
-    	
-    	byte[] cookie=new byte[head.cookieLen];
-    	try {
-			clientRequest.getInputStream().read(cookie,0,head.cookieLen);
-		} catch (IOException e) {			
-			e.printStackTrace();
-			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress()); 
-		}
-    	//int cookieInt=BytesUtil.getInt(cookie);
-    	String cookieStr=new String(cookie);
-    	System.out.println("cookie: "+cookieStr);    
-    	
-    	byte[] commnad=new byte[head.msgLen-head.cookieLen];
-    	try {
-			clientRequest.getInputStream().read(commnad,0,head.msgLen-head.cookieLen);
-		} catch (IOException e) {
-			e.printStackTrace();
-			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress()); 
-			System.out.println("error:exception happened,connection from "+clientRequest.getInetAddress().getHostAddress() + " has been closed!");
-		}  
-    	String comString=new String(commnad);
-    	System.out.println("command: "+comString);
-    	msg=new Message(head, cookieStr, comString);
-        return msg; 
-    } 
     
-
-    
-    
-/*    
- private void validateCommand(Message msg) {
-    	String command=null; 
-    	if(str==null) return;
-        command = str.trim().toUpperCase();  
-        if (command.equals("HELP"))  
-        {  
-            // 命令help查询本服务器可接受的命令 
-        	output.println("This is DeviseControl server,only following command can be accepted:");
-            output.println("SynRoomProfile");  
-            output.println("SwitchToRoomProfile");  
-            output.println("SynApplianceList");  
-            output.println("SwitchApplicanceState");  
-        } else if (command.startsWith("QUERY"))  
-        { // 命令query  
-            output.println("Command Accept !");  
-            try {
-            	receiveCommandQueue.put(command);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-        }  
-        // else if …….. //在此可加入服务器的其他指令  
-        else if (!command.startsWith("HELP") && !command.startsWith("QUIT")  
-                && !command.startsWith("QUERY"))  
-        {  
-            output.println("Invalid Command ! Please key in HELP to inquire all valid command !");  
-        }    	
-    } 
-    
-    
-    private String readFromClient2()  
+    /*private String readFromClient2()  
     {        
         try  
         {  

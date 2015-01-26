@@ -5,11 +5,13 @@ import java.util.Date;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import cooxm.devicecontrol.control.Config;
 import cooxm.devicecontrol.control.LogicControl;
+import cooxm.devicecontrol.control.MainEntry;
 import cooxm.devicecontrol.util.MySqlClass;
 
 /** 
@@ -35,7 +37,7 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
         return instance;
     }
     private static int getCapacity(){
-    	Config conf=new Config();
+    	Config conf=MainEntry.getConfig();
     	return Integer.parseInt(conf.getValue("max_recv_msg_queue"));    	
     }
     

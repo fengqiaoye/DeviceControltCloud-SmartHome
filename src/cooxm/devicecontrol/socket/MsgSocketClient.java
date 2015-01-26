@@ -5,52 +5,186 @@
  */
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.net.SocketAddress;
+import java.net.UnknownHostException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.apache.log4j.Logger;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 
 
-public class MsgSocketClient {
-	/**用户连接的通信套接字*/  
-    Socket sock;
-    BufferedReader input;
-    PrintWriter output;
-    Message msg = null;
-    String str = null; 
-    public static BlockingQueue<Message> sendMsgQueue;
+public class MsgSocketClient extends Socket{
+
+	private static final short ACK_OFFSET = 0x4000;
+	private static final short CMDCODE_RESERVED_FOR_COMMON_BEGIN 		= 0x1100;
+	private static final short CMD__Identity_REQ 		= CMDCODE_RESERVED_FOR_COMMON_BEGIN + 1;  //身份标识请求
+	private static final short CMD__Identity_ACK 		= CMD__Identity_REQ  + ACK_OFFSET;  //身份标识请求
+	private static final short CMD__HEARTBEAT_REQ 		= CMDCODE_RESERVED_FOR_COMMON_BEGIN + 2;  //心跳请求
+	private static final short CMD__HEARTBEAT_ACK 		= CMD__HEARTBEAT_REQ  + ACK_OFFSET;  //心跳请求
+		
     
-    public static Logger log = Logger.getLogger(CtrolSocketServer.class);   
+    public static Logger log = Logger.getLogger(CtrolSocketServer.class);  
+	/**用户连接的通信套接字*/  
+    static Socket sock;
+    BufferedReader input;
 	
-    public MsgSocketClient(String IP,int port)  
-    {  
+    public Socket getSock() {
+		return sock;
+	}
+
+	public void setSock(Socket sock) {
+		this.sock = sock;
+	}
+
+	public MsgSocketClient(String IP,int port) throws UnknownHostException, IOException  
+    {   
     	log.info("starting connect to  message server...");
-        OutputStreamWriter writer;  
-        InputStreamReader reader;  
+		InetAddress remoteaddress;
+		InetAddress localaddress;
         try  
         { 
-        	this.sock = new Socket(IP, port);
-            writer = new OutputStreamWriter(sock.getOutputStream());   
-            output = new PrintWriter(writer, true); 
-            reader = new InputStreamReader(sock.getInputStream(),"utf-8");  
-            input = new BufferedReader(reader); 
+			localaddress =InetAddress.getByName("0.0.0.0");// InetAddress.getByName(getLocalIP());	
+			remoteaddress = InetAddress.getByName(IP);
+			Boolean b=isReachable(localaddress, remoteaddress, port, 5000);
+        	if(b){
+        		sock = new Socket(IP, port);
+    			input=new BufferedReader(new InputStreamReader(sock.getInputStream()));	
+    			
+        		Header header=Message.getOneHeaer((short)CMD__Identity_REQ);
+        		String jsonStr="{\"uiClusterID\":1,\"usServerType\":201,\"uiServerID\":6}";
+        		Message authMsg=Message.getOneMsg(header, "", jsonStr);
+        		authMsg.writeBytesToSock(sock);
+        		System.out.println("Send  : "+authMsg.msgToString());
+        		new readThread(sock).run();
+        		
+//        		Message authresult=Message.readFromClient(sock);
+//        		if(authresult!=null){
+//        			System.out.println("received:"+authresult);  
+//        		}
+        	}else{
+        		log.error("Initialize MsgSocketClient failed, during to connetion to remote host "+IP+":"+port+" failed.");
+        	}
+
         } catch (IOException e)  
         {  
             System.out.println(e.getMessage());  
         }
-        sendMsgQueue= new ArrayBlockingQueue<Message>(1000);
-        System.out.println("Initialize MsgSocketClient finished !");
     } 
     
+	public static boolean isReachable(InetAddress localInetAddr, InetAddress remoteInetAddr,int port, int timeout) { 		
+		boolean isReachable = false; 
+		Socket socket = null; 
+		try{ 
+		 socket = new Socket(); 
+		 // 端口号设置为 0 表示在本地挑选一个可用端口进行连接
+		 SocketAddress localSocketAddr = new InetSocketAddress(localInetAddr, 0); 
+		 socket.bind(localSocketAddr); 
+		 InetSocketAddress endpointSocketAddr = new InetSocketAddress(remoteInetAddr, port); 
+		 socket.connect(endpointSocketAddr, timeout);        
+		 log.info("SUCCESS - connection established! Local: " + 
+				 			localInetAddr.getHostAddress() + " remote: " + 
+				 			remoteInetAddr.getHostAddress() + " port:" + port); 
+		 isReachable = true; 
+		} catch(IOException e) { 
+			log.error("FAILRE - CAN not connect! Local: " + 
+				 	localInetAddr.getHostAddress() + " remote: " + 
+				 	remoteInetAddr.getHostAddress() + " port:" + port); 
+		} finally{ 
+		 if(socket != null) { 
+		 try{ 
+		 socket.close(); 
+		 } catch(IOException e) { 
+			 log.error("Error occurred while closing socket.."); 
+		   } 
+		 } 
+		} 
+		return isReachable; 
+	}
+	
+	public static String getLocalIP(){
+		InetAddress addr;
+		String ip=null;
+		try {
+			addr = InetAddress.getLocalHost();
+			ip=addr.getHostAddress().toString();
+			
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+		return ip;
+	}
+	
+	public class readThread extends Thread
+	{
+		private Socket socket;
+		
+		public readThread(Socket client)
+		{socket = client;}
+		
+		public void run()
+		{
+           while(true){
+        	   Message msg=Message.readFromClient(socket);
+        	   decodeMsg(msg);
+           }
+        }	
+	}
+	
+	
+	public void decodeMsg(Message msg){
+		short commandID=msg.header.commandID;
+		switch (commandID) {
+		case CMD__Identity_ACK:			
+			break;
+		case CMD__HEARTBEAT_REQ:
+			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			try {
+				msg.json.put("uiTime", sdf.format(new Date()));
+				msg.header.msgLen=msg.getMsgLength();
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			msg.header.commandID=CMD__HEARTBEAT_ACK;
+			msg.writeBytesToSock(MsgSocketClient.sock);
+			System.out.println("Send  : "+msg.msgToString());
+			break;
+		default:
+			break;
+		}
+		
+	}
+   
     public static void main(String [] args)       
     {  
-    	MsgSocketClient msgSock= new MsgSocketClient("172.16.35.174", 14290);
+
+    	try {
+			MsgSocketClient msgSock= new MsgSocketClient("172.16.35.174", 10790);
+			System.out.println("wait for message...");	
+    		//new readThread(sock).run();
+//			while(true){
+//				String line=msgSock.input.readLine();
+//				if(line!=null){
+//				System.out.println(line);
+//				}
+//			}
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
    	
     }
 

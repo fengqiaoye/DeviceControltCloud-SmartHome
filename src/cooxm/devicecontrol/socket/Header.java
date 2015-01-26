@@ -25,7 +25,7 @@ public class Header{
  	public short cookieLen; 
  	/*保留字段*/	
  	public int reserve; 
- 	
+
  	private static final int commandMax=0x19FF;
  	private static final int commandMin=0x1600;	
 
@@ -39,12 +39,13 @@ public class Header{
 			this.sequeeceNo=header.sequeeceNo;
 			this.encType=header.encType; 
 			this.cookieLen=header.cookieLen;
-			this.reserve=header.reserve;			
+			this.reserve=header.reserve;
 	 }
  	
  public	Header(String headTag,byte mainVersion,byte subVersion,short msgLen,short commandID,int sequeeceNo,byte encType,
  			short cookieLen,
- 			int reserve ){
+ 			int reserve
+		 	){
 		this.headTag=headTag;			
 		this.mainVersion=mainVersion;
 		this.subVersion=subVersion;
@@ -53,7 +54,7 @@ public class Header{
 		this.sequeeceNo=sequeeceNo;
 		this.encType=encType; 
 		this.cookieLen=cookieLen;
-		this.reserve=reserve;			
+		this.reserve=reserve;	
  }
 	 
 	 /***23 bytes of header
@@ -97,16 +98,16 @@ public class Header{
 	 
   public  void	 printHeader(){
 	  
-	  System.out.println(
-			  this.headTag    + "\n"+	
-			  this.mainVersion+ "\n"+	
-			  this.subVersion + "\n"+	
-			  this.msgLen     + "\n"+
-			  this.commandID  + "\n"+	
-			  this.sequeeceNo + "\n"+	
-			  this.encType    + "\n"+	
-			  this.cookieLen  + "\n"+	
-			  this.reserve    + "\n"			  
+	  System.out.print(
+			"headTag=" + this.headTag    + " "+	
+			"mainVersion=" +   this.mainVersion+ " "+	
+			"subVersion=" +   this.subVersion + " "+	
+			"msgLen=" + this.msgLen     + " "+
+			"commandID=" +this.commandID  + " "+	
+			"sequeeceNo=" +this.sequeeceNo + " "+	
+			"encType=" + this.encType    + " "+	
+			"cookieLen=" +this.cookieLen  + " "+	
+			"reserve="  + this.reserve    + " "			  
 			  );		 
 	 }
   

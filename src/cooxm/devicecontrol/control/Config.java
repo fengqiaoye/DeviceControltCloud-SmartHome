@@ -46,7 +46,7 @@ public class Config extends Properties {
             if(!pps.containsKey("max_recv_msg_queue"))	    {pps.setProperty("max_recv_msg_queue", "20000"); }
             if(!pps.containsKey("request_timeout"))	    {pps.setProperty("request_timeout", "30"); }
             if(!pps.containsKey("msg_server_ip"))	    {pps.setProperty("msg_server_ip", "172.16.35.174"); }
-            if(!pps.containsKey("msg_server_port"))	    {pps.setProperty("msg_server_port", "14920"); }
+            if(!pps.containsKey("msg_server_port"))	    {pps.setProperty("msg_server_port", "10790"); }
             pps.store(new FileOutputStream(configFile)  , "Copyright @cooxm corporation under one or more contributor license agreements. \nConfigurate for Device Control module default values.\n ");
 
 	    } catch (Exception e) {

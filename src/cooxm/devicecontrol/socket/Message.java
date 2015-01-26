@@ -4,8 +4,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.json.CookieList;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -17,8 +20,8 @@ public class Message  {
 	 public Header header;
 	 public String cookie;
 	 public JSONObject json;
-	 public Date receiveTime;
-	 public Date replyTime;
+	 public Date receiveTime=null;
+	 public Date replyTime=null;
 
 	public Message(){}
 	public Message(Message msg){	
@@ -26,11 +29,10 @@ public class Message  {
 		this.header=msg.header; 
 		this.cookie=msg.cookie;
 		this.json=msg.json;
+		this.receiveTime=msg.receiveTime;
+		this.replyTime=msg.replyTime;
 	}
 	
-	Message(Header header){
-		this.header=header;
-	}
 	
 	Message(Header header,String cookie,  byte[] command) throws UnsupportedEncodingException, JSONException{
 		this.header=header;	
@@ -38,6 +40,7 @@ public class Message  {
 		String jsonStr=new String(command,"utf-8");
 		this.json=new JSONObject(jsonStr);
 		this.header.msgLen=(short) (cookie.length()+jsonStr.length());
+		this.receiveTime=new Date();
 	}
 	
 	Message(Header header,String cookie, String command) throws UnsupportedEncodingException, JSONException{
@@ -46,6 +49,7 @@ public class Message  {
 		this.cookie=cookie;
 		//String jsonStr=new String(command,"utf-8");
 		this.json=new JSONObject(command);
+		this.receiveTime=new Date();
 	}
     
 	/***23 bytes of header
@@ -84,6 +88,7 @@ public class Message  {
 		String jsonStr=new String();
 		
 		this.json=new JSONObject(jsonStr.substring(16, -1));
+		this.receiveTime=new Date();
 	}
     
     public boolean isValid() {   
@@ -92,6 +97,7 @@ public class Message  {
     
    public String msgToString(){
 	   String out=new String();
+	   DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	   out+=  		this.header.headTag		+",";
 	   out+=		this.header.mainVersion	+",";
 	   out+=		this.header.subVersion	+",";
@@ -103,6 +109,10 @@ public class Message  {
 	   out+=		this.header.reserve		+",";  
 	   out+=		this.cookie		+","; 
 	   out+=		this.json.toString()	+","; 
+	   out+=sdf.format(this.receiveTime)    +",";
+	   if(this.replyTime!=null){
+		   out+=sdf.format(this.replyTime);  
+	   }
 	   return out;
     }
    
@@ -132,6 +142,16 @@ public class Message  {
 		   serverID=Integer.parseInt(this.cookie.split("_")[1]);
 	   }	   
 	return serverID;	
+   }
+   
+   public int getSequenceNO() {
+	   int SequenceNO=-1;
+	   if(this.cookie==null){
+         return -1;
+	   }else{
+		   SequenceNO=Integer.parseInt(this.cookie.split("_")[0]);
+	   }	   
+	return SequenceNO;	
    }
    
     public void writeBytesToSock(Socket sock){
@@ -175,6 +195,92 @@ public class Message  {
 		}    	
     }
     
+	public static Message readFromClient(Socket clientRequest) 
+    {  
+		byte[] b23=new byte[23]; 
+		Header head=new Header();
+		Message msg=new Message();
+    	try {
+			clientRequest.getInputStream().read(b23,0,23);
+			head=new Header(b23);
+			//head.printHeader();
+		} catch (IOException e) {
+			e.printStackTrace();
+			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress());  
+		}
+    	
+    	
+    	byte[] cookie=new byte[head.cookieLen];
+    	try {
+			clientRequest.getInputStream().read(cookie,0,head.cookieLen);
+		} catch (IOException e) {			
+			e.printStackTrace();
+			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress()); 
+		}
+    	String cookieStr=new String(cookie);
+    	//System.out.print(" cookie: "+cookieStr);    
+    	
+    	byte[] commnad=new byte[head.msgLen-head.cookieLen];
+    	try {
+			clientRequest.getInputStream().read(commnad,0,head.msgLen-head.cookieLen);
+		} catch (IOException e) {
+			e.printStackTrace();
+			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress()); 
+			System.out.println("error:exception happened,connection from "+clientRequest.getInetAddress().getHostAddress() + " has been closed!");
+		}  
+    	String comString=new String(commnad);
+    	//System.out.println(" command: "+comString);
+    	try {
+			msg=new Message(head, cookieStr, comString);
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+    	msg.receiveTime=new Date();
+    	System.out.println("Recv  : "+msg.msgToString());
+        return msg; 
+    } 
+	
+	public short getMsgLength(){
+		return (short)(this.cookie.length()+this.json.toString().length());
+	}
+    
+	public static Header getOneHeaer(short commandID){
+		String headTag="#XRPC#";			
+		byte mainVersion=1;
+		byte subVersion=1;
+		int sequeeceNo=123456;
+		byte encType=1; 
+		short cookieLen=0;
+		int reserve=0;
+		short msgLen=cookieLen;
+		Header head=new Header(headTag, mainVersion, subVersion, msgLen, commandID, sequeeceNo, encType, cookieLen, reserve);
+		return head;
+	}
+    
+    public static  Message getOneMsg(Header header,String cookie,String jsonStr) {
+    	Message msg= new Message(); 
+    	header.cookieLen=(short) cookie.length(); 
+
+    	msg.header=header;
+    	msg.cookie=cookie;    	
+    	
+    	JSONObject json;
+		try {
+			json = new JSONObject(jsonStr);
+	     	msg.json=json;
+	    	//json.put("sender", 2);
+	    	header.msgLen=msg.getMsgLength();
+
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+		}   
+    	msg.receiveTime=new Date();
+    	msg.replyTime=new Date();    	
+    	return msg;
+	}
+    
     public Message getOneMsg() {
     	Message msg= new Message();
     	
@@ -183,7 +289,7 @@ public class Message  {
     	byte subVersion=2;
     	short msgLen=15;
     	short commandID=0x1601;
-    	int sequeeceNo=123456;
+    	int sequeeceNo=(int) (System.currentTimeMillis()/1000);
     	byte encType=1; 
     	short cookieLen=4;
     	int reserve=0;

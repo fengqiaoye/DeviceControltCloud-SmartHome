@@ -8,8 +8,15 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.Socket;
+import java.net.SocketAddress;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Date;
+import java.util.Enumeration;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -134,7 +141,79 @@ public class TestClass {
 		
 		
 	}
+
+	public static void printReachableIP(InetAddress remoteAddr, int port){ 
+	    String retIP = null; 
+	 
+	    Enumeration<NetworkInterface> netInterfaces; 
+	    try{ 
+	      netInterfaces = NetworkInterface.getNetworkInterfaces(); 
+	      while(netInterfaces.hasMoreElements()) {    
+	          NetworkInterface ni = netInterfaces.nextElement();    
+	          Enumeration<InetAddress> localAddrs = ni.getInetAddresses(); 
+	          while(localAddrs.hasMoreElements()){ 
+	              InetAddress localAddr = localAddrs.nextElement(); 
+	              if(isReachable(localAddr, remoteAddr, port, 5000)){ 
+	                      retIP = localAddr.getHostAddress(); 
+	                      break;        
+	              } 
+	          } 
+	       } 
+	    } catch(SocketException e) { 
+	        System.out.println(
+	    "Error occurred while listing all the local network addresses."); 
+	    }    
+	    if(retIP == null){ 
+	        System.out.println("NULL reachable local IP is found!"); 
+	    }else{ 
+	        System.out.println("Reachable local IP is found, it is " + retIP); 
+	    }        
+	 }  
 	
+	
+	public static boolean isReachable(InetAddress localInetAddr, InetAddress remoteInetAddr,int port, int timeout) { 
+		
+		boolean isReachable = false; 
+		Socket socket = null; 
+		try{ 
+		 socket = new Socket(); 
+		 // 端口号设置为 0 表示在本地挑选一个可用端口进行连接
+		 SocketAddress localSocketAddr = new InetSocketAddress(localInetAddr, 0); 
+		 socket.bind(localSocketAddr); 
+		 InetSocketAddress endpointSocketAddr = new InetSocketAddress(remoteInetAddr, port); 
+		 socket.connect(endpointSocketAddr, timeout);        
+		 System.out.println("SUCCESS - connection established! Local: " + 
+				 			localInetAddr.getHostAddress() + " remote: " + 
+				 			remoteInetAddr.getHostAddress() + " port" + port); 
+		 isReachable = true; 
+		} catch(IOException e) { 
+		 System.out.println("FAILRE - CAN not connect! Local: " + 
+				 	localInetAddr.getHostAddress() + " remote: " + 
+				 	remoteInetAddr.getHostAddress() + " port" + port); 
+		} finally{ 
+		 if(socket != null) { 
+		 try{ 
+		 socket.close(); 
+		 } catch(IOException e) { 
+		    System.out.println("Error occurred while closing socket.."); 
+		   } 
+		 } 
+		} 
+		return isReachable; 
+	}
+	
+	public static String getLocalIP(){
+		InetAddress addr;
+		String ip=null;
+		try {
+			addr = InetAddress.getLocalHost();
+			ip=addr.getHostAddress().toString();
+			
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+		return ip;
+	}
 	
 
 	public static void main(String[] args) {
@@ -153,11 +232,23 @@ public class TestClass {
 		
 	//	sendMsgTest();
 		
-		String s="ACVDA";
-		int a=s.indexOf('V');
-		System.out.println(a);
-		String aa=s.substring(0, a);
-		System.out.println(aa);
+
+//		InetAddress remoteaddress;
+//		InetAddress localaddress;
+//		try {
+//			localaddress = InetAddress.getByName(getLocalIP());	
+//			remoteaddress = InetAddress.getByName("172.16.35.174");			
+//			//printReachableIP(remoteaddress, 6379);
+//			Boolean b=isReachable(localaddress, remoteaddress, 6379, 5000);
+//			System.out.println(b);
+//		} catch (UnknownHostException e) {
+//			e.printStackTrace();
+//		}
 		
-		}
+
+
+	
+		
+		
+	}
 }
