@@ -5,12 +5,8 @@
  */
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -22,11 +18,10 @@ import java.util.Date;
 
 import org.apache.log4j.Logger;
 import org.json.JSONException;
-import org.json.JSONObject;
 
 
 
-public class MsgSocketClient extends Socket{
+public class MsgSocketClient extends Socket implements Runnable {
 
 	private static final short ACK_OFFSET = 0x4000;
 	private static final short CMDCODE_RESERVED_FOR_COMMON_BEGIN 		= 0x1100;
@@ -67,13 +62,9 @@ public class MsgSocketClient extends Socket{
         		String jsonStr="{\"uiClusterID\":1,\"usServerType\":201,\"uiServerID\":6}";
         		Message authMsg=Message.getOneMsg(header, "", jsonStr);
         		authMsg.writeBytesToSock(sock);
-        		System.out.println("Send  : "+authMsg.msgToString());
-        		new readThread(sock).run();
-        		
-//        		Message authresult=Message.readFromClient(sock);
-//        		if(authresult!=null){
-//        			System.out.println("received:"+authresult);  
-//        		}
+        		System.out.println("Send to MsgServer : "+authMsg.msgToString());
+        		//new readThread(sock).run();
+
         	}else{
         		log.error("Initialize MsgSocketClient failed, during to connetion to remote host "+IP+":"+port+" failed.");
         	}
@@ -89,12 +80,12 @@ public class MsgSocketClient extends Socket{
 		Socket socket = null; 
 		try{ 
 		 socket = new Socket(); 
-		 // 端口号设置为 0 表示在本地挑选一个可用端口进行连接
+		 /**端口号设置为 0 表示在本地挑选一个可用端口进行连接*/
 		 SocketAddress localSocketAddr = new InetSocketAddress(localInetAddr, 0); 
 		 socket.bind(localSocketAddr); 
 		 InetSocketAddress endpointSocketAddr = new InetSocketAddress(remoteInetAddr, port); 
 		 socket.connect(endpointSocketAddr, timeout);        
-		 log.info("SUCCESS - connection established! Local: " + 
+		 log.info("SUCCESS - connected to MsgServer! Local: " + 
 				 			localInetAddr.getHostAddress() + " remote: " + 
 				 			remoteInetAddr.getHostAddress() + " port:" + port); 
 		 isReachable = true; 
@@ -127,11 +118,20 @@ public class MsgSocketClient extends Socket{
 		return ip;
 	}
 	
-	public class readThread extends Thread
+
+	@Override
+	public void run() {
+        while(true){
+     	   Message msg=Message.readFromClient(sock);
+     	   decodeMsg(msg);
+        }
+   }
+	
+	public  class ReadThread extends Thread
 	{
 		private Socket socket;
 		
-		public readThread(Socket client)
+		public ReadThread(Socket client)
 		{socket = client;}
 		
 		public void run()
@@ -141,10 +141,9 @@ public class MsgSocketClient extends Socket{
         	   decodeMsg(msg);
            }
         }	
-	}
+	}	
 	
-	
-	public void decodeMsg(Message msg){
+	public  void decodeMsg(Message msg){
 		short commandID=msg.header.commandID;
 		switch (commandID) {
 		case CMD__Identity_ACK:			
@@ -159,7 +158,7 @@ public class MsgSocketClient extends Socket{
 			}
 			msg.header.commandID=CMD__HEARTBEAT_ACK;
 			msg.writeBytesToSock(MsgSocketClient.sock);
-			System.out.println("Send  : "+msg.msgToString());
+			System.out.println("Send to MsgServer : "+msg.msgToString());
 			break;
 		default:
 			break;
@@ -172,14 +171,11 @@ public class MsgSocketClient extends Socket{
 
     	try {
 			MsgSocketClient msgSock= new MsgSocketClient("172.16.35.174", 10790);
-			System.out.println("wait for message...");	
-    		//new readThread(sock).run();
-//			while(true){
-//				String line=msgSock.input.readLine();
-//				if(line!=null){
-//				System.out.println(line);
-//				}
-//			}
+			new Thread(msgSock).start();
+			//msgSock.new ReadThread(sock).start();
+			
+		    System.out.println(" i love you "); 
+		    
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -187,5 +183,6 @@ public class MsgSocketClient extends Socket{
 		}
    	
     }
+
 
 }

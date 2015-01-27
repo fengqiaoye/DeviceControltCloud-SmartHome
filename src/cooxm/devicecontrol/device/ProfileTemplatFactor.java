@@ -1,40 +1,39 @@
 package cooxm.devicecontrol.device;
+/** 
+ * @author Chen Guanghua E-mail: richard@cooxm.com
+ * @version Created：27 Jan 2015 14:15:48 
+ */
+
 
 import java.util.Date;
 
-/** 
- * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created：20 Jan 2015 17:53:29 
- */
-
-public class ProfileTemplatFactor extends FactorDict {
-	protected int spaceRange;
+public class ProfileTemplatFactor extends Factor {
 	
 
-	public static void main(String[] args) {
+	public int spaceRange;
 
-	}
-
-
-	public int getSpacerange() {
+	
+	public int getSpaceRange() {
 		return spaceRange;
 	}
-
-
-	public void setSpacerange(int spacerange) {
-		this.spaceRange = spacerange;
+	public void setSpaceRange(int spaceRange) {
+		this.spaceRange = spaceRange;
 	}
-
 	public ProfileTemplatFactor(int factorid, int factortype,
 			String factorname, String description, String measurement,
 			int mstype, int createoperator, int modifyoperator,
-			Date createtime, Date modifytime,int spaceRange) {
-		super(factorid, factortype, factorname, description, measurement, mstype,
-				createoperator, modifyoperator, createtime, modifytime);
-		this.spaceRange=spaceRange;		
+			Date createTime, Date modifyTime, int minValue, int maxValue,
+			int compareWay, int validFlag, int spaceRange) {
+		super(factorid, factortype, factorname, description, measurement,
+				mstype, createoperator, modifyoperator, createTime, modifyTime,
+				minValue, maxValue, compareWay, validFlag);
+		this.spaceRange = spaceRange;
 	}
+	public ProfileTemplatFactor() {}
+	public static void main(String[] args) {
+		
+		ProfileTemplatFactor t=new ProfileTemplatFactor();
+		t.setSpaceRange(0);
 
-
-	public ProfileTemplatFactor() {
 	}
 }

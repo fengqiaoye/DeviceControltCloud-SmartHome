@@ -1,4 +1,8 @@
-﻿package cooxm.devicecontrol.device;
+package cooxm.devicecontrol.device;
+/** 
+ * @author Chen Guanghua E-mail: richard@cooxm.com
+ * @version Created：27 Jan 2015 14:18:07 
+ */
 
 import java.sql.SQLException;
 import java.text.DateFormat;
@@ -10,32 +14,92 @@ import java.util.Map;
 
 import cooxm.devicecontrol.util.MySqlClass;
 
-/** 
- * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created：17 Dec 2014 18:30:11 
- */
-
-public class FactorDict extends Factor {
+public class FactorDict {
 	static final String FactorDictionaryTable = "dic_st_factor";
 	static Map<Integer, FactorDict> factorDictMap=new HashMap<Integer, FactorDict>(); 
 	
+	/***<pre>0-10：保留
+	10：灯
+	20：电视
+	40: 空调
 
+	41: 空调开关
+	42：空调温度
+	43：空调风速
+
+	60：窗户
+	80：窗帘
+	90：暖器
+
+	201：光
+	301：PM2.5 
+	401：有害气体
+	501：湿度
+	601：温度
+	701：天气（预报）
+	901：声音*/
+	int factorID;
 	
 	/*** 0:家电因素，如灯 空调;  
-          1：环境因素，如光强度'
+         1：环境因素，如光强度'
     */
-	int  factorType     ;
-	String  factorName     ;
-	String   description    ;
+	private int  factorType     ;
+	private String  factorName     ;
+	private String   description    ;
 	/** 度量单位*/
-	String   unit    ;
+	private String   unit    ;
 	
 	/***1、绝对值；2、相对值,*/
-	int  mstype         ;
+	private int  mstype         ;
 	int  createOperator ;
 	int  modifyOperator ;
+	Date  createTime    ;
+	Date  modifyTime	;
 
 	
+	
+	public String getUnit() {
+		return unit;
+	}
+
+	public void setUnit(String unit) {
+		this.unit = unit;
+	}
+
+	public int getMstype() {
+		return mstype;
+	}
+
+	public void setMstype(int mstype) {
+		this.mstype = mstype;
+	}
+	
+	
+
+	public int getFactorType() {
+		return factorType;
+	}
+
+	public void setFactorType(int factorType) {
+		this.factorType = factorType;
+	}
+
+	public String getFactorName() {
+		return factorName;
+	}
+
+	public void setFactorName(String factorName) {
+		this.factorName = factorName;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
 	public FactorDict(
 			int  factorid       ,
 			int  factortype     ,
@@ -45,8 +109,8 @@ public class FactorDict extends Factor {
 			int  mstype         ,
 			int  createoperator ,
 			int  modifyoperator ,
-			Date  createtime     ,
-			Date  modifytime		)
+			Date  createTime     ,
+			Date  modifyTime		)
 	{	
 		this.factorID       =  factorid       ;
 		this.factorType     =  factortype     ;
@@ -56,11 +120,21 @@ public class FactorDict extends Factor {
 		this.mstype         =  mstype         ;
 		this.createOperator =  createoperator ;
 		this.modifyOperator =  modifyoperator ;
-		this.createTime     =  createtime     ;
-		this.modifyTime		=  modifytime	  ;
+		this.createTime     =  createTime     ;
+		this.modifyTime		=  modifyTime	  ;
 		
 	}
-	
+
+	public FactorDict(int factorID, int createOperator, int modifyOperator,
+			Date createTime, Date modifyTime) {
+		super();
+		this.factorID = factorID;
+		this.createOperator = createOperator;
+		this.modifyOperator = modifyOperator;
+		this.createTime = createTime;
+		this.modifyTime = modifyTime;
+	}
+
 	public FactorDict() {
 	}
 
@@ -89,8 +163,7 @@ public class FactorDict extends Factor {
 			System.err.println("ERROR:empty query by : "+sql2);
 			return null;
 		} 
-//		String[] records=res2.split("\n");
-//		for(String line:records){			
+
 			fd =new FactorDict();
 			String[] index=res2.split(",");
 			fd.factorID=Integer.parseInt(index[0]);	
@@ -107,13 +180,12 @@ public class FactorDict extends Factor {
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}			
-				
-		//}
+
 		return fd;
 	}
 	
 	
-	public void InitializeFactorDictMap(MySqlClass mysql) throws SQLException	
+	public static void InitializeFactorDictMap(MySqlClass mysql) 	
 	{
 		FactorDict fd= null;//new FactorDictionary();
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -124,6 +196,7 @@ public class FactorDict extends Factor {
 		+"description  ,"
 		+"measurement  ,"
 		+"mstype  ,"
+		+"createoperator ,"
 		+"modifyoperator  ,"
 		+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
 		+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
@@ -157,15 +230,16 @@ public class FactorDict extends Factor {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}			
-			FactorDict.factorDictMap.put(fd.factorID, fd)	;
+			FactorDict.factorDictMap.put(fd.factorID, fd);
 		}
 		
 	}
 	
 
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
+		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+		
+		InitializeFactorDictMap(mysql);
 	}
 
 }
