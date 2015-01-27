@@ -66,7 +66,7 @@ public class Config extends Properties {
 		    } catch (IOException e) {    
 		        e.printStackTrace();    
 		    }    
-		}  		
+		}  	
 	}
 	
 	public String getValue(String key) {
