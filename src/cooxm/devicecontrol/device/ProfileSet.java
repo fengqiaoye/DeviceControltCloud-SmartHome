@@ -22,7 +22,7 @@ import cooxm.devicecontrol.util.MySqlClass;
 /***情景模式集：
  * <p>涉及到多个房间的情景模式，这里只列出多个房间的情景模式ID，具体情景模式定义要根据ID去情景模式里查找</p>*/
 public class ProfileSet {
-	int CtrolID;
+	int ctrolID;
 	int profileSetID;
 	String profileSetName;
 	/***<br>0：完全用户全新创建；<br>1：系统模版ID；*/
@@ -38,7 +38,7 @@ public class ProfileSet {
 	ProfileSet(){}
 	
 	 ProfileSet(ProfileSet pc){
-		 this.CtrolID=pc.CtrolID;
+		 this.ctrolID=pc.ctrolID;
 		 this.profileSetID=pc.profileSetID;
 		 this.profileSetName=pc.profileSetName;
 		 this.profileSetTemplateID=pc.profileSetTemplateID;
@@ -50,7 +50,7 @@ public class ProfileSet {
 	public ProfileSet (JSONObject profileSetJson){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		try {
-			this.CtrolID=profileSetJson.getInt("CtrolID");
+			this.ctrolID=profileSetJson.getInt("ctrolID");
 			this.profileSetID=profileSetJson.getInt("profileSetID");
 			this.profileSetName=profileSetJson.getString("profileSetName");
 			this.profileSetTemplateID=profileSetJson.getInt("profileSetTemplateID");
@@ -76,7 +76,7 @@ public class ProfileSet {
 	    JSONObject profileSetJson = new JSONObject(); 
         JSONObject profileJson ; 
 	    try {
-		    profileSetJson.put("deviceSN",        this.CtrolID       );
+		    profileSetJson.put("deviceSN",        this.ctrolID       );
 			profileSetJson.put("profileSetID",         this.profileSetID      );
 		    profileSetJson.put("deviceID",        this.profileSetName      );
 		    profileSetJson.put("profileSetTemplateID",      this.profileSetTemplateID        );
@@ -140,7 +140,7 @@ public class ProfileSet {
 				+ ")"				
 				+"values "
 				+ "("
-				+this.CtrolID+","	
+				+this.ctrolID+","	
 				+this.profileSetID+",'"	
 				+this.profileSetName+"',"
 				+this.profileSetTemplateID+","
@@ -162,7 +162,7 @@ public class ProfileSet {
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
-	public	static ProfileSet getProfileSetFromDB(MySqlClass mysql,int CtrolID,int profileSetID) throws SQLException
+	public	static ProfileSet getProfileSetFromDB(MySqlClass mysql,int ctrolID,int profileSetID) throws SQLException
 		{
 			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			mysql.conn.setAutoCommit(false);
@@ -176,7 +176,7 @@ public class ProfileSet {
 					+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 					+ "  from  "				
 					+profileSetTable
-					+" where ctr_id="+CtrolID
+					+" where ctr_id="+ctrolID
 					+" and userstsetid="+profileSetID
 					+ ";";
 			System.out.println("query:"+sql);
@@ -198,7 +198,7 @@ public class ProfileSet {
 			}
 			profileSet.profileList=profileIDList;
 			
-			profileSet.CtrolID=Integer.parseInt(cells[0]);
+			profileSet.ctrolID=Integer.parseInt(cells[0]);
 			profileSet.profileSetID=Integer.parseInt(cells[1]);
 			profileSet.profileSetName=cells[2];
 			profileSet.profileSetTemplateID=Integer.parseInt(cells[3]);
@@ -219,13 +219,13 @@ public class ProfileSet {
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
-	public static int deleteProfileSetFromDB(MySqlClass mysql,int CtrolID,int profileSetID) throws SQLException
+	public static int deleteProfileSetFromDB(MySqlClass mysql,int ctrolID,int profileSetID) throws SQLException
 	{
 		mysql.conn.setAutoCommit(false);
 		String sql="delte *  "
 				+ "  from  "				
 				+profileSetTable
-				+" where ctr_id="+CtrolID
+				+" where ctr_id="+ctrolID
 				+" and userstsetid="+profileSetID
 				+ ";";
 		System.out.println("query:"+sql);

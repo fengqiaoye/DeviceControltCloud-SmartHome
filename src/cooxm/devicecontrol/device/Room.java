@@ -18,7 +18,7 @@ import cooxm.devicecontrol.util.MySqlClass;
 public class Room {
 	int roomID;
 	String roomName;
-	int CtrolID;
+	int ctrolID;
 	
 	/***1：客厅；	2：卧室;	  3：厨房;	 4：卫生间*/
 	int roomType;
@@ -40,7 +40,7 @@ public class Room {
 	public Room(Room room) {
 		this.roomID       =     room.roomID      ;  
 		this.roomName      =    room.roomName    ;
-		this.CtrolID      =     room.CtrolID     ;
+		this.ctrolID      =     room.ctrolID     ;
 		this.roomType      =    room.roomType    ;
 		//this.currProfile      = room.currProfile ;
 		this.profileList      = room.profileList ;
@@ -54,7 +54,7 @@ public class Room {
 		try {
 			this.roomID=roomJson.getInt("roomID");
 			this.roomName=roomJson.getString("roomName");
-			this.CtrolID=roomJson.getInt("CtrolID");			
+			this.ctrolID=roomJson.getInt("ctrolID");			
 			this.roomType=roomJson.getInt("roomType");
 			
 			JSONArray profileListJSON= roomJson.getJSONArray("profileList");
@@ -91,7 +91,7 @@ public class Room {
 	    try {
 		    roomJson.put("roomID",        this.roomID       );
 			roomJson.put("roomName",    this.roomName      );
-		    roomJson.put("CtrolID",        this.CtrolID      );
+		    roomJson.put("ctrolID",        this.ctrolID      );
 		    roomJson.put("roomType",      this.roomType        );
 		    for(Integer profileID: this.profileList){
 		    	profileJson= new JSONObject(); 		    	
@@ -226,7 +226,7 @@ public class Room {
 				+ ")"				
 				+"values "
 				+ "("
-				+this.CtrolID+","	
+				+this.ctrolID+","	
 				+this.roomID+","	
 				+this.roomType+",'"
 				+this.roomName+"','"
@@ -248,7 +248,7 @@ public class Room {
    * @throws SQLException 
    * @throws IOException 
    */
-	public static Room  getRoomHeadFromDB(MySqlClass mysql,int CtrolID,int roomID) throws SQLException, IOException
+	public static Room  getRoomHeadFromDB(MySqlClass mysql,int ctrolID,int roomID) throws SQLException, IOException
 	{
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Room room =new Room();
@@ -261,7 +261,7 @@ public class Room {
 				+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 				+ "  from "				
 				+roomIndexTable
-				+" where ctr_id="+CtrolID
+				+" where ctr_id="+ctrolID
 				+" and roomid="+roomID
 				+ ";";
 		//logger.info("query:"+sql2);
@@ -276,7 +276,7 @@ public class Room {
 			return null;
 		}else{
 			String[] index=res2.split(",");
-			room.CtrolID=Integer.parseInt(index[0]);	
+			room.ctrolID=Integer.parseInt(index[0]);	
 			room.roomID=Integer.parseInt(index[1]);	
 			room.roomType=Integer.parseInt(index[2]);
 			room.roomName=index[3];
@@ -294,11 +294,11 @@ public class Room {
 		return room;		
 	}
 	
-	public static int deleteRoomFromDB(MySqlClass mysql, int CtrolID, int roomID){
+	public static int deleteRoomFromDB(MySqlClass mysql, int ctrolID, int roomID){
 		String sql2="delete *  "
 				+ "  from "				
 				+roomIndexTable
-				+" where ctr_id="+CtrolID
+				+" where ctr_id="+ctrolID
 				+" and roomid="+roomID
 				+ ";";
 		System.out.println("query:"+sql2);

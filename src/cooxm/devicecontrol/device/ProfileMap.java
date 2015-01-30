@@ -18,15 +18,15 @@ import java.util.Map;
 import cooxm.devicecontrol.util.MySqlClass;
 
 /**
- * <pre>Map < CtrolID+profileID,Profile >
- * @key CtrolID+profileID字符串
+ * <pre>Map < ctrolID+profileID,Profile >
+ * @key ctrolID+profileID字符串
  * @value 对应的情景模式
  */
 public class ProfileMap extends HashMap<String, Profile>{
 
 	private static final long serialVersionUID = 1L;
 
-	/***Map<CtrolID_profileID,Profile>*/
+	/***Map<ctrolID_profileID,Profile>*/
 	//public static Map<String, Profile> profileMap=new HashMap<String, Profile>();  
 	//static final String  profileIndexTable="info_user_room_st";
 	MySqlClass mysql;
@@ -65,7 +65,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 		+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 		+ "  from "				
 		+Profile.profileIndexTable
-		//+" where ctr_id="+CtrolID
+		//+" where ctr_id="+ctrolID
 		//+" and userroomstid="+profileID
 		+ ";";
 		//System.out.println("query:"+sql2);
@@ -79,21 +79,23 @@ public class ProfileMap extends HashMap<String, Profile>{
 		for(String line:records){			
 			profile =new Profile();
 			String[] index=line.split(",");
-			profile.profileID=Integer.parseInt(index[0]);
-			profile.profileName=index[1];	
-			profile.CtrolID=Integer.parseInt(index[2]);	
-			profile.roomID=Integer.parseInt(index[3]);	
-			profile.roomType=Integer.parseInt(index[4]);	
-			profile.profileTemplateID=Integer.parseInt(index[5]); 
+			profile.setProfileID(Integer.parseInt(index[0]));
+			profile.setProfileName(index[1]);	
+			profile.setctrolID(Integer.parseInt(index[2]) );	
+			//profile.setRoomID(Integer.parseInt(index[3]));	
+			//profile.setRoomType(Integer.parseInt(index[4]));	
+			int roomID=Integer.parseInt(index[3]);
+			int roomType=Integer.parseInt(index[4]);
+			profile.setProfileTemplateID(Integer.parseInt(index[5])); 
 			try {
-				profile.createTime=sdf.parse(index[6]);
-				profile.modifyTime=sdf.parse(index[7]);
+				profile.setCreateTime(sdf.parse(index[6]));
+				profile.setModifyTime(sdf.parse(index[7]));
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}			
-			profile.factorList=Profile.getProFactorsFromDB(mysql, profile.CtrolID, profile.profileID);
+			profile.setFactorList(Profile.getProFactorsFromDB(mysql, profile.getctrolID(), profile.getProfileID(),roomID,roomType ));
 			if(!profile.isEmpty())
-			profileMap.put(profile.CtrolID+"_"+profile.profileID, profile);		
+			profileMap.put(profile.getctrolID()+"_"+profile.getProfileID(), profile);		
 		}
 		System.out.println("Initialize profileMap finished !");
 		return profileMap;		
@@ -108,12 +110,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 	public Profile put(String key,Profile profile) {
 		if(null==this.mysql)
 			return null;
-		try {
-			profile.saveProfileToDB(this.mysql)	;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
-		}
+		profile.saveToDB(this.mysql)	;
 		super.put(key, profile);
 		return profile;		
 	}	
@@ -125,7 +122,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 	public Profile remove(Object key) {
 		Profile profile = super.get(key);
 		try {
-			Profile.deleteProfileFromDB(mysql, profile.CtrolID, profile.profileID);
+			Profile.deleteFromDB(mysql, profile.getctrolID(), profile.getProfileID());
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -135,13 +132,13 @@ public class ProfileMap extends HashMap<String, Profile>{
 	
 
 	/*** 获取一个家庭所有情景模式
-	 * @param CtrolID
+	 * @param ctrolID
 	 * @return  List < Profile > 情景模式列表	 * 
 	 * */
-	public List<Profile> getProfilesByCtrolID(int CtrolID){	
+	public List<Profile> getProfilesByctrolID(int ctrolID){	
 		List<Profile> profileList=new ArrayList<Profile>();
 		for (Entry<String, Profile> entry : this.entrySet()) {
-			if(entry.getKey().split("_")[0]==CtrolID+""){
+			if(entry.getKey().split("_")[0]==ctrolID+""){
 				profileList.add(entry.getValue());
 			}			
 		}
@@ -151,14 +148,18 @@ public class ProfileMap extends HashMap<String, Profile>{
 
 	/*** 获取一个房间所有情景模式
 	 * @param: roomID
-	 * @param: CtrolID 
+	 * @param: ctrolID 
 	 * */
 	public List<Profile> getProfilesByRoomID(int roomID){	
 		List<Profile> profileList=new ArrayList<Profile>();
 		for (Entry<String, Profile> entry : this.entrySet()) {
-			if(entry.getValue().roomID==roomID){
-				profileList.add(entry.getValue());
-			}			
+			Profile profile=entry.getValue();
+			for (Factor factor : profile.getFactorList()) {
+				if(factor.getRoomID()==roomID){
+					profileList.add(profile);
+					break;
+				}				
+			}		
 		}
 		return profileList;
 	}

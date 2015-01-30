@@ -21,7 +21,7 @@ import cooxm.devicecontrol.util.*;
  */
 public class Device {	
 	int deviceID;
-	int CtrolID;
+	int ctrolID;
 	String deviceSN;
 	int roomID;
 	/***deviceType
@@ -78,7 +78,7 @@ public class Device {
 	
 	public Device(){}
 	public Device(
-			int CtrolID,
+			int ctrolID,
 			int deviceID,
 			String deviceSN,
 			int deviceType,
@@ -91,7 +91,7 @@ public class Device {
 			) {		
 		this.deviceID              =   deviceID      ;    
 		this.deviceSN              = deviceSN    ;
-		this.CtrolID              =    CtrolID       ;
+		this.ctrolID              =    ctrolID       ;
 		this.roomID              =     roomID        ;
 		this.deviceType              = deviceType    ;
 		this.type              =       type          ;
@@ -104,7 +104,7 @@ public class Device {
 	public Device(Device dev) {		
 		this.deviceID              =   dev.deviceID      ;    
 		this.deviceSN              = dev.deviceSN    ;
-		this.CtrolID              =    dev.CtrolID       ;
+		this.ctrolID              =    dev.ctrolID       ;
 		this.roomID              =     dev.roomID        ;
 		this.deviceType              = dev.deviceType    ;
 		this.type              =       dev.type          ;
@@ -119,7 +119,7 @@ public class Device {
 		try {
 			this.deviceID=deviceJson.getInt("deviceID");
 			this.deviceSN=deviceJson.getString("deviceSN");
-			this.CtrolID=deviceJson.getInt("CtrolID");	
+			this.ctrolID=deviceJson.getInt("ctrolID");	
 			this.roomID=deviceJson.getInt("roomID");	
 			this.deviceType=deviceJson.getInt("deviceType");
 			this.type=deviceJson.getInt("type");
@@ -137,9 +137,9 @@ public class Device {
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	    JSONObject deviceJson = new JSONObject();  
 	    try {
-			deviceJson.put("CtrolID",         this.deviceID      );
+			deviceJson.put("ctrolID",         this.deviceID      );
 		    deviceJson.put("deviceID",        this.deviceSN      );
-		    deviceJson.put("deviceSN",        this.CtrolID       );
+		    deviceJson.put("deviceSN",        this.ctrolID       );
 		    deviceJson.put("deviceType",      this.roomID        );
 		    deviceJson.put("type",            this.deviceType    );
 		    deviceJson.put("roomID",          this.type          );
@@ -251,7 +251,7 @@ public class Device {
 				+ ")"				
 				+"values "
 				+ "("
-				+CtrolID+","
+				+ctrolID+","
 				+deviceID+",'"
 				+deviceSN+"',"
 				+deviceType+","
@@ -271,7 +271,7 @@ public class Device {
 	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 	 * table Name:info_user_room_bind
 	 * */
-	public static Device getOneDeviceFromDB(MySqlClass mysql,int CtrolID,int deviceID ){
+	public static Device getOneDeviceFromDB(MySqlClass mysql,int ctrolID,int deviceID ){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Device device=new Device();
 		String sql="select  "
@@ -287,7 +287,7 @@ public class Device {
 				+"modifytime   "
 				+ " from "				
 				+Device.deviceBindTable
-				+" where ctr_id="+CtrolID
+				+" where ctr_id="+ctrolID
 				+" and deviceid="+deviceID
 				+ ";";
 		System.out.println("query:"+sql);
@@ -301,7 +301,7 @@ public class Device {
 			return null;
 		}else{
 			String[] index=res2.split(",");
-			device.CtrolID=Integer.parseInt(index[0]);	
+			device.ctrolID=Integer.parseInt(index[0]);	
 			device.deviceID=Integer.parseInt(index[1]);	
 			device.deviceSN=index[2];
 			device.deviceType=Integer.parseInt(index[3]);
@@ -325,7 +325,7 @@ public class Device {
 	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 	 * table Name:info_user_room_bind
 	 * */
-	public List<Device> getDevicesByCtrolID(MySqlClass mysql,int CtrolID ){
+	public List<Device> getDevicesByctrolID(MySqlClass mysql,int ctrolID ){
 		List<Device> deviceList=null;
 		Device device=null;
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -343,7 +343,7 @@ public class Device {
 				+"modifytime   "
 				+ " from "				
 				+Device.deviceBindTable
-				+" where ctr_id="+CtrolID
+				+" where ctr_id="+ctrolID
 //				+" and deviceid="+deviceID
 				+ ";";
 		System.out.println("query:"+sql);
@@ -358,7 +358,7 @@ public class Device {
 			for(String line: res3){				
 				String[] index=line.split(",");
 				device= new Device();
-				device.CtrolID=Integer.parseInt(index[0]);	
+				device.ctrolID=Integer.parseInt(index[0]);	
 				device.deviceID=Integer.parseInt(index[1]);	
 				device.deviceSN=index[2];
 				device.deviceType=Integer.parseInt(index[3]);
@@ -384,11 +384,11 @@ public class Device {
 	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 	 * table Name:info_user_room_bind
 	 * */
-	public static int DeleteOneDeviceFromDB(MySqlClass mysql,int CtrolID,int deviceID ){
+	public static int DeleteOneDeviceFromDB(MySqlClass mysql,int ctrolID,int deviceID ){
 		String sql="delete  * "
 				+ " from "				
 				+Device.deviceBindTable
-				+" where ctr_id="+CtrolID
+				+" where ctr_id="+ctrolID
 				+" and deviceid="+deviceID
 				+ ";";
 		System.out.println("query:"+sql);
@@ -402,7 +402,7 @@ public class Device {
 	}
 	
 	
-	public List<Device> getDevicesByRoomIDFromDB(MySqlClass mysql,int CtrolID,int deviceID ){
+	public List<Device> getDevicesByRoomIDFromDB(MySqlClass mysql,int ctrolID,int deviceID ){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		//Device device=new Device();
 		String sql="select  "
@@ -418,7 +418,7 @@ public class Device {
 				+"modifytime   "
 				+ " from "				
 				+Device.deviceBindTable
-				+" where ctr_id="+CtrolID
+				+" where ctr_id="+ctrolID
 				+" and deviceid="+deviceID
 				+ ";";
 		System.out.println("query:"+sql);
@@ -434,7 +434,7 @@ public class Device {
 		Device device=new Device();
 		for(String line:resArray){
 			String[] index=line.split(",");
-			device.CtrolID=Integer.parseInt(index[0]);	
+			device.ctrolID=Integer.parseInt(index[0]);	
 			device.deviceID=Integer.parseInt(index[1]);	
 			device.deviceSN=index[2];
 			device.deviceType=Integer.parseInt(index[3]);
@@ -468,7 +468,7 @@ public class Device {
 		  System.out.println("Query OK,  "+count+" row affected.");
 //		  Device device=new Device();
 //		  
-//		  List<Device> devicelist=device.getDevicesByCtrolID(mysql, 123456789);
+//		  List<Device> devicelist=device.getDevicesByctrolID(mysql, 123456789);
 	  }
 	
 

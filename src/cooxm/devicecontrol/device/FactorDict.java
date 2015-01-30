@@ -15,8 +15,8 @@ import java.util.Map;
 import cooxm.devicecontrol.util.MySqlClass;
 
 public class FactorDict {
-	static final String FactorDictionaryTable = "dic_st_factor";
-	static Map<Integer, FactorDict> factorDictMap=new HashMap<Integer, FactorDict>(); 
+	public static final String FactorDictionaryTable = "dic_st_factor";
+	public static Map<Integer, FactorDict> factorDictMap=new HashMap<Integer, FactorDict>(); 
 	
 	/***<pre>0-10：保留
 	10：灯
@@ -38,7 +38,7 @@ public class FactorDict {
 	601：温度
 	701：天气（预报）
 	901：声音*/
-	int factorID;
+	private int factorID;
 	
 	/*** 0:家电因素，如灯 空调;  
          1：环境因素，如光强度'
@@ -51,30 +51,20 @@ public class FactorDict {
 	
 	/***1、绝对值；2、相对值,*/
 	private int  mstype         ;
-	int  createOperator ;
-	int  modifyOperator ;
-	Date  createTime    ;
-	Date  modifyTime	;
+	private int  createOperator ;
+	private int  modifyOperator ;
+	private Date  createTime    ;
+	private Date  modifyTime	;
+
 
 	
-	
-	public String getUnit() {
-		return unit;
+	public int getFactorID() {
+		return factorID;
 	}
 
-	public void setUnit(String unit) {
-		this.unit = unit;
+	public void setFactorID(int factorID) {
+		this.factorID = factorID;
 	}
-
-	public int getMstype() {
-		return mstype;
-	}
-
-	public void setMstype(int mstype) {
-		this.mstype = mstype;
-	}
-	
-	
 
 	public int getFactorType() {
 		return factorType;
@@ -92,14 +82,43 @@ public class FactorDict {
 		this.factorName = factorName;
 	}
 
-	public String getDescription() {
-		return description;
+	public int getCreateOperator() {
+		return createOperator;
 	}
 
-	public void setDescription(String description) {
-		this.description = description;
+	public void setCreateOperator(int createOperator) {
+		this.createOperator = createOperator;
 	}
 
+	public int getModifyOperator() {
+		return modifyOperator;
+	}
+
+	public void setModifyOperator(int modifyOperator) {
+		this.modifyOperator = modifyOperator;
+	}
+
+	public Date getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(Date createTime) {
+		this.createTime = createTime;
+	}
+
+	public Date getModifyTime() {
+		return modifyTime;
+	}
+
+	public void setModifyTime(Date modifyTime) {
+		this.modifyTime = modifyTime;
+	}
+	
+	public FactorDict(){}
+	
+	public FactorDict(int factorid){
+		this.factorID=factorid;
+	}
 	public FactorDict(
 			int  factorid       ,
 			int  factortype     ,
@@ -127,18 +146,23 @@ public class FactorDict {
 
 	public FactorDict(int factorID, int createOperator, int modifyOperator,
 			Date createTime, Date modifyTime) {
-		super();
 		this.factorID = factorID;
 		this.createOperator = createOperator;
 		this.modifyOperator = modifyOperator;
 		this.createTime = createTime;
 		this.modifyTime = modifyTime;
 	}
+	
+	
 
-	public FactorDict() {
+
+	public FactorDict(int factorID, Date createTime, Date modifyTime) {
+		this.factorID = factorID;
+		this.createTime = createTime;
+		this.modifyTime = modifyTime;
 	}
 
-	public FactorDict getOneFactor(MySqlClass mysql) throws SQLException	
+	public FactorDict getFromDB(MySqlClass mysql) throws SQLException	
 	{
 		FactorDict fd= null;//new FactorDictionary();
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -227,13 +251,14 @@ public class FactorDict {
 				fd.createTime=sdf.parse(index[8]);
 				fd.modifyTime=sdf.parse(index[9]);
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}			
 			FactorDict.factorDictMap.put(fd.factorID, fd);
 		}
 		
 	}
+	
+
 	
 
 	public static void main(String[] args) {

@@ -37,20 +37,19 @@ public class TimeOutTread extends Thread {
 	}
   
   static	public String getKey(Message msg){
-  		int CtrolID;
+  		int ctrolID;
   		int commandID;
   		String cookie;
-		if(msg.json.has("CtrolID") && msg.json.has("sender") ){
+		if(msg.getJson().has("ctrolID") && msg.getJson().has("sender") ){
 			try {
-				CtrolID = msg.json.getInt("CtrolID");
-				commandID=msg.header.commandID;
-				cookie=msg.cookie;
-				return CtrolID+"_"+commandID+"_"+cookie;
+				ctrolID = msg.getJson().getInt("ctrolID");
+				commandID=msg.getCommandID();
+				cookie=msg.getCookie();
+				return ctrolID+"_"+commandID+"_"+cookie;
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
-
-			//originKey=CtrolID+"_"+(commandID-0x4000)+cookie; 
+			//originKey=ctrolID+"_"+(commandID-0x4000)+cookie; 
     	}else {
 			return null;
 		}
@@ -58,15 +57,15 @@ public class TimeOutTread extends Thread {
   	}
   	
   	public static String getOriginKey(Message msg){
-  		int CtrolID;
+  		int ctrolID;
   		int commandID;
   		String cookie;
-		if(msg.json.has("CtrolID") && msg.json.has("sender") ){
+		if(msg.getJson().has("ctrolID") && msg.getJson().has("sender") ){
 			try {
-				CtrolID = msg.json.getInt("CtrolID");
-				commandID=msg.header.commandID;
-				cookie=msg.cookie;
-				return CtrolID+"_"+(commandID-0x4000)+"_"+cookie;
+				ctrolID = msg.getJson().getInt("ctrolID");
+				commandID=msg.getCommandID();
+				cookie=msg.getCookie();
+				return ctrolID+"_"+(commandID-0x4000)+"_"+cookie;
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
@@ -84,41 +83,37 @@ public class TimeOutTread extends Thread {
         Future<Boolean> future = executor.submit(this.task);// 将任务提交到线程池中   
        
         try {  
-            //System.out.println(this.msg.header.commandID+" start: "+new Date());  
+
             result = future.get(timOut*1000, TimeUnit.MILLISECONDS);// 设定在5000毫秒的时间内完成   
-            System.out.println(this.msg.header.commandID+" 线程执行结果："+result);
-           // System.out.println(this.msg.header.commandID+" stop: "+new Date());
+            System.out.println(this.msg.getCommandID()+" 线程执行结果："+result);
         } catch (InterruptedException e) {  
-            System.out.println(this.msg.header.commandID+"线程中断出错"+this.msg.header.commandID);  
+            System.out.println(this.msg.getCommandID()+"线程中断出错"+this.msg.getCommandID());  
             future.cancel(true);      // 中断执行此任务的线程     
         } catch (ExecutionException e) {     
-            System.out.println(this.msg.header.commandID+"线程服务出错");  
+            System.out.println(this.msg.getCommandID()+"线程服务出错");  
             e.printStackTrace();
             future.cancel(true);      // 中断执行此任务的线程     
-        } catch (TimeoutException e) {// 超时异常     
-        	
-            System.out.println(msg.header.commandID+"超时"); 
-
-            try {
-          	
+        } catch (TimeoutException e) {// 超时异常             	
+            System.out.println(msg.getCommandID()+"超时"); 
+            try {          	
 				JSONObject json=new JSONObject();
-    			msg.json=json;
-            	msg.json.put("errorCode",LogicControl.TIME_OUT);
-            	if(msg.json.has("sender")){
-            		msg.json.put("receiver",msg.json.getInt("sender")); 
-    				CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
-            	}
-    			msg.json.put("sender",2);
-
+            	json.put("errorCode",LogicControl.TIME_OUT);
+            	if(msg.getJson().has("sender")){
+            		json.put("receiver",msg.getJson().getInt("sender"));     				
+            	}else{
+            		json.put("sender",2);
+            	}    			
+    			msg.setJson(json);
+    			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 			} catch (InterruptedException | JSONException e1) {
 				e1.printStackTrace();
 			}
-            System.out.println(this.msg.header.commandID+"线程取消，comanid："); 
+            System.out.println(this.msg.getCommandID()+"线程取消，comanid："); 
             future.cancel(true);      // 中断执行此任务的线程
 
         }finally{  
-        	System.err.println("size of msgMap:"+waitForReply.msgMap.size()+",key:"+waitForReply.msgMap.keySet().toString()+",Command:"+msg.header.commandID);
-            System.out.println(this.msg.header.commandID+" finally 线程服务关闭!");  
+        	System.err.println("size of msgMap:"+waitForReply.msgMap.size()+",key:"+waitForReply.msgMap.keySet().toString()+",Command:"+msg.getCommandID());
+            System.out.println(this.msg.getCommandID()+" finally 线程服务关闭!");  
             executor.shutdown();  
         }  
     }  
@@ -137,7 +132,7 @@ public class TimeOutTread extends Thread {
       
     static class waitForReply implements Callable<Boolean> {   
     	Message msg;
-    	static Map<String, Message>  msgMap= new ConcurrentHashMap<String, Message>() ;// CtrolID_commandID_cookie
+    	static Map<String, Message>  msgMap= new ConcurrentHashMap<String, Message>() ;// ctrolID_commandID_cookie
     	Boolean hasKey=false;
         //Collections.synchronizedMap(new HashMap(...));
     	waitForReply(Message msg){
@@ -147,10 +142,10 @@ public class TimeOutTread extends Thread {
         public Boolean call() {
         	String key=getKey(msg);
         	String originKey=getOriginKey(msg);
-        	int commandID=msg.header.commandID;
+        	int commandID=msg.getCommandID();
         	int sender=0;
 			try {
-				sender = msg.json.getInt("sender");
+				sender = msg.getJson().getInt("sender");
 			} catch (JSONException e1) {
 				e1.printStackTrace();
 			}
@@ -160,18 +155,17 @@ public class TimeOutTread extends Thread {
     					if (!msgMap.containsKey(key)) {
 							if(hasKey==false){
 								msgMap.put(key, msg);
-								hasKey=true;
-								
+								hasKey=true;								
 							}else{
 								 return true;
 							}					
 						}
     				}else if( commandID>=0x5600 && commandID<=0x59FF ){
     					//System.out.println("进入 reply线程");
-    	    				if(msgMap.containsKey(originKey) && msgMap.get(originKey).cookie==msg.cookie)
+    	    				if(msgMap.containsKey(originKey) && msgMap.get(originKey).getCookie()==msg.getCookie())
 		        	    		try {	
-		        	    			msg.json.put("sender",2);
-		        	    			msg.json.put("receiver",0);  
+		        	    			msg.getJson().put("sender",2);
+		        	    			msg.getJson().put("receiver",0);  
 									boolean t=CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 									if(t==true){
 										msgMap.remove(originKey);
@@ -182,10 +176,10 @@ public class TimeOutTread extends Thread {
 							}
     				}else {
     					JSONObject json=new JSONObject();
-    	    			msg.json=json;
-    	    			msg.json.put("errorCode", LogicControl.WRONG_COMMAND);
-    	    			msg.json.put("sender",2);
-    	    			msg.json.put("receiver",sender);
+    	    			json.put("errorCode", LogicControl.WRONG_COMMAND);
+    	    			json.put("sender",2);
+    	    			json.put("receiver",sender);
+    	    			msg.setJson(json);
 						CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 
 					    return false;
@@ -205,10 +199,10 @@ public class TimeOutTread extends Thread {
   
     
     public static void main(String[] args) throws JSONException{
-    	String str1="{\"CtrolID\":12345678,\"sender\":0,\"student\":[{\"name\":\"leilei\",\"age\":23},{\"name\":\"leilei02\",\"age\":23}]}";
+    	String str1="{\"ctrolID\":12345678,\"sender\":0,\"student\":[{\"name\":\"leilei\",\"age\":23},{\"name\":\"leilei02\",\"age\":23}]}";
     	Header head=Message.getOneHeaer((short)0x1601);
-    	Message msg=Message.getOneMsg(head, "87654321", str1);    	
-    	int CtrolID = msg.json.getInt("CtrolID");
+    	Message msg=new Message(head, "87654321", str1);    	
+    	int ctrolID = msg.getJson().getInt("ctrolID");
 
         //waitForReply.msgMap.put(getKey(msg), msg)	;
 
@@ -223,7 +217,7 @@ public class TimeOutTread extends Thread {
     	
      	
     	Header head2=Message.getOneHeaer((short)0x5601);
-    	Message msg2=Message.getOneMsg(head2, "87654321", str1); 
+    	Message msg2 = new Message(head2, "87654321", str1); 
     	TimeOutTread to2=new TimeOutTread(5,msg2);
     	to2.start(); 
     }   

@@ -37,7 +37,7 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
         return instance;
     }
     private static int getCapacity(){
-    	Config conf=new Config();//.getConfig();
+    	Config conf=MainEntry.getConfig();//new Config();//
     	return Integer.parseInt(conf.getValue("max_recv_msg_queue"));    	
     }
     
@@ -45,11 +45,7 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
     public boolean offer(Message msg){
     	Event event=new Event(msg);
     	checkMysql();
-     	try {
-			event.toReceiveDB(mysql);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+     	event.toReceiveDB(mysql);
      	return super.offer(msg);
 
     }
@@ -58,11 +54,7 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
     public boolean offer(Message msg, long time, TimeUnit unit) throws InterruptedException {
     	Event event=new Event(msg);
     	checkMysql();
-     	try {
-			event.toReceiveDB(mysql);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+     	event.toReceiveDB(mysql);
 		return super.offer(msg,time,unit);
     }
     
@@ -72,11 +64,7 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
     public void put(Message msg) throws InterruptedException{
     	Event event=new Event(msg);
     	checkMysql();
-     	try {
-			event.toReceiveDB(mysql);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+     	event.toReceiveDB(mysql);
      	super.put(msg);   	
     }
 
@@ -106,17 +94,13 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
     	int reserve=0;
     	
     	JSONObject json=new JSONObject();
-    	json.put("CtrolID", 1234567);
+    	json.put("ctrolID", 1234567);
     	json.put("sender", 1);
     	json.put("roomID", 103);
     	json.put("errorCode", -12);
     	
-    	Header head= new Header(headTag, mainVersion, subVersion, msgLen, commandID, sequeeceNo, encType, cookieLen, reserve);
-    	msg.header=head;
-    	msg.cookie="87654321";
-    	msg.json=json;
-    	msg.receiveTime=new Date();
-    	msg.replyTime=new Date();
+    	Header head= new Header(headTag, mainVersion, subVersion, msgLen, commandID, sequeeceNo, encType, cookieLen, reserve);    	
+    	msg=new Message(head, "87654321", json);
     	
     	ReceiveCommandQueue qe=ReceiveCommandQueue.getInstance();
     	qe.put(msg);

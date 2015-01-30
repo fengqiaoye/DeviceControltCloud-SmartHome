@@ -1,6 +1,7 @@
 ﻿package cooxm.devicecontrol.socket;
 
 import java.io.UnsupportedEncodingException;
+import java.security.KeyStore.ProtectionParameter;
 
 import cooxm.devicecontrol.util.BytesUtil;
 
@@ -8,27 +9,89 @@ import cooxm.devicecontrol.util.BytesUtil;
 
 public class Header{
 	/*** 6字节  默认：#XRPC#*/
-	 String headTag; 
+	 protected String headTag; 
 	/***协议主版本号*/
-	 byte mainVersion ;
+	 protected byte mainVersion ;
 	/***协议子版本号*/
-	 byte subVersion ;
+	 protected byte subVersion ;
 	/***包体总长度，cookie+消息体+包尾*/
-     short msgLen ;
+	 protected short msgLen ;
 	/***命令号*/
-	public short commandID;	
+	 protected short commandID;	
 	/***序列号*/
-	public int sequeeceNo ;
+	 protected int sequeeceNo ;
 	/***加密方式: 0不加密, 其他值为约定的加密方式*/
- 	public byte encType; 
+	 protected byte encType; 
  	/***cookie长度,cookie从包头结束位置开始*/
- 	public short cookieLen; 
+	 protected short cookieLen; 
  	/*保留字段*/	
- 	public int reserve; 
+	 protected int reserve; 
 
  	private static final int commandMax=0x19FF;
  	private static final int commandMin=0x1600;	
+ 	
+ 	
 
+	public String getHeadTag() {
+		return headTag;
+	}
+	public void setHeadTag(String headTag) {
+		this.headTag = headTag;
+	}
+	public byte getMainVersion() {
+		return mainVersion;
+	}
+	public void setMainVersion(byte mainVersion) {
+		this.mainVersion = mainVersion;
+	}
+	public byte getSubVersion() {
+		return subVersion;
+	}
+	public void setSubVersion(byte subVersion) {
+		this.subVersion = subVersion;
+	}
+	public short getMsgLen() {
+		return msgLen;
+	}
+	public void setMsgLen(short msgLen) {
+		this.msgLen = msgLen;
+	}
+	public short getCommandID() {
+		return commandID;
+	}
+	public void setCommandID(short commandID) {
+		this.commandID = commandID;
+	}
+	public int getSequeeceNo() {
+		return sequeeceNo;
+	}
+	public void setSequeeceNo(int sequeeceNo) {
+		this.sequeeceNo = sequeeceNo;
+	}
+	public byte getEncType() {
+		return encType;
+	}
+	public void setEncType(byte encType) {
+		this.encType = encType;
+	}
+	public short getCookieLen() {
+		return cookieLen;
+	}
+	public void setCookieLen(short cookieLen) {
+		this.cookieLen = cookieLen;
+	}
+	public int getReserve() {
+		return reserve;
+	}
+	public void setReserve(int reserve) {
+		this.reserve = reserve;
+	}
+	public static int getCommandmax() {
+		return commandMax;
+	}
+	public static int getCommandmin() {
+		return commandMin;
+	}
 	public Header(){} 
  	Header(Header header){
 			this.headTag=header.headTag;			

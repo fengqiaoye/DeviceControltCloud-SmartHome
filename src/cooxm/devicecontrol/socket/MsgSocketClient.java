@@ -60,7 +60,7 @@ public class MsgSocketClient extends Socket implements Runnable {
     			
         		Header header=Message.getOneHeaer((short)CMD__Identity_REQ);
         		String jsonStr="{\"uiClusterID\":1,\"usServerType\":201,\"uiServerID\":6}";
-        		Message authMsg=Message.getOneMsg(header, "", jsonStr);
+        		Message authMsg=new Message(header, "", jsonStr);
         		authMsg.writeBytesToSock(sock);
         		System.out.println("Send to MsgServer : "+authMsg.msgToString());
         		//new readThread(sock).run();
@@ -144,19 +144,19 @@ public class MsgSocketClient extends Socket implements Runnable {
 	}	
 	
 	public  void decodeMsg(Message msg){
-		short commandID=msg.header.commandID;
+		short commandID=msg.commandID;
 		switch (commandID) {
 		case CMD__Identity_ACK:			
 			break;
 		case CMD__HEARTBEAT_REQ:
 			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			try {
-				msg.json.put("uiTime", sdf.format(new Date()));
-				msg.header.msgLen=msg.getMsgLength();
+				msg.getJson().put("uiTime", sdf.format(new Date()));
+				msg.msgLen=msg.getMsgLength();
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
-			msg.header.commandID=CMD__HEARTBEAT_ACK;
+			msg.commandID=CMD__HEARTBEAT_ACK;
 			msg.writeBytesToSock(MsgSocketClient.sock);
 			System.out.println("Send to MsgServer : "+msg.msgToString());
 			break;

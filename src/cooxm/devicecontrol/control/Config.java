@@ -23,7 +23,6 @@ public class Config extends Properties {
 	 */
 	private static final long serialVersionUID = 1L;
 	private	static Properties pps=new Properties(); 
-	//Enumeration enum1 ;
     private static final String configFile="./conf/control.conf";
 	private static Logger log=Logger.getLogger(Config.class);
 	

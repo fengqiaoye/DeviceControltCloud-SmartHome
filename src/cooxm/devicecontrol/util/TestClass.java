@@ -130,14 +130,14 @@ public class TestClass {
 
 		
 		Message a = new Message();
-		a.cookie="test A";
+		a.setCookie("test A");
 		System.out.println(a);
 		Message b=a ;//new Message(a);
-		b.cookie="test B";
+		b.setCookie("test B");
 		System.out.println(b);
 		
-		System.out.println(a.cookie);
-		System.out.println(b.cookie);
+		System.out.println(a.getCookie());
+		System.out.println(b.getCookie());
 		
 		
 	}

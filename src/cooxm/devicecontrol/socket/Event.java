@@ -38,7 +38,7 @@ public class Event {
 	 * */
 	int commandID;
 	
-	int CtrolID;
+	int ctrolID;
 	int roomID;
 	
 	/** Json里的ctrolID*/
@@ -49,8 +49,8 @@ public class Event {
 
 	/***<pre>处理结果： 填写errorCode*/
 	int errorCode;
-	Date receiveTime;
-	Date replyTime;	
+	Date receiveTime=null;
+	Date replyTime=null;	
 	String json;
 	
 	Event() {}	
@@ -58,7 +58,7 @@ public class Event {
 			int month,
 			String eventID,
 			int commandID,
-			int CtrolID,
+			int ctrolID,
 			int roomID,
 			//String sender,
 			int senderRole,
@@ -72,7 +72,7 @@ public class Event {
 		this.commandID=commandID;
 		//this.sender=sender;
 		this.senderRole=senderRole;
-		this.CtrolID=CtrolID;
+		this.ctrolID=ctrolID;
 		this.roomID=roomID;
 		this.errorCode=errorCode;
 		this.receiveTime=receiveTime;
@@ -82,62 +82,58 @@ public class Event {
 	
 	Event(Message msg)  {
 		DateFormat monthSDF=new SimpleDateFormat("yyyyMM");
-		//msg.receiveTime.getYear()+""+msg.receiveTime.getMonth()
-		if(msg.receiveTime!=null){
-			this.receiveTime=msg.receiveTime;
-			this.month=Integer.parseInt(monthSDF.format(msg.receiveTime));
-		}else {
-			msg.receiveTime=new Date();
-		}
-		if(msg.replyTime!=null){
-			this.replyTime=msg.replyTime;
-		}else{
-			this.replyTime=new Date();
-		}
-        this.eventID=msg.cookie;
-        this.commandID=msg.header.commandID;
-		if(msg.json.has("CtrolID")){
+
+		this.receiveTime=new Date();
+		this.replyTime=this.receiveTime;
+		this.month=Integer.parseInt(monthSDF.format(this.receiveTime));
+        this.eventID=msg.getCookie();
+        this.commandID=msg.commandID;
+		if(msg.getJson().has("ctrolID")){
 			try {
-				this.CtrolID=msg.json.getInt("CtrolID");
+				this.ctrolID=msg.getJson().getInt("ctrolID");
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 		}else {
-			this.CtrolID=123456;
+			this.ctrolID=123456;
 		}
-		if(msg.json.has("roomID")){
+		if(msg.getJson().has("roomID")){
 			try {
-				this.roomID=msg.json.getInt("roomID");
+				this.roomID=msg.getJson().getInt("roomID");
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 		}else {
 			this.roomID=10;
 		}
-		if(msg.json.has("sender")){
+		if(msg.getJson().has("sender")){
 			try {
-				this.senderRole=msg.json.getInt("sender");
+				this.senderRole=msg.getJson().getInt("sender");
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 		}else this.senderRole=0;
 
-		if(msg.json.has("errorCode")){
+		if(msg.getJson().has("errorCode")){
 			try {
-				this.errorCode=msg.json.getInt("errorCode");
+				this.errorCode=msg.getJson().getInt("errorCode");
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
 		}else {
 			this.errorCode=0;
 		}
-		this.json=msg.json.toString();
+		this.json=msg.getJson().toString();
 		//System.out.println(this.json);
 	}
 	
-	public void toReceiveDB(MySqlClass mysql) throws SQLException {
+	public void toReceiveDB(MySqlClass mysql)  {
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		mysql.conn.setAutoCommit(false);
+		try {
+			mysql.conn.setAutoCommit(false);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 			String sql="insert into "+receiveTable
 					+" ( "
 				    + "month  ,"  
@@ -157,7 +153,7 @@ public class Event {
 					+this.month+",'"					
 					+this.eventID+"',"
 					+this.commandID+","
-					+this.CtrolID+","
+					+this.ctrolID+","
 					+this.roomID+",'"
 					//+this.sender+"','"
 					+this.senderRole+"',"
@@ -168,7 +164,11 @@ public class Event {
 					+"')";
 			System.out.println(sql);
 			mysql.query(sql);		
-		mysql.conn.commit();		
+		try {
+			mysql.conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}		
 	}
 
 	public void toReplyDB(MySqlClass mysql) throws SQLException {
@@ -194,7 +194,7 @@ public class Event {
 					+this.month+",'"
 					+this.eventID+"',"
 					+this.commandID+","
-					+this.CtrolID+","
+					+this.ctrolID+","
 					+this.roomID+",'"
 					//+this.sender+"','"
 					+this.senderRole+"',"
@@ -208,9 +208,9 @@ public class Event {
 		mysql.conn.commit();		
 	}
 
-	public static void main(String[] args) {
-
-
+	public static void main(String[] args) throws SQLException {
+     MySqlClass msyql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+    new Event(Message.getOneMsg()).toReceiveDB(msyql);
 
 	}
 

@@ -22,71 +22,128 @@ import cooxm.devicecontrol.util.MySqlClass;
 /***
  * 一个房间的情景模式，可能包含多个情景因素(家电、环境等)
  * */
-public class Profile {
+public class Profile  {
 	
-	public int profileID;
-	String profileName;
-	int CtrolID;
-	public int roomID;
-	int roomType;
-	int profileTemplateID;
-	int profileSetID;
-	List<Factor> factorList;
-	Date createTime;
-	public Date modifyTime;
-	
+	private int profileID;
+	private String profileName;
+	private int ctrolID;
+	//private int roomID;
+	//private int roomType;
+	private int profileTemplateID;
+	private int profileSetID;
+	private List<Factor> factorList;
+	private Date createTime;
+	private Date modifyTime;
+		
 	static final String  profileDetailTable="info_user_room_st_factor";
-	static final String  profileIndexTable="info_user_room_st";
-	
+	static final String  profileIndexTable="info_user_room_st";	
 
-	public Profile (){}
-	public Profile (Profile pf){
-		this.profileID=pf.profileID;
-		this.profileName=pf.profileName;
-		this.CtrolID=pf.CtrolID;
-		this.roomID=pf.roomID;
-		this.roomType=pf.roomType;
-		this.profileTemplateID=pf.profileTemplateID;
-		this.profileSetID=pf.profileSetID;
-		this.factorList=pf.factorList;
-		this.createTime=pf.createTime;
-		this.modifyTime=pf.modifyTime;		
+	public int getProfileTemplateID() {
+		return profileTemplateID;
+	}
+	public void setProfileTemplateID(int profileTemplateID) {
+		this.profileTemplateID = profileTemplateID;
+	}
+	public Date getCreateTime() {
+		return createTime;
+	}
+	public void setCreateTime(Date createTime) {
+		this.createTime = createTime;
+	}
+	public Date getModifyTime() {
+		return modifyTime;
+	}
+	public void setModifyTime(Date modifyTime) {
+		this.modifyTime = modifyTime;
+	}
+	public int getProfileID() {
+		return profileID;
+	}
+	public void setProfileID(int profileID) {
+		this.profileID = profileID;
+	}
+	public String getProfileName() {
+		return profileName;
+	}
+	public void setProfileName(String profileName) {
+		this.profileName = profileName;
+	}
+	public int getctrolID() {
+		return ctrolID;
+	}
+	public void setctrolID(int ctrolID) {
+		this.ctrolID = ctrolID;
+	}
+	public int getProfileSetID() {
+		return profileSetID;
+	}
+	public void setProfileSetID(int profileSetID) {
+		this.profileSetID = profileSetID;
+	}
+	public int getCtrolID() {
+		return ctrolID;
+	}
+	public void setCtrolID(int ctrolID) {
+		this.ctrolID = ctrolID;
 	}
 	
+
+	public List<Factor> getFactorList() {
+		return factorList;
+	}
+
+	public void setFactorList(List<Factor> factorList) {
+		this.factorList = factorList;
+	}
+	public Profile (){}
 
 	public Profile (JSONObject profileJson){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		try {
 			this.profileID=profileJson.getInt("profileID");
 			this.profileName=profileJson.getString("profileName");
-			this.CtrolID=profileJson.getInt("CtrolID");
-			this.roomID=profileJson.getInt("roomID");
-			this.roomType=profileJson.getInt("roomType");
-			this.profileTemplateID=profileJson.getInt("profileTemplateID");
+			this.ctrolID=profileJson.getInt("ctrolID");
+			//this.roomID=profileJson.getInt("roomID");
+			//this.roomType=profileJson.getInt("roomType");
+			//this.profileTemplateID=profileJson.getInt("profileTemplateID");
 			this.profileSetID=profileJson.getInt("profileSetID");
 			JSONArray factorListJSON= profileJson.getJSONArray("factorList");
 			List<Factor> factorList = new ArrayList<Factor>() ;
 			for(int i=0;i<factorListJSON.length();i++){
 				JSONObject factorJson=factorListJSON.getJSONObject(i);
 				Factor factor= new Factor();
-				factor.factorID=factorJson.getInt("factorID");
+				/*factor.factorID=factorJson.getInt("factorID");
 				factor.minValue=factorJson.getInt("minValue");
 				factor.maxValue=factorJson.getInt("maxValue");
-				factor.compareWay=factorJson.getInt("compareWay");
+				factor.operator=factorJson.getInt("operator");
 				factor.validFlag=factorJson.getInt("validFlag");
-				factor.createTime=sdf.parse(factorJson.getString("createTime"));
-				factor.modifyTime=sdf.parse(factorJson.getString("modifyTime"));	
+				factor.setCreateTime(sdf.parse(factorJson.getString("createTime")) );
+				factor.setModifyTime(sdf.parse(factorJson.getString("modifyTime")) );	*/
+				factor=Factor.fromProfileJson(factorJson);
 				factorList.add(factor);		
 			}		
-			this.factorList=factorList;
-			this.createTime=sdf.parse(profileJson.getString("createTime"));
-			this.modifyTime=sdf.parse(profileJson.getString("createTime"));	
+			setFactorList(factorList);
+			setCreateTime(sdf.parse(profileJson.getString("createTime")));
+			setModifyTime(sdf.parse(profileJson.getString("createTime")));	
 		} catch (JSONException | ParseException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
 	
+
+	
+	public Profile(int profileID, String profileName, int ctrolID,
+			int profileTemplateID, int profileSetID, List<Factor> factorList,
+			Date createTime, Date modifyTime) {
+		this.profileID = profileID;
+		this.profileName = profileName;
+		this.ctrolID = ctrolID;
+		this.profileTemplateID = profileTemplateID;
+		this.profileSetID = profileSetID;
+		this.factorList = factorList;
+		this.createTime = createTime;
+		this.modifyTime = modifyTime;
+	}
 	/**
 	 * 将情景模式对象 转换为一个JSONObject 存储
 	 * @return JSONObject
@@ -98,36 +155,38 @@ public class Profile {
         try {
 		    profileJson.put("profileID",this.profileID);
 		    profileJson.put("profileName",this.profileName);
-		    profileJson.put("CtrolID",this.CtrolID); 
-		    profileJson.put("roomID",this.roomID);
-		    profileJson.put("roomType",this.roomType);
-		    profileJson.put("profileTemplateID",this.profileTemplateID);
+		    profileJson.put("ctrolID",this.ctrolID); 
+		    //profileJson.put("roomID",this.roomID);
+		    //profileJson.put("roomType",this.roomType);
+		    profileJson.put("profileTemplateID",getProfileTemplateID());
 		    profileJson.put("profileSetID",this.profileSetID);
-		    for(Factor factor: this.factorList){
+		    for(Factor factor: getFactorList()){
 		    	factorJson= new JSONObject(); 
-		    	factorJson.put("factorID", factor.factorID);
+		    	/*factorJson.put("factorID", factor.factorID);
 		    	factorJson.put("minValue", factor.minValue);
 		    	factorJson.put("maxValue", factor.maxValue);
-		    	factorJson.put("compareWay", factor.compareWay);
+		    	factorJson.put("operator", factor.operator);
 		    	factorJson.put("validFlag", factor.validFlag);
-		    	factorJson.put("createTime", sdf.format(factor.createTime));
-		    	factorJson.put("modifyTime", sdf.format(factor.modifyTime));
+		    	factorJson.put("createTime", sdf.format(factor.getCreateTime()));
+		    	factorJson.put("modifyTime", sdf.format(factor.getModifyTime()));*/
+		    	factor.toProfileJson();		    	
 		    	profileJson.accumulate("factorList",factorJson); 
 		    }
 		    
-		    profileJson.put("createTime",sdf.format(this.createTime));
-		    profileJson.put("modifyTime",sdf.format(this.createTime));
+		    profileJson.put("createTime",sdf.format(getCreateTime()));
+		    profileJson.put("modifyTime",sdf.format(getModifyTime()));
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}  		
 		return profileJson;
 	}
 	
-	public Factor getFactor(int factorID){		
-		for (int i = 0; i < this.factorList.size(); i++) {
-			if(this.factorList.get(i).factorID==factorID){
-				return this.factorList.get(i);
+
+	public Factor getFactor(int factorID){	
+		List<Factor> factorList=getFactorList();
+		for (int i = 0; i < factorList.size(); i++) {
+			if(factorList.get(i).getFactorID()==factorID){
+				return factorList.get(i);
 			}			
 		}
 		return null;
@@ -135,7 +194,7 @@ public class Profile {
 	
 	
 	public boolean isEmpty(){
-		if(this.factorList==null||this.createTime==null ||this.modifyTime==null){			
+		if(getFactorList()==null||getCreateTime()==null){			
 			return true;
 		}		
 		return false;		
@@ -151,14 +210,19 @@ public class Profile {
 	 * @returns 0 :profile为空；
 	 * 			1   ：保存成功
 	 * */
-	public int saveProfileToDB(MySqlClass mysql) throws SQLException{
+	public int saveToDB(MySqlClass mysql){
 		if(this.isEmpty()){
 			System.out.println("ERROR:object is empty,can't save to mysql");
 			return 0;
 		}
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		mysql.conn.setAutoCommit(false);
-		for (Factor ft:this.factorList) {
+		List<Factor> factorList=getFactorList();
+		try {
+			mysql.conn.setAutoCommit(false);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		for (Factor ft:factorList) {
 			String sql="insert into "+profileDetailTable
 					+" (userroomstid  ,"     
 					+"ctr_id ,"
@@ -173,14 +237,14 @@ public class Profile {
 					+"values "
 					+ "("
 					+this.profileID+","
-					+this.CtrolID+","
-					+ft.factorID+","
-					+ft.minValue+","
-					+ft.maxValue+","
-					+ft.compareWay+","
-					+ft.validFlag+",'"
-					+sdf.format(ft.createTime)+"','"
-					+sdf.format(ft.modifyTime)
+					+this.ctrolID+","
+					+ft.getFactorID()+","
+					+ft.getMinValue()+","
+					+ft.getMaxValue()+","
+					+ft.getOperator()+","
+					+ft.getValidFlag()+",'"
+					+sdf.format(ft.getCreateTime())+"','"
+					+sdf.format(ft.getModifyTime())
 					+"')";
 			System.out.println(sql);
 			int count=mysql.query(sql);
@@ -203,19 +267,21 @@ public class Profile {
 				+ "("
 				+this.profileID+",'"	
 				+this.profileName+"',"	
-				+this.CtrolID+","
-				+this.roomID+","
-				+this.roomType+","
-				+0+","
+				+this.ctrolID+","
+				+factorList.get(0).getRoomID()+","
+				+factorList.get(0).getRoomType()+","
+				+getProfileTemplateID()+","
 				+this.profileSetID+",'"
-				+sdf.format(this.createTime)+"','"
-				+sdf.format(this.modifyTime)
+				+sdf.format(getCreateTime())+"','"
+				+sdf.format(getModifyTime())
 				+"')";
 		System.out.println(sql2);	
 		mysql.query(sql2);
-		mysql.conn.commit();
-		
-		
+		try {
+			mysql.conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}		
 		return 1;	
 	}
 
@@ -225,63 +291,14 @@ public class Profile {
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
-	public	static Profile getOneProfileFromDB(MySqlClass mysql,int CtrolID,int profileID) throws SQLException
+	public	static Profile getFromDB(MySqlClass mysql,int ctrolID,int profileID) throws SQLException
 		{
 			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			mysql.conn.setAutoCommit(false);
-			String sql="select "
-					+"userroomstid," 
-					+"ctr_id,"
-					+"factorid,"
-					+"lower,"
-					+"upper,"
-					+"cmpalg,"
-					+"valid_flag,"
-					+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
-					+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
-					+ "  from  "				
-					+profileDetailTable
-					+" where ctr_id="+CtrolID
-					+" and userroomstid="+profileID
-					+ ";";
-			System.out.println("query:"+sql);
-			String res=mysql.select(sql);
-			System.out.println("get from mysql:\n"+res);
-			if(res==null || res=="" ) {
-				System.err.println("ERROR:query result is empty: "+sql);
-				return null;
-			}
-			String[] resArray=res.split("\n");
 			Profile profile=new Profile();
-			List<Factor> factorList=new ArrayList<Factor>();
-			Factor ft=null;
-			String[] cells=null;
-			for(String line:resArray){
-				cells=line.split(",");
-				if(cells.length>0){				
-					ft=new Factor();			
-					ft.factorID=Integer.parseInt(cells[2]);
-					ft.minValue=Integer.parseInt(cells[3]);
-					ft.maxValue=Integer.parseInt(cells[4]);
-					ft.compareWay=Integer.parseInt(cells[5]);
-					ft.validFlag=Integer.parseInt(cells[6]);
-					try {
-						ft.createTime=sdf.parse(cells[7]);
-						ft.modifyTime=sdf.parse(cells[8]);
-					} catch (ParseException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-					
-					factorList.add(ft);
-					profile.factorList=factorList;
-					profile.profileID=Integer.parseInt(cells[0]);
-					profile.CtrolID=Integer.parseInt(cells[1]);		
-				}else {
-					System.out.println("ERROR:Columns mismatch between class Profile  and table  "+ profileDetailTable);
-					return null;				
-				}
-			}
+			mysql.conn.setAutoCommit(false);
+			
+			int roomID;
+			int roomType;
 			
 			String sql2="select  "
 			+" userroomstid       ,"
@@ -295,7 +312,7 @@ public class Profile {
 			+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 			+ "  from "				
 			+profileIndexTable
-			+" where ctr_id="+CtrolID
+			+" where ctr_id="+ctrolID
 			+" and userroomstid="+profileID
 			+ ";";
 			System.out.println("query:"+sql2);
@@ -310,17 +327,74 @@ public class Profile {
 			}else{
 				String[] index=res2.split(",");
 				profile.profileName=index[1];	
-				profile.roomID=Integer.parseInt(index[3]);	
-				profile.roomType=Integer.parseInt(index[4]);	
-				profile.profileTemplateID=Integer.parseInt(index[5]); 
+				roomID=Integer.parseInt(index[3]);	
+				roomType=Integer.parseInt(index[4]);	
+				profile.setProfileTemplateID(Integer.parseInt(index[5])); 
 				profile.profileSetID=Integer.parseInt(index[6]);
 				try {
-					profile.createTime=sdf.parse(index[7]);
-					profile.modifyTime=sdf.parse(index[8]);
+					profile.setCreateTime(sdf.parse(index[7]));
+					profile.setModifyTime(sdf.parse(index[8]));
 				} catch (ParseException e) {
 					e.printStackTrace();
 				}				
-			}		
+			}
+			
+			String sql="select "
+					+"userroomstid," 
+					+"ctr_id,"
+					+"factorid,"
+					+"lower,"
+					+"upper,"
+					+"cmpalg,"
+					+"valid_flag,"
+					+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
+					+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
+					+ "  from  "				
+					+profileDetailTable
+					+" where ctr_id="+ctrolID
+					+" and userroomstid="+profileID
+					+ ";";
+			System.out.println("query:"+sql);
+			String res=mysql.select(sql);
+			System.out.println("get from mysql:\n"+res);
+			if(res==null || res=="" ) {
+				System.err.println("ERROR:query result is empty: "+sql);
+				return null;
+			}
+			String[] resArray=res.split("\n");
+
+			List<Factor> factorList=new ArrayList<Factor>();
+			Factor ft=null;
+			String[] cells=null;
+			for(String line:resArray){
+				cells=line.split(",");
+				if(cells.length>0){				
+					ft=new Factor();	
+					ft.setRoomID(roomID);
+					ft.setRoomType(roomType);
+					ft.setFactorID(Integer.parseInt(cells[2]));
+					ft.setMinValue(Integer.parseInt(cells[3]));
+					ft.setMaxValue(Integer.parseInt(cells[4]));
+					ft.setOperator(Integer.parseInt(cells[5]));
+					ft.setValidFlag(Integer.parseInt(cells[6]));
+					try {
+						ft.setCreateTime(sdf.parse(cells[7]));
+						ft.setModifyTime(sdf.parse(cells[8]));
+					} catch (ParseException e) {
+						e.printStackTrace();
+					}
+										
+					factorList.add(ft);
+					profile.setFactorList(factorList);
+					profile.profileID=Integer.parseInt(cells[0]);
+					profile.ctrolID=Integer.parseInt(cells[1]);		
+				}else {
+					System.out.println("ERROR:Columns mismatch between class Profile  and table  "+ profileDetailTable);
+					return null;				
+				}
+			}
+			
+		
 	mysql.conn.commit();			
 	return profile;			
 	}
@@ -331,13 +405,13 @@ public class Profile {
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
-	public	static int deleteProfileFromDB(MySqlClass mysql,int CtrolID,int profileID) throws SQLException
+	public	static int deleteFromDB(MySqlClass mysql,int ctrolID,int profileID) throws SQLException
 		{
 			mysql.conn.setAutoCommit(false);
 			String sql="delete * "
 					+ "  from  "				
 					+profileDetailTable
-					+" where ctr_id="+CtrolID
+					+" where ctr_id="+ctrolID
 					+" and userroomstid="+profileID
 					+ ";";
 			System.out.println("query:"+sql);
@@ -351,7 +425,7 @@ public class Profile {
 			String sql2="delete *  "
 			+ "  from "				
 			+profileIndexTable
-			+" where ctr_id="+CtrolID
+			+" where ctr_id="+ctrolID
 			+" and userroomstid="+profileID
 			+ ";";
 			System.out.println("query:"+sql2);
@@ -372,11 +446,14 @@ public class Profile {
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
-	public	static List<Factor>  getProFactorsFromDB(MySqlClass mysql,int CtrolID,int profileID) throws SQLException
+	public	static List<Factor>  getProFactorsFromDB(MySqlClass mysql,int ctrolID,int profileID,int roomID,int roomType) 
 		{
-		    //String tablename="info_user_room_st_factor";
-			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			mysql.conn.setAutoCommit(false);
+			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");			
+			try {
+				mysql.conn.setAutoCommit(false);
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 			String sql="select "
 					+"userroomstid," 
 					+"ctr_id,"
@@ -389,7 +466,7 @@ public class Profile {
 					+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 					+ "  from  "				
 					+profileDetailTable
-					+" where ctr_id="+CtrolID
+					+" where ctr_id="+ctrolID
 					+" and userroomstid="+profileID
 					+ ";";
 			//System.out.println("query:"+sql);
@@ -409,17 +486,17 @@ public class Profile {
 			for(String line:resArray){
 				cells=line.split(",");
 				if(cells.length==9){				
-					ft=new Factor();			
-					ft.factorID=Integer.parseInt(cells[3]);
-					//ft.factorType=Integer.parseInt(cells[1]);
-					//ft.factorName=cells[2];
-					ft.minValue=Integer.parseInt(cells[3]);
-					ft.maxValue=Integer.parseInt(cells[4]);
-					ft.compareWay=Integer.parseInt(cells[5]);
-					ft.validFlag=Integer.parseInt(cells[6]);
+					ft=new Factor();	
+					ft.setRoomID(roomID);
+					ft.setRoomType(roomType);
+					ft.setFactorID(Integer.parseInt(cells[3]));
+					ft.setMinValue(Integer.parseInt(cells[3]));
+					ft.setMaxValue(Integer.parseInt(cells[4]));
+					ft.setOperator(Integer.parseInt(cells[5]));
+					ft.setValidFlag(Integer.parseInt(cells[6]));
 					try {
-						ft.createTime=sdf.parse(cells[7]);
-						ft.modifyTime=sdf.parse(cells[8]);
+						ft.setCreateTime(sdf.parse(cells[7]));
+						ft.setModifyTime(sdf.parse(cells[8]));
 					} catch (ParseException e) {
 						e.printStackTrace();
 					}
@@ -431,7 +508,11 @@ public class Profile {
 				}
 			}		
 		
-			mysql.conn.commit();			
+			try {
+				mysql.conn.commit();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}			
 			return factorList;			
 		}
 	
@@ -441,7 +522,7 @@ public class Profile {
 	   * @table  info_user_room_st
 	   * @throws SQLException 
 	    */
-	public	static Profile  getProfileHeadFromDB(MySqlClass mysql,int CtrolID,int profileID) throws SQLException
+	public	static Profile  getHeadFromDB(MySqlClass mysql,int ctrolID,int profileID) throws SQLException
 		{
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Profile profile =new Profile();
@@ -457,7 +538,7 @@ public class Profile {
 				+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 				+ "  from "				
 				+profileIndexTable
-				+" where ctr_id="+CtrolID
+				+" where ctr_id="+ctrolID
 				+" and userroomstid="+profileID
 				+ ";";
 		System.out.println("query:"+sql2);
@@ -472,15 +553,14 @@ public class Profile {
 		}else{
 			String[] index=res2.split(",");
 			profile.profileName=index[1];	
-			profile.roomID=Integer.parseInt(index[3]);	
-			profile.roomType=Integer.parseInt(index[4]);	
-			profile.profileTemplateID=Integer.parseInt(index[5]); 
+			//profile.roomID=Integer.parseInt(index[3]);	
+			//profile.roomType=Integer.parseInt(index[4]);	
+			profile.setProfileTemplateID(Integer.parseInt(index[5])); 
 			profile.profileSetID=Integer.parseInt(index[6]);
 			try {
-				profile.createTime=sdf.parse(index[7]);
-				profile.modifyTime=sdf.parse(index[8]);
+				profile.setCreateTime(sdf.parse(index[7]));
+				profile.setModifyTime(sdf.parse(index[8]));
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			}		
@@ -491,7 +571,7 @@ public class Profile {
 	
 	/*public boolean SynProfile(MySqlClass mysql,Profile srcProfile) throws SQLException{
 		
-		Profile target=Profile.getProfileHeadFromDB(mysql, srcProfile.CtrolID, srcProfile.profileID);
+		Profile target=Profile.getProfileHeadFromDB(mysql, srcProfile.ctrolID, srcProfile.profileID);
 		
 		if(target.modifyTime.before(srcProfile.modifyTime)){ //mysql表的时间比较旧，则保存上报的profile
 			if(srcProfile.saveProfileToDB(mysql)>0){
@@ -512,15 +592,11 @@ public class Profile {
 	public static void main(String[] args) throws SQLException, JSONException {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		Profile p =new Profile();
-		p=Profile.getOneProfileFromDB(mysql, 12345677, 123456789);
+		p=Profile.getFromDB(mysql, 12345677, 123456789);
 	    //JSONObject jo=p.toJsonObj();		
 
-		p.profileID++;		
-		try {
-			p.saveProfileToDB(mysql);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		p.profileID+=2;		
+		p.saveToDB(mysql);
 		
 	}
 

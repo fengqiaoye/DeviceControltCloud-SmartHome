@@ -32,10 +32,10 @@ public class RoomMap  extends HashMap<String, Room>{
 		this.mysql=mysql;
 	}
 	
-	public List<Room> getRoomsByCtrolID(int CtrolID){
+	public List<Room> getRoomsByctrolID(int ctrolID){
 		List<Room> roomList= new ArrayList<Room>();
 		for (Entry<String, Room> entry : this.entrySet()) {
-			if(Integer.parseInt(entry.getKey().split("_")[0])==CtrolID){
+			if(Integer.parseInt(entry.getKey().split("_")[0])==ctrolID){
 				roomList.add(entry.getValue());
 			}			
 		}
@@ -74,7 +74,7 @@ public class RoomMap  extends HashMap<String, Room>{
 		for(String line:records){			
 			room =new Room();
 			String[] index=line.split(",");
-			room.CtrolID=Integer.parseInt(index[0]);	
+			room.ctrolID=Integer.parseInt(index[0]);	
 			room.roomID=Integer.parseInt(index[1]);
 			room.roomType=Integer.parseInt(index[2]);	
 			room.roomName=index[3]; 
@@ -85,7 +85,7 @@ public class RoomMap  extends HashMap<String, Room>{
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}			
-			roomMap.put(room.CtrolID+"_"+room.roomID, room);		
+			roomMap.put(room.ctrolID+"_"+room.roomID, room);		
 		}	
 		System.out.println("Initialize deviceMap finished !");
 		return roomMap;
@@ -116,7 +116,7 @@ public class RoomMap  extends HashMap<String, Room>{
 		if(null==this.mysql)
 			return null;
 		Room room =super.get(key);
-		Room.deleteRoomFromDB(mysql, room.CtrolID, room.roomID);
+		Room.deleteRoomFromDB(mysql, room.ctrolID, room.roomID);
 		return super.remove(key);
 	}
 		

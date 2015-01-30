@@ -21,7 +21,7 @@ import cooxm.devicecontrol.util.MySqlClass;
 public class ProfileSetMap extends HashMap<String, ProfileSet> {
 	
 	private static final long serialVersionUID = 1L;
-	///***Map<CtrolID+profileID,Profile>*/
+	///***Map<ctrolID+profileID,Profile>*/
 	//static Map<String, ProfileSet> profileSetMap=new HashMap<String, ProfileSet>();  
 	//static final String  profileIndexTable="info_user_room_st";
 	MySqlClass mysql;
@@ -71,7 +71,7 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 		for(String line:records){			
 			profileSet =new ProfileSet();
 			String[] cells=line.split(",");			
-			profileSet.CtrolID=Integer.parseInt(cells[0]);
+			profileSet.ctrolID=Integer.parseInt(cells[0]);
 			profileSet.profileSetID=Integer.parseInt(cells[1]);
 			profileSet.profileSetName=cells[2];
 			profileSet.profileSetTemplateID=Integer.parseInt(cells[3]);
@@ -87,7 +87,7 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 		profileSet.profileList=profileIDList;
 		
 		if(!profileSet.isEmpty())
-		profileSetMap.put(profileSet.CtrolID+"_"+profileSet.profileSetID, profileSet);
+		profileSetMap.put(profileSet.ctrolID+"_"+profileSet.profileSetID, profileSet);
 		System.out.println("Initialize profileSetMap finished !");
 		return profileSetMap;
 	}
@@ -95,10 +95,10 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 	/*** 获取一个家庭所有情景模式
 	 * @param: roomID	 * 
 	 * */
-	public List<ProfileSet> getProfileSetsByCtrolID(int CtrolID){	
+	public List<ProfileSet> getProfileSetsByctrolID(int ctrolID){	
 		List<ProfileSet> profileList=new ArrayList<ProfileSet>();
 		for (Entry<String, ProfileSet> entry : this.entrySet()) {
-			if(entry.getKey().split("_")[0]==CtrolID+""){
+			if(entry.getKey().split("_")[0]==ctrolID+""){
 				profileList.add(entry.getValue());
 			}			
 		}
@@ -126,15 +126,15 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 	 *重写父类的方法，当向这个map删除一个情景模式时，自动把这个情景模式从数据库删除
 	 *  */
 	@Override
-	public ProfileSet remove(Object CtrolID_profileSetID) {
-		ProfileSet profileSet=this.get(CtrolID_profileSetID);
+	public ProfileSet remove(Object ctrolID_profileSetID) {
+		ProfileSet profileSet=this.get(ctrolID_profileSetID);
 		try {
-			ProfileSet.deleteProfileSetFromDB(mysql, profileSet.CtrolID, profileSet.profileSetID);
+			ProfileSet.deleteProfileSetFromDB(mysql, profileSet.ctrolID, profileSet.profileSetID);
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return null;
 		}
-		return super.remove(CtrolID_profileSetID);
+		return super.remove(ctrolID_profileSetID);
 		//return profileSet;
 	}
 

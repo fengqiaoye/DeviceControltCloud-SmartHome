@@ -37,7 +37,7 @@ public class SendCommandQueue  extends ArrayBlockingQueue<Message>{
         return instance;
     }
     private static int getCapacity(){
-    	Config conf=new Config();//.getConfig();
+    	Config conf=MainEntry.getConfig();//new Config();//
     	return Integer.parseInt(conf.getValue("max_send_msg_queue"));    	
     }
     
@@ -67,11 +67,11 @@ public class SendCommandQueue  extends ArrayBlockingQueue<Message>{
     public boolean offer(Message msg, long time, TimeUnit unit) throws InterruptedException{
     	Event event=new Event(msg);
     	checkMysql();
-//     	try {
-//			event.toReplyDB(mysql);
-//		} catch (SQLException e) {
-//			e.printStackTrace();
-//		}
+     	try {
+			event.toReplyDB(mysql);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 			return super.offer(msg,time,unit);
     }
     

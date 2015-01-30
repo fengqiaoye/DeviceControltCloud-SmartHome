@@ -58,7 +58,7 @@ public class DeviceMap extends HashMap<String, Device> {
 				+"modifytime   "
 				+ " from "				
 				+Device.deviceBindTable
-				//+" where ctr_id="+CtrolID
+				//+" where ctr_id="+ctrolID
 				//+" and deviceid="+deviceID
 				+ ";";
 		//System.out.println("query:"+sql);
@@ -74,7 +74,7 @@ public class DeviceMap extends HashMap<String, Device> {
 		Device device=new Device();
 		for(String line:resArray){ 
 			String[] index=line.split(",");
-			device.CtrolID=Integer.parseInt(index[0]);	
+			device.ctrolID=Integer.parseInt(index[0]);	
 			device.deviceID=Integer.parseInt(index[1]);	
 			device.deviceSN=index[2];
 			device.deviceType=Integer.parseInt(index[3]);
@@ -88,7 +88,7 @@ public class DeviceMap extends HashMap<String, Device> {
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
-			deviceMap.put(device.CtrolID+"_"+device.deviceID, device);
+			deviceMap.put(device.ctrolID+"_"+device.deviceID, device);
 		}
 		System.out.println("Initialize deviceMap finished !");
 		return deviceMap;
@@ -97,10 +97,10 @@ public class DeviceMap extends HashMap<String, Device> {
 	/*** 获取 该家庭所有设备，包含加电和 传感器
 	 * 
 	 * */
-	public List<Device> getDevicesByCtrolID(int CtrolID){
+	public List<Device> getDevicesByctrolID(int ctrolID){
 		List<Device> deviceList= new ArrayList<Device>();
 		for (Entry<String, Device> entry : this.entrySet()) {
-			if(Integer.parseInt(entry.getKey().split("_")[0])==CtrolID){
+			if(Integer.parseInt(entry.getKey().split("_")[0])==ctrolID){
 				deviceList.add(entry.getValue());
 			}			
 		}
@@ -111,10 +111,10 @@ public class DeviceMap extends HashMap<String, Device> {
 	 *   <pre> device.type=0;
 	 **/
 	//@SuppressWarnings("null")
-	public List<Device> getApplianceByCtrolID(int CtrolID){
+	public List<Device> getApplianceByctrolID(int ctrolID){
 		List<Device> deviceList=new ArrayList<Device>();
 		for (Entry<String, Device> entry : this.entrySet()) {
-			if(Integer.parseInt(entry.getKey().split("_")[0])==CtrolID  && entry.getValue().type==0){
+			if(Integer.parseInt(entry.getKey().split("_")[0])==ctrolID  && entry.getValue().type==0){
 				deviceList.add(entry.getValue());
 			}			
 		}
@@ -136,12 +136,12 @@ public class DeviceMap extends HashMap<String, Device> {
 	 *重写父类的方法，当向这个map删除一个情景模式时，自动把这个情景模式从数据库删除
 	 *  */
 	@Override
-	public Device remove(Object CtrolID_deviceID) {		
+	public Device remove(Object ctrolID_deviceID) {		
 		if(null==this.mysql)
 			return null;
-		Device device = super.get(CtrolID_deviceID);
-		Device.DeleteOneDeviceFromDB(mysql, device.CtrolID, device.deviceID);
-		return super.remove(CtrolID_deviceID);
+		Device device = super.get(ctrolID_deviceID);
+		Device.DeleteOneDeviceFromDB(mysql, device.ctrolID, device.deviceID);
+		return super.remove(ctrolID_deviceID);
 	}
 
 	/**

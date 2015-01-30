@@ -20,41 +20,50 @@ import cooxm.devicecontrol.util.MySqlClass;
  */
 
 public class ProfileTemplate {
-	int	   profileTemplateID         ;
-	String profileTemplateName       ;
-	List<ProfileTemplatFactor> factorList;
-	int createOperator;
-	int modifyOperator;
-	Date createTime;
-	Date modifyTime;
+	/**
+	  睡眠模式
+	  离家模式
+	  观影模式
+   */
+	private int	   profileTemplateID         ;
+	private String profileTemplateName       ;
+	//private int roomType;
+	private List<FactorTemplate> factorTempList;
+	private int createOperator ;
+	private int modifyOperator ;
+	private Date createTime;
+	private Date modifyTime;
+
 	
-	private static final String profileTemplatDetailTable="cfg_sttemplate_factor";
-	private static final String profileTemplatIndexTable="cfg_sttemplate";	
+	public static final String profileTemplatDetailTable="cfg_sttemplate_factor";
+	public static final String profileTemplatIndexTable="cfg_sttemplate";	
 	
-	public String getProfileTemplateName() {
+	
+	public int getProfileTemplateID() {
+		return profileTemplateID;
+	}
+
+	public void setProfileTemplateID(int profileTemplateID) {
+		this.profileTemplateID = profileTemplateID;
+	}
+
+
+	private String getProfileTemplateName() {
 		return profileTemplateName;
 	}
 
-	public void setProfileTemplateName(String profileTemplateName) {
+	private void setProfileTemplateName(String profileTemplateName) {
 		this.profileTemplateName = profileTemplateName;
 	}
 
-	public int getCreateOperator() {
-		return createOperator;
+	public List<FactorTemplate> getFactorTemplateTempList() {
+		return factorTempList;
 	}
 
-	public void setCreateOperator(int createOperator) {
-		this.createOperator = createOperator;
+	public void setFactorTemplateTempList(List<FactorTemplate> factorList) {
+		this.factorTempList = factorList;
 	}
-
-	public int getmodifyOperator() {
-		return modifyOperator;
-	}
-
-	public void setmodifyOperator(int modifyOperator) {
-		this.modifyOperator = modifyOperator;
-	}
-
+	
 	public Date getCreateTime() {
 		return createTime;
 	}
@@ -70,35 +79,46 @@ public class ProfileTemplate {
 	public void setModifyTime(Date modifyTime) {
 		this.modifyTime = modifyTime;
 	}
-
-	public int getProfileSetTempID() {
-		return profileTemplateID;
-	}
-
-	public void setProfileSetTempID(int profileSetTempID) {
-		this.profileTemplateID = profileSetTempID;
-	}
-
-	public List<ProfileTemplatFactor> getFactorList() {
-		return factorList;
-	}
-
-	public void setFactorList(List<ProfileTemplatFactor> factorList) {
-		this.factorList = factorList;
-	}
 	
-	public ProfileTemplate(int profileTemplateID, String profileTemplateName,
-			List<ProfileTemplatFactor> factorList, int createOperator,
+
+	public int getCreateOperator() {
+		return createOperator;
+	}
+
+	public void setCreateOperator(int createOperator) {
+		this.createOperator = createOperator;
+	}
+
+	public int getModifyOperator() {
+		return modifyOperator;
+	}
+
+	public void setModifyOperator(int modifyOperator) {
+		this.modifyOperator = modifyOperator;
+	}
+
+	public ProfileTemplate(int profileTemplateID, String profileTemplateName,int roomType,
+			List<FactorTemplate> factorList, int createOperator,
 			int modifyOperator, Date createTime, Date modifyTime) {
-		super();
 		this.profileTemplateID = profileTemplateID;
 		this.profileTemplateName = profileTemplateName;
-		this.factorList = factorList;
+		this.factorTempList = factorList;
 		this.createOperator = createOperator;
 		this.modifyOperator = modifyOperator;
 		this.createTime = createTime;
 		this.modifyTime = modifyTime;
 	}
+	
+    /**情景模式 */
+	public ProfileTemplate(int profileTemplateID, List<FactorTemplate> factorList,
+			Date createTime, Date modifyTime) {
+		this.profileTemplateID = profileTemplateID;
+		this.factorTempList = factorList;
+		this.createTime = createTime;
+		this.modifyTime = modifyTime;
+	}
+
+
 
 	public ProfileTemplate() {
 	}
@@ -108,22 +128,24 @@ public class ProfileTemplate {
 		try {
 			this.profileTemplateID=profileTemplateJson.getInt("profileTemplateID");
 			this.profileTemplateName=profileTemplateJson.getString("profileTemplateName");
+				
 			JSONArray factorListJSON= profileTemplateJson.getJSONArray("factorList");
-			List<ProfileTemplatFactor> factorList = new ArrayList<ProfileTemplatFactor>() ;
+			List<FactorTemplate> factorList = new ArrayList<FactorTemplate>() ;
 			for(int i=0;i<factorListJSON.length();i++){
 				JSONObject factorJson=factorListJSON.getJSONObject(i);
-				ProfileTemplatFactor factor= new ProfileTemplatFactor();
-				factor.factorID=factorJson.getInt("factorID");
-				factor.spaceRange=factorJson.getInt("spaceRange");			
-				factor.minValue=factorJson.getInt("minValue");
-				factor.maxValue=factorJson.getInt("maxValue");
-				factor.compareWay=factorJson.getInt("compareWay");
-				factor.validFlag=factorJson.getInt("validFlag");
-				factor.createTime=sdf.parse(factorJson.getString("createTime"));
-				factor.modifyTime=sdf.parse(factorJson.getString("modifyTime"));	
+				FactorTemplate factor= new FactorTemplate();
+				/*factor.setFactorTemplateID(factorJson.getInt("factorID"));	
+				factor.setRoomType(factorJson.getInt("roomType"));
+				factor.setMinValue(factorJson.getInt("minValue"));
+				factor.setMaxValue(factorJson.getInt("maxValue"));
+				factor.setOperator(factorJson.getInt("operator"));
+				factor.setValidFlag(factorJson.getInt("validFlag"));
+				factor.setCreateTime(sdf.parse(factorJson.getString("createTime")));
+				factor.setModifyTime(sdf.parse(factorJson.getString("modifyTime")));*/
+				factor=FactorTemplate.fromProfleTemplateJson(factorJson);
 				factorList.add(factor);		
 			}		
-			this.factorList=factorList;
+			this.factorTempList=factorList;
 			this.createTime=sdf.parse(profileTemplateJson.getString("createTime"));
 			this.modifyTime=sdf.parse(profileTemplateJson.getString("createTime"));	
 		} catch (JSONException | ParseException e) {
@@ -138,14 +160,14 @@ public class ProfileTemplate {
 	 * @throws SQLException 
 	 * */
 	public  int saveToDB(MySqlClass mysql) throws SQLException{
-		if(null==this.factorList){
+		if(null==this.factorTempList){
 			System.err.println("Error: save to db failed, make sure the target object is not empty!");
 			return -1;
 		}
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		int resultCount=0;
 		mysql.conn.setAutoCommit(false);		
-		for (ProfileTemplatFactor factor:this.factorList) {
+		for (FactorTemplate factor:this.factorTempList) {
 		String sql="insert into "+profileTemplatDetailTable
 				+" ("
 				+ "sttemplateid ," 
@@ -163,16 +185,16 @@ public class ProfileTemplate {
 				+"values "
 				+ "("
 				+this.profileTemplateID+","	
-				+factor.factorID+","	
-				+factor.spaceRange+","
-				+factor.minValue+","
-				+factor.maxValue+","
-				+factor.compareWay+","
-				+factor.validFlag+",'"
-			    +factor.createOperator+"','"
-			    +factor.modifyOperator+"','"												
-				+sdf.format(factor.createTime)+"','"
-				+sdf.format(factor.modifyTime)
+				+factor.getFactorID()+","	
+				+factor.getRoomType()+","
+				+factor.getMinValue()+","
+				+factor.getMaxValue()+","
+				+factor.getOperator()+","
+				+factor.getValidFlag()+",'"
+			    +factor.getCreateOperator()+"','"
+			    +factor.getModifyOperator()+"','"												
+				+sdf.format(factor.getCreateTime())+"','"
+				+sdf.format(factor.getModifyTime())
 				+"')";
 		System.out.println(sql);		
 		mysql.query(sql);
@@ -189,8 +211,8 @@ public class ProfileTemplate {
 				+ ")  values "				
 				+this.profileTemplateID   +","
 				+this.profileTemplateName +","
-				+this.createOperator+","
-				+this.modifyOperator+",'"
+				+this.getCreateOperator()+","
+				+this.getModifyOperator()+",'"
 				+this.createTime+"','"
 				+this.modifyTime+"'"
 				+ ";";
@@ -236,28 +258,29 @@ public class ProfileTemplate {
 			}
 			String[] resArray=res.split("\n");
 			ProfileTemplate profileTemp=new ProfileTemplate();
-			List<ProfileTemplatFactor> factorList=new ArrayList<ProfileTemplatFactor>();
-			ProfileTemplatFactor factor=null;
+			List<FactorTemplate> factorList=new ArrayList<FactorTemplate>();
+			FactorTemplate factor=null;
 			String[] cells=null;
 			for(String line:resArray){
 				cells=line.split(",");
-				factor=new ProfileTemplatFactor();				
-				factor.factorID=Integer.parseInt(cells[1]);
-				factor.spaceRange=Integer.parseInt(cells[2]);
-				factor.minValue=Integer.parseInt(cells[3]);
-				factor.maxValue=Integer.parseInt(cells[4]);
-				factor.compareWay=Integer.parseInt(cells[5]);
-				factor.validFlag=Integer.parseInt(cells[6]);
-				factor.createOperator=Integer.parseInt(cells[7]);
-				factor.createOperator=Integer.parseInt(cells[8]);
+				factor=new FactorTemplate();				
+				factor.setFactorID(Integer.parseInt(cells[1]));
+				factor.setRoomType(Integer.parseInt(cells[2]));
+				factor.setMinValue(Integer.parseInt(cells[3]));
+				factor.setMaxValue(Integer.parseInt(cells[4]));
+				factor.setOperator(Integer.parseInt(cells[5]));
+				factor.setValidFlag(Integer.parseInt(cells[6]));
+				factor.setCreateOperator(Integer.parseInt(cells[7]));;
+				factor.setModifyOperator(Integer.parseInt(cells[8]));
 				try {
-					factor.createTime=sdf.parse(cells[9]);
-					factor.modifyTime=sdf.parse(cells[10]);
+					factor.setCreateTime(sdf.parse(cells[9]));
+					factor.setModifyTime(sdf.parse(cells[10]));
 				} catch (ParseException e) {
 					e.printStackTrace();
 				}
 				factorList.add(factor);
 				profileTemp.profileTemplateID=Integer.parseInt(cells[0]);
+				//profileTemp.roomType=Integer.parseInt(cells[2]);
 				
 				
 				String sql2="select  "
@@ -277,7 +300,7 @@ public class ProfileTemplate {
 				String[] cells2=res2.split("\n");
 				profileTemp.setProfileTemplateName(cells2[1]);
 				profileTemp.setCreateOperator(Integer.parseInt(cells2[2]));
-				profileTemp.setmodifyOperator(Integer.parseInt(cells2[3]));
+				profileTemp.setModifyOperator(Integer.parseInt(cells2[3]));
 				profileTemp.setProfileTemplateName(cells2[4]);
 				profileTemp.setProfileTemplateName(cells2[5]);						
 			}
@@ -293,18 +316,19 @@ public class ProfileTemplate {
         JSONObject factorJson ; //= new JSONObject();  
         try {
         	profileTemplateJson.put("profileTemplateID",this.profileTemplateID);
-		    for(ProfileTemplatFactor factor: this.factorList){
+        	//profileTemplateJson.put("roomType", this.roomType);
+		    for(FactorTemplate factor: this.factorTempList){
 		    	factorJson= new JSONObject(); 
-		    	factorJson.put("factorID", factor.factorID);
-		    	factorJson.put("spaceRange", factor.spaceRange);
-		    	factorJson.put("minValue", factor.minValue);
-		    	factorJson.put("maxValue", factor.maxValue);
-		    	factorJson.put("compareWay", factor.compareWay);
-		    	factorJson.put("validFlag", factor.validFlag);
-		    	factorJson.put("createOperator", factor.createOperator);
-		    	factorJson.put("modifyOperator", factor.modifyOperator);
-		    	factorJson.put("createTime", sdf.format(factor.createTime));
-		    	factorJson.put("modifyTime", sdf.format(factor.modifyTime));
+		    	factorJson.put("factorID", factor.getFactorID());
+		    	factorJson.put("roomType", factor.getRoomType());
+		    	factorJson.put("minValue", factor.getMinValue());
+		    	factorJson.put("maxValue", factor.getMaxValue());
+		    	factorJson.put("operator", factor.getOperator());
+		    	factorJson.put("validFlag", factor.getValidFlag());
+		    	factorJson.put("createOperator", factor.getCreateOperator());
+		    	factorJson.put("modifyOperator", factor.getModifyOperator());
+		    	factorJson.put("createTime", sdf.format(factor.getCreateTime()));
+		    	factorJson.put("modifyTime", sdf.format(factor.getModifyTime()));
 		    	profileTemplateJson.accumulate("factorList",factorJson); 
 		    }
 
@@ -321,5 +345,6 @@ public class ProfileTemplate {
 		//new ProfileTemplat().saveToDB(mysql);
 		
 	}
+
 
 }
