@@ -1,10 +1,18 @@
 package cooxm.devicecontrol.device;
+
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
  * @version Created：29 Jan 2015 16:58:14 
  */
 
-public class RegulationTemplateReact {
+public class TriggerTemplateReact {
 	/**<pre>
 	1:告警
 	2:家电
@@ -68,11 +76,39 @@ public class RegulationTemplateReact {
 		this.reactWay = reactWay;
 	}
 	
-	public RegulationTemplateReact(int reactType, int targetID, int reactWay) {
+	public TriggerTemplateReact(int reactType, int targetID, int reactWay) {
 		this.reactType = reactType;
 		this.targetID = targetID;
 		this.reactWay = reactWay;
 	}
-	public RegulationTemplateReact() {
+	public TriggerTemplateReact() {
 	}
+	
+	public  JSONObject toJson(){
+		//DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		JSONObject factorJson=new JSONObject();
+    	try {
+        	factorJson.put("reactType", getReactType());
+        	factorJson.put("targetID", getTargetID());
+        	factorJson.put("reactWay", getReactWay());
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}			
+		return factorJson;		
+	}
+	
+	
+	public static TriggerTemplateReact fromJson(JSONObject reactJson) {
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		TriggerTemplateReact factor= new TriggerTemplateReact();
+		try {
+			factor.setReactType(reactJson.getInt("reactType"));
+			factor.setTargetID(reactJson.getInt("targetID"));
+			factor.setReactWay(reactJson.getInt("reactWay"));
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}		
+		return factor;		
+	}
+
 }

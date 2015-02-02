@@ -29,6 +29,8 @@ import cooxm.devicecontrol.device.ProfileSet;
 import cooxm.devicecontrol.device.ProfileSetMap;
 import cooxm.devicecontrol.device.ProfileTemplate;
 import cooxm.devicecontrol.device.RoomMap;
+import cooxm.devicecontrol.device.Trigger;
+import cooxm.devicecontrol.device.TriggerMap;
 import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.socket.Message;
 import cooxm.devicecontrol.socket.MsgSocketClient;
@@ -110,6 +112,36 @@ public class LogicControl {
 	private static final short SWITCH_DEVICE_STATE		    =	COMMAND_START+44;
 	/*** 切换某个家电状态 的回复*/
 	private static final short SWITCH_DEVICE_STATE_ACK		=	COMMAND_START+44+COMMAND_ACK_OFFSET;
+	
+	/*** 请求触发规则模板 */
+	private static final short GET_TRIGGER_TEMPLATE				=	COMMAND_START+61;	
+	/*** 请求触发规则模板 的回复*/
+	private static final short GET_TRIGGER_TEMPLATE_ACK			=	COMMAND_START+61+COMMAND_ACK_OFFSET;
+	
+	/*** 上报或者下发触发规则模板 */
+	private static final short SET_TRIGGER_TEMPLATE				=	COMMAND_START+62;	
+	/*** 上报或者下发 触发规则 模板回复*/
+	private static final short SET_TRIGGER_TEMPLATE_ACK			=	COMMAND_START+62+COMMAND_ACK_OFFSET;
+	
+	/*** 请求触发规则模板 */
+	private static final short GET_TRIGGER				=	COMMAND_START+71;	
+	/*** 请求触发规则模板 的回复*/
+	private static final short GET_TRIGGER_ACK			=	COMMAND_START+71+COMMAND_ACK_OFFSET;
+	
+	/*** 上报或者下发触发规则模板 */
+	private static final short SET_TRIGGER				=	COMMAND_START+72;	
+	/*** 上报或者下发 触发规则 模板回复*/
+	private static final short SET_TRIGGER_ACK			=	COMMAND_START+72+COMMAND_ACK_OFFSET;
+	
+	/*** 上报或者下发触发规则模板 */
+	private static final short DELETE_TRIGGER				=	COMMAND_START+73;	
+	/*** 上报或者下发 触发规则 模板回复*/
+	private static final short DELETE_TRIGGER_ACK			=	COMMAND_START+73+COMMAND_ACK_OFFSET;
+	
+	
+	
+	
+	
 		
     /*** 告警消息   */
 	private static final short WARNING_MSG				 	=	WARNING_START+3;
@@ -153,6 +185,7 @@ public class LogicControl {
 	ProfileMap profileMap =null;
 	ProfileSetMap profileSetMap =null;
 	DeviceMap deviceMap=null;
+	TriggerMap triggerMap=null;
 	RoomMap roomMap=null;
 	private final static String currentProfile= "currentProfile";
 	private final static String currentProfileSet= "currentProfileSet";
@@ -183,6 +216,7 @@ public class LogicControl {
 			this.profileMap= new ProfileMap(mysql);
 			this.profileSetMap= new ProfileSetMap(mysql);
 			this.deviceMap=new DeviceMap(mysql);
+			this.triggerMap=new TriggerMap(mysql);
 			this.roomMap=new RoomMap(mysql);
 		} catch (SQLException  e) {
 			e.printStackTrace();
@@ -282,7 +316,7 @@ public class LogicControl {
 			break;
 		case GET_RROFILE_TEMPLATE: 	
 			try {
-				get_profile_set(msg);
+				get_profile_template(msg);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			} catch (SQLException e) {
@@ -291,10 +325,12 @@ public class LogicControl {
 			break;
 		case SET_RROFILE_TEMPLATE:	
 			try {
-				get_profile_set(msg);
+				set_profile_template(msg);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			} catch (SQLException e) {
+				e.printStackTrace();
+			} catch (ParseException e) {
 				e.printStackTrace();
 			}
 			break;	
@@ -335,6 +371,49 @@ public class LogicControl {
 		case WARNING_MSG:	
 			send_warning_msg(msg);
 			break;
+		case GET_TRIGGER_TEMPLATE:	
+			try {
+				get_profile_set(msg);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			break;
+		case SET_TRIGGER_TEMPLATE:	
+			try {
+				get_profile_set(msg);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			break;	
+		case GET_TRIGGER:	
+			try {
+				get_profile_set(msg);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			break;
+		case SET_TRIGGER:	
+			try {
+				get_profile_set(msg);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			break;	
+		case DELETE_TRIGGER:
+			try {
+				delete_one_device(msg);
+			} catch (JSONException | SQLException e) {
+				e.printStackTrace();
+			}
+			break;				
 		default:
 			int sender=0;
 			if(msg.getJson().has("sender")){
@@ -397,7 +476,6 @@ public class LogicControl {
      *                      
      */
     public void get_room_profile(Message msg) throws JSONException, SQLException{
-    	//JSONObject json=new jsson;
     	Profile profile=null;
     	int ctrolID=msg.getJson().getInt("ctrolID");
     	int profileID=msg.getJson().getInt("profileID");
@@ -408,7 +486,6 @@ public class LogicControl {
     		msg.getJson().put("errorCode",SUCCESS);
     	}else {
 			log.warn("Can't get_room_profile ctrolID:"+ctrolID+" profileID:"+profileID+" from profileMap or Mysql.");
-			//msg.setJson()new JSONObject();
 			msg.getJson().put("errorCode",PROFILE_NOT_EXIST);
     	}
     	msg.setCommandID(GET_ROOM_PROFILE_ACK);
@@ -892,7 +969,6 @@ public class LogicControl {
      * @throws ParseException 
 	*/
     public void set_profile_template( Message msg) throws JSONException, SQLException, ParseException{
-    	//JSONObject json=msg.json;
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	//ProfileTemplate msgProfile=new ProfileTemplate(msg.getJson().getJSONObject("profileTemplate"));
     	ProfileTemplate dbProfile;
@@ -1123,7 +1199,292 @@ public class LogicControl {
 	public void send_warning_msg(final Message msg){
 		if(this.msgSock!=null &&  !this.msgSock.isOutputShutdown()  && !this.msgSock.isClosed())
 		msg.writeBytesToSock(this.msgSock);		
-	}    
+	}   
+	
+    /*** 请求触发模板
+     * <pre>传入的json格式为：
+     * { 
+     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   ctrolID:1234567
+     *   triggerTemplateID:7654321
+     * }
+     * @throws JSONException 
+     * @return message 的json格式：
+     *   （1）如果查询的触发模板不存在，返回jason： {"errorCode": XXXX}
+     *   （2）如果查询的触发模板存在，则返回:
+     *  { 
+     *   errorCode:SUCCESS,
+     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   ctrolID:1234567,
+     *   triggerTemplateID:7654321,
+     *   triggerTemplate: 
+     *         {
+     *          触发模板的json格式 
+     *         }
+     * }
+     *                      
+     */
+    public void get_trigger_template(Message msg) throws JSONException, SQLException{
+    	Trigger trigger=null;
+    	int ctrolID=msg.getJson().getInt("ctrolID");
+    	int triggerID=msg.getJson().getInt("triggerID");
+    	int sender=0;
+    	String key=ctrolID+"_"+triggerID;
+    	if( (trigger= triggerMap.get(key))!=null  || (trigger=Trigger.getFromDB(mysql, ctrolID, triggerID))!=null){
+    		msg.getJson().put("triggerTemplate", trigger.toJson());
+    		msg.getJson().put("errorCode",SUCCESS);
+    	}else {
+			log.warn("Can't get_room_trigger ctrolID:"+ctrolID+" triggerID:"+triggerID+" from triggerMap or Mysql.");
+			msg.getJson().put("errorCode",PROFILE_NOT_EXIST);
+    	}
+    	msg.setCommandID(GET_ROOM_PROFILE_ACK);
+		msg.getJson().put("sender",2);
+		if(msg.getJson().has("sender")){
+		   sender=msg.getJson().getInt("sender");
+		}
+		msg.getJson().put("receiver",sender);  
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}    	
+    }
+     
+    /*** 保存或者上传一个触发模板
+     *<pre> @throws JSONException 
+     * @throws SQLException 
+     * @return message的json格式:
+     *  (1)如果云端不存在该触发模板，直接保存，返回json: {"errorCode":SUCCESS}；
+     *  (2)如果上传的trigger的修改时间晚于云端，则将上报的trigger保存在数据库，返回{"errorCode":SUCCESS}；
+     *  (2)如果上传的trigger的修改时间早于云端，则需要将云端的触发模板下发到 终端（手机、中控）,返回{"errorCode":OBSOLTE_PROFILE}  ；     *         
+     *@param message 传入的json格式为： （要上传或者保存的prifile的json格式）
+     * {
+     *  "senderRole":    中控:0 ; 手机:1 ; 云:2;
+     *  "receiverRole":  中控:0 ; 手机:1 ; 云:2;
+     *  trigger:
+     *   {
+			"triggerID":123456789,
+			"ctrolID":12345677,
+			"triggerName":"未知情景",
+			"triggerSetID":12345,
+			"triggerTemplateID":0,
+			"roomID":203,
+			"roomType":2,
+			"factorList":
+			[
+				{"factorID":40,"minValue":20,"operator":0,"modifyTime":"2014-12-13 14:15:17","validFlag":false,
+				"createTime":"Fri Dec 12 12:30:00 CST 2014","maxValue":30
+				},
+	
+				{"factorID":60,"minValue":1,"operator":0,"modifyTime":"2014-12-13 14:15:17","validFlag":false,
+				"createTime":"2014-12-13 14:15:17","maxValue":1
+				}
+			],
+			"modifyTime":"2014-12-13 14:15:17",
+			"createTime":"2014-12-13 14:15:17"
+		}
+	  }
+     * @throws ParseException 
+	*/
+    public void set_trigger_template( Message msg) throws JSONException, SQLException, ParseException{
+    	//JSONObject json=msg.json;
+    	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    	Trigger msgTrigger=Trigger.fromJson(msg.getJson().getJSONObject("triggerTemplate"));
+    	Trigger dbTrigger;
+    	int ctrolID=msg.getJson().getInt("ctrolID");
+    	int triggerID=msg.getJson().getInt("triggerID");
+    	Date msgModifyTime=sdf.parse(msg.getJson().getString("modifyTime"));
+    	String key=ctrolID+"_"+triggerID;
+    	int sender=0;
+    	
+    	if((dbTrigger=this.triggerMap.get(key))==null && (dbTrigger=Trigger.getFromDB(mysql, ctrolID, triggerID))==null){
+			msg.getJson().put("errorCode",PROFILE_NOT_EXIST);    		
+    	}else if(  dbTrigger.getModifyTime().after(msgModifyTime)){	//云端较新  
+			msg.getJson().put("errorCode",PROFILE_OBSOLETE);    		
+    	}else if(  dbTrigger.getModifyTime().before(msgModifyTime)){ //云端较旧，则保存
+    		this.triggerMap.put(key, msgTrigger);
+			msg.setJson(new JSONObject());
+			msg.getJson().put("errorCode",SUCCESS);   
+			}    	
+  		msg.setCommandID(SET_ROOM_PROFILE_ACK);
+		msg.getJson().put("sender",2);
+		if(msg.getJson().has("sender")){
+		   sender=msg.getJson().getInt("sender");
+		}
+		msg.getJson().put("receiver",sender); 
+    	try {
+			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}     	
+    }
+    
+    /*** 请求触发规则
+     * <pre>传入的json格式为：
+     * { 
+     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   ctrolID:1234567
+     *   triggerTemplateID:7654321
+     * }
+     * @throws JSONException 
+     * @return message 的json格式：
+     *   （1）如果查询的触发规则不存在，返回jason： {"errorCode": XXXX}
+     *   （2）如果查询的触发规则存在，则返回:
+     *  { 
+     *   errorCode:SUCCESS,
+     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   ctrolID:1234567,
+     *   triggerTemplateID:7654321,
+     *   triggerTemplate: 
+     *         {
+     *          触发规则的json格式 
+     *         }
+     * }
+     *                      
+     */
+    public void get_trigger(Message msg) throws JSONException, SQLException{
+    	Trigger trigger=null;
+    	int ctrolID=msg.getJson().getInt("ctrolID");
+    	int triggerID=msg.getJson().getInt("triggerID");
+    	int sender=0;
+    	String key=ctrolID+"_"+triggerID;
+    	if( (trigger= triggerMap.get(key))!=null  || (trigger=Trigger.getFromDB(mysql, ctrolID, triggerID))!=null){
+    		msg.getJson().put("trigger", trigger.toJson());
+    		msg.getJson().put("errorCode",SUCCESS);
+    	}else {
+			log.warn("Can't get_room_trigger ctrolID:"+ctrolID+" triggerID:"+triggerID+" from triggerMap or Mysql.");
+			msg.getJson().put("errorCode",PROFILE_NOT_EXIST);
+    	}
+    	msg.setCommandID(GET_ROOM_PROFILE_ACK);
+		msg.getJson().put("sender",2);
+		if(msg.getJson().has("sender")){
+		   sender=msg.getJson().getInt("sender");
+		}
+		msg.getJson().put("receiver",sender);  
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}    	
+    }
+     
+    /*** 保存或者上传一个触发规则
+     *<pre> @throws JSONException 
+     * @throws SQLException 
+     * @return message的json格式:
+     *  (1)如果云端不存在该触发规则，直接保存，返回json: {"errorCode":SUCCESS}；
+     *  (2)如果上传的触发规则的修改时间晚于云端，则将上报的trigger保存在数据库，返回{"errorCode":SUCCESS}；
+     *  (2)如果上传的触发规则的修改时间早于云端，则需要将云端的触发模板下发到 终端（手机、中控）,返回{"errorCode":OBSOLTE_PROFILE}  ；     *         
+     *@param message 传入的json格式为： （要上传或者保存的触发规则的json格式）
+     * {
+     *  "senderRole":    中控:0 ; 手机:1 ; 云:2;
+     *  "receiverRole":  中控:0 ; 手机:1 ; 云:2;
+     *  trigger:
+     *   {
+			"triggerID":123456789,
+			"ctrolID":12345677,
+			"triggerName":"未知情景",
+			"triggerSetID":12345,
+			"triggerTemplateID":0,
+			"roomID":203,
+			"roomType":2,
+			"factorList":
+			[
+				{"factorID":40,"minValue":20,"operator":0,"modifyTime":"2014-12-13 14:15:17","validFlag":false,
+				"createTime":"Fri Dec 12 12:30:00 CST 2014","maxValue":30
+				},
+	
+				{"factorID":60,"minValue":1,"operator":0,"modifyTime":"2014-12-13 14:15:17","validFlag":false,
+				"createTime":"2014-12-13 14:15:17","maxValue":1
+				}
+			],
+			"modifyTime":"2014-12-13 14:15:17",
+			"createTime":"2014-12-13 14:15:17"
+		}
+	  }
+     * @throws ParseException 
+	*/
+    public void set_trigger( Message msg) throws JSONException, SQLException, ParseException{
+    	//JSONObject json=msg.json;
+    	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    	Trigger msgTrigger=Trigger.fromJson(msg.getJson().getJSONObject("trigger"));
+    	Trigger dbTrigger;
+    	int ctrolID=msg.getJson().getInt("ctrolID");
+    	int triggerID=msg.getJson().getInt("triggerID");
+    	Date msgModifyTime=sdf.parse(msg.getJson().getString("modifyTime"));
+    	String key=ctrolID+"_"+triggerID;
+    	int sender=0;
+    	
+    	if((dbTrigger=this.triggerMap.get(key))==null && (dbTrigger=Trigger.getFromDB(mysql, ctrolID, triggerID))==null){
+			msg.getJson().put("errorCode",PROFILE_NOT_EXIST);    		
+    	}else if(  dbTrigger.getModifyTime().after(msgModifyTime)){	//云端较新  
+			msg.getJson().put("errorCode",PROFILE_OBSOLETE);    		
+    	}else if(  dbTrigger.getModifyTime().before(msgModifyTime)){ //云端较旧，则保存
+    		this.triggerMap.put(key, msgTrigger);
+			msg.setJson(new JSONObject());
+			msg.getJson().put("errorCode",SUCCESS);   
+			}    	
+  		msg.setCommandID(SET_ROOM_PROFILE_ACK);
+		msg.getJson().put("sender",2);
+		if(msg.getJson().has("sender")){
+		   sender=msg.getJson().getInt("sender");
+		}
+		msg.getJson().put("receiver",sender); 
+    	try {
+			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}     	
+    }
+    
+    /*** 删除触发模板
+     * <pre>传入的json格式为：
+     * { 
+     *   senderRole:    中控:0 ; 手机:1 ; 云:2;
+     *   receiverRole:  中控:0 ; 手机:1 ; 云:2;
+     *   ctrolID:1234567
+     *   triggerID:7654321
+     * }
+     * @throws JSONException 
+     * @return message 的json格式：
+     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50002}
+           
+     */
+    public void delete_trigger(Message msg) throws JSONException, SQLException{
+    	int ctrolID=msg.getJson().getInt("ctrolID");
+    	int triggerID=msg.getJson().getInt("triggerID");
+    	String key=ctrolID+"_"+triggerID;
+    	int sender=0;
+		if(msg.getJson().has("sender")){
+		   sender=msg.getJson().getInt("sender");
+		}
+    	if(triggerMap.containsKey(key)){
+    		triggerMap.remove(key);
+    		msg.setJson(new JSONObject());
+    		msg.getJson().put("errorCode", SUCCESS);    		
+    	}else if((Trigger.getFromDB(mysql, ctrolID, triggerID))!=null){
+    		Trigger.deleteFromDB(mysql, ctrolID, triggerID);
+    		msg.setJson(new JSONObject());
+    		msg.getJson().put("errorCode", SUCCESS);
+    	}else {
+			log.warn("room_trigger not exist ctrolID:"+ctrolID+" triggerID:"+triggerID+" from triggerMap or Mysql.");
+			msg.getJson().put("errorCode",PROFILE_NOT_EXIST);
+    	}
+    	msg.setCommandID(DELETE_ROOM_PROFILE_ACK);
+
+		msg.getJson().put("sender",2);
+		msg.getJson().put("receiver",sender); 
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}    	
+    }
+    
 
 	public static void main(String[] args) {
 		Config cf= new Config();

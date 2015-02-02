@@ -13,49 +13,108 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import cooxm.devicecontrol.util.MySqlClass;
 
-public class RegulationTemplate {
+public class TriggerTemplate {
 
 	//private int ctrolID;
-	private int regulationTemplateID;
+	private int triggerTemplateID;
 	
-	private List<RegulationTemplateFactor>  regulationTemplateFactorList;
-	private List<RegulationTemplateReact>   regulationTemplateReactList;
+	private List<TriggerTemplateFactor>  triggerTemplateFactorList;
+	private List<TriggerTemplateReact>   triggerTemplateReactList;
 	
-	private static String regulationFactorTable="cfg_regular_template";
-	private static String regulationReactTable="cfg_regular_template_react";
+	private static String triggerFactorTable="cfg_regular_template";
+	private static String triggerReactTable="cfg_regular_template_react";
 	
 
-	public int getRegulationTemplateID() {
-		return regulationTemplateID;
+	public int getTriggerTemplateID() {
+		return triggerTemplateID;
 	}
-	public void setRegulationTemplateID(int regulationTemplateID) {
-		this.regulationTemplateID = regulationTemplateID;
+	public void setTriggerTemplateID(int triggerTemplateID) {
+		this.triggerTemplateID = triggerTemplateID;
 	}
-	public List<RegulationTemplateFactor> getRegulationTemplateFactorList() {
-		return regulationTemplateFactorList;
+	public List<TriggerTemplateFactor> getTriggerTemplateFactorList() {
+		return triggerTemplateFactorList;
 	}
-	public void setRegulationTemplateFactorList(
-			List<RegulationTemplateFactor> regulationTemplateFactorList) {
-		this.regulationTemplateFactorList = regulationTemplateFactorList;
+	public void setTriggerTemplateFactorList(
+			List<TriggerTemplateFactor> triggerTemplateFactorList) {
+		this.triggerTemplateFactorList = triggerTemplateFactorList;
 	}
-	public List<RegulationTemplateReact> getRegulationTemplateReactList() {
-		return regulationTemplateReactList;
+	public List<TriggerTemplateReact> getTriggerTemplateReactList() {
+		return triggerTemplateReactList;
 	}
-	public void setRegulationTemplateReactList(
-			List<RegulationTemplateReact> regulationTemplateReactList) {
-		this.regulationTemplateReactList = regulationTemplateReactList;
+	public void setTriggerTemplateReactList(
+			List<TriggerTemplateReact> triggerTemplateReactList) {
+		this.triggerTemplateReactList = triggerTemplateReactList;
 	}
-	public RegulationTemplate(){}
+	public TriggerTemplate(){}
 	
-	public RegulationTemplate(int regulationTemplateID,
-			List<RegulationTemplateFactor> regulationFactorList,
-			List<RegulationTemplateReact> regulationReactList) {
-		this.regulationTemplateID = regulationTemplateID;
-		this.regulationTemplateFactorList = regulationFactorList;
-		this.regulationTemplateReactList = regulationReactList;
+	public TriggerTemplate(int triggerTemplateID,
+			List<TriggerTemplateFactor> triggerFactorList,
+			List<TriggerTemplateReact> triggerReactList) {
+		this.triggerTemplateID = triggerTemplateID;
+		this.triggerTemplateFactorList = triggerFactorList;
+		this.triggerTemplateReactList = triggerReactList;
 	}
+	
+	public  TriggerTemplate fromJsom (JSONObject triggerTemplateJson){
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		TriggerTemplate trigger= new TriggerTemplate();
+		try {
+			trigger.triggerTemplateID=triggerTemplateJson.getInt("triggerTemplateID");
+			JSONArray factorListJSON= triggerTemplateJson.getJSONArray("factorList");
+			List<TriggerTemplateFactor> factorList = new ArrayList<TriggerTemplateFactor>() ;
+			for(int i=0;i<factorListJSON.length();i++){
+				JSONObject factorJson=factorListJSON.getJSONObject(i);
+				TriggerTemplateFactor factor= new TriggerTemplateFactor();
+				factor=TriggerTemplateFactor.fromJson(factorJson);
+				factorList.add(factor);		
+			}		
+			trigger.setTriggerTemplateFactorList(factorList);
+			
+			JSONArray reactListJSON= triggerTemplateJson.getJSONArray("reactList");
+			List<TriggerTemplateReact> reactList = new ArrayList<TriggerTemplateReact>() ;
+			for(int i=0;i<reactListJSON.length();i++){
+				JSONObject reactJson=factorListJSON.getJSONObject(i);
+				TriggerTemplateReact react= new TriggerTemplateReact();
+				react=TriggerTemplateReact.fromJson(reactJson);
+				reactList.add(react);		
+			}		
+			trigger.setTriggerTemplateReactList(reactList);			
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return trigger;
+	}
+	
+	public JSONObject toJson() {		
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		JSONObject triggerJson=new JSONObject();
+    	JSONObject factorJson;
+		try {
+    		triggerJson.put("triggerTemplateID", getTriggerTemplateID());  
+         	for (TriggerTemplateFactor factor:getTriggerTemplateFactorList()) {
+		    	factorJson= new JSONObject(); 
+		    	factor.toJson();		    	
+		    	triggerJson.accumulate("factorList",factorJson);			
+			}
+         	
+         	for (TriggerTemplateReact react:getTriggerTemplateReactList()) {
+		    	factorJson= new JSONObject(); 
+		    	react.toJson();		    	
+		    	triggerJson.accumulate("reactList",factorJson);			
+			}     	
+        	
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}			
+		return triggerJson;		
+	}
+	
 	
 	/*** 
 	 * Save  to Mysql:
@@ -73,8 +132,8 @@ public class RegulationTemplate {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		for (RegulationTemplateFactor ft:this.regulationTemplateFactorList) {
-			String sql="insert into "+regulationFactorTable
+		for (TriggerTemplateFactor ft:this.triggerTemplateFactorList) {
+			String sql="insert into "+triggerFactorTable
 					+" (regularid  ,"     
 					+"logicalrelation,"
 					+"roomtype ,"
@@ -89,7 +148,7 @@ public class RegulationTemplate {
 					+ ")"				
 					+"values "
 					+ "("
-					+this.regulationTemplateID+",'"
+					+this.triggerTemplateID+",'"
 					+ft.getLogicalRelation()+"',"
 					+ft.getRoomType()+","
 					+ft.getFactorID()+","
@@ -106,8 +165,8 @@ public class RegulationTemplate {
 			if(count>0) System.out.println("insert success"); 	
 		}			
 	
-		for (RegulationTemplateReact react:this.regulationTemplateReactList) {
-		String sql2="insert into "+regulationReactTable
+		for (TriggerTemplateReact react:this.triggerTemplateReactList) {
+		String sql2="insert into "+triggerReactTable
 				+" (regularid ," 
 				+" reacttype ," 
 				+"targetid ,"
@@ -115,7 +174,7 @@ public class RegulationTemplate {
 				+ ")"				
 				+"values "
 				+ "("
-				+this.regulationTemplateID+","	
+				+this.triggerTemplateID+","	
 				+react.getReactType()+","	
 				+react.getTargetID()+","
 				+react.getReactWay()
@@ -138,7 +197,7 @@ public class RegulationTemplate {
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
-	public	static RegulationTemplate getFromDB(MySqlClass mysql,int regularid)
+	public	static TriggerTemplate getFromDB(MySqlClass mysql,int regularid)
 		{
 			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			try {
@@ -159,7 +218,7 @@ public class RegulationTemplate {
 					+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
 					+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 					+ "  from  "				
-					+regulationFactorTable
+					+triggerFactorTable
 					+" where regularid="+regularid
 					+ ";";
 			System.out.println("query:"+sql);
@@ -170,14 +229,14 @@ public class RegulationTemplate {
 				return null;
 			}
 			String[] resArray=res.split("\n");
-			RegulationTemplate regulationt=new RegulationTemplate();
-			List<RegulationTemplateFactor> factorList=new ArrayList<RegulationTemplateFactor>();
-			RegulationTemplateFactor ft=null;
+			TriggerTemplate triggert=new TriggerTemplate();
+			List<TriggerTemplateFactor> factorList=new ArrayList<TriggerTemplateFactor>();
+			TriggerTemplateFactor ft=null;
 			String[] cells=null;
 			for(String line:resArray){
 				cells=line.split(",");
 				if(cells.length>0){			
-					ft=new RegulationTemplateFactor();	
+					ft=new TriggerTemplateFactor();	
 					ft.setLogicalRelation(cells[1]);
 					ft.setRoomType(Integer.parseInt(cells[2]));
 					ft.setFactorID(Integer.parseInt(cells[3]));
@@ -194,23 +253,23 @@ public class RegulationTemplate {
 					}
 					
 					factorList.add(ft);
-					regulationt.setRegulationTemplateFactorList(factorList);
-					regulationt.setRegulationTemplateID(Integer.parseInt(cells[0]));
+					triggert.setTriggerTemplateFactorList(factorList);
+					triggert.setTriggerTemplateID(Integer.parseInt(cells[0]));
 				}else {
-					System.out.println("ERROR:Columns mismatch between class Profile  and table  "+ regulationFactorTable);
+					System.out.println("ERROR:Columns mismatch between class Profile  and table  "+ triggerFactorTable);
 					return null;				
 				}
 			}			
 			
-			List<RegulationTemplateReact> regulationReactList=new ArrayList<RegulationTemplateReact>();
-			RegulationTemplateReact react=null;
+			List<TriggerTemplateReact> triggerReactList=new ArrayList<TriggerTemplateReact>();
+			TriggerTemplateReact react=null;
 			String sql2="select  "
 					+" regularid ," 
 					+" reacttype ," 
 					+"targetid ,"
 					+"reactway "	
 					+ " from  "	
-					+regulationReactTable
+					+triggerReactTable
 					+" where regularid="+regularid
 					+ ";";
 			System.out.println("query:"+sql2);
@@ -223,26 +282,26 @@ public class RegulationTemplate {
 			String[] resArray2=res2.split("\n");
 			for(String line:resArray2){
 				String [] array=line.split(",");
-				react=new RegulationTemplateReact();
+				react=new TriggerTemplateReact();
 				react.setReactType(Integer.parseInt(array[1]));
 				react.setTargetID(Integer.parseInt(array[2]));
 				react.setReactWay(Integer.parseInt(array[3]));
-				regulationReactList.add(react);
+				triggerReactList.add(react);
 			}	
-			regulationt.setRegulationTemplateReactList(regulationReactList);
+			triggert.setTriggerTemplateReactList(triggerReactList);
 			try {
 				mysql.conn.commit();
 			} catch (SQLException e) {
 				e.printStackTrace();
 			}	
-		 return regulationt;			
+		 return triggert;			
 	}
 	
 	
 	public static void main(String[] args) {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		
-		RegulationTemplate t=getFromDB(mysql, 10005);
+		TriggerTemplate t=getFromDB(mysql, 10005);
 		t.saveToDB(mysql);
 
 	}
