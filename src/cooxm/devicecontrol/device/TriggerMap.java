@@ -24,8 +24,8 @@ public class TriggerMap  extends HashMap<String, Trigger>{
 	private MySqlClass mysql;
 	
 	
-	TriggerMap(){}
-	TriggerMap(Map<String, Trigger> TriggerMap){
+	public TriggerMap(){}
+	public TriggerMap(Map<String, Trigger> TriggerMap){
 		super(TriggerMap);		
 	}
 	
@@ -37,7 +37,7 @@ public class TriggerMap  extends HashMap<String, Trigger>{
    /*** 
    * 从入MYSQL读取情景模式列表
    * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
-   * @table  info_regular
+   * @table  info_trigger
    * @throws SQLException 
     */
 	public static HashMap<String, Trigger> getTriggerMapFromDB(MySqlClass mysql) 
@@ -51,7 +51,7 @@ public class TriggerMap  extends HashMap<String, Trigger>{
 		}
 		String sql="select "
 				+"ctrolid  ,"    			
-				+"regularid  ,"     
+				+"triggerid  ,"     
 				+"logicalrelation ,"
 				+"roomtype ,"
 				+"roomid ,"					
@@ -65,7 +65,7 @@ public class TriggerMap  extends HashMap<String, Trigger>{
 				+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 				+ "  from  "				
 				+Trigger.triggerFactorInfoTable
-				//+" where regularid="+regularid
+				//+" where triggerid="+triggerid
 				//+" and ctrolid="+ctrolID
 				+ ";";
 
@@ -124,13 +124,13 @@ public class TriggerMap  extends HashMap<String, Trigger>{
 		
 		String sql2="select  "
 				+"ctrolid  ,"    			
- 				+" regularid ," 
+ 				+" triggerid ," 
 				+" reacttype ," 
 				+"targetid ,"
 				+"reactway "	
 				+ " from  "	
 				+Trigger.triggerReactInfoTable
-				//+" where regularid="+regularid
+				//+" where triggerid="+triggerid
 				+ ";";
 
 		String res2=mysql.select(sql2);

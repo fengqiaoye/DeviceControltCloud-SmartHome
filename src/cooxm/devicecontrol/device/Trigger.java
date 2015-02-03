@@ -27,11 +27,20 @@ public class Trigger {
 	
 	private List<TriggerFactor>  triggerFactorList;
 	private List<TriggerTemplateReact>   triggerReactList;
+	/** 在一天之内触发的次数*/
+    int times;
 	
-	static String triggerFactorInfoTable="info_regular";
-	static String triggerReactInfoTable ="info_regular_react";
+	static String triggerFactorInfoTable="info_trigger";
+	static String triggerReactInfoTable ="info_trigger_react";
+
 	
 
+	public int getTimes() {
+		return times;
+	}
+	public void setTimes(int times) {
+		this.times = times;
+	}
 	public int getCtrolID() {
 		return ctrolID;
 	}
@@ -90,7 +99,7 @@ public class Trigger {
 			String sql="insert into "+triggerFactorInfoTable
 					+" ("
 					+ "ctrolid ," 
-					+ "regularid ,"     
+					+ "triggerid ,"     
 					+"logicalrelation ,"
 					+"roomtype ,"
 					+"roomid ,"
@@ -128,7 +137,7 @@ public class Trigger {
 		String sql2="insert into "+triggerReactInfoTable
 				+" ("
 				+ "ctrolid ," 
-				+ "regularid ," 
+				+ "triggerid ," 
 				+" reacttype ," 
 				+"targetid ,"
 				+"reactway "
@@ -159,7 +168,7 @@ public class Trigger {
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
-	public	static Trigger getFromDB(MySqlClass mysql,int ctrolID,int regularid)
+	public	static Trigger getFromDB(MySqlClass mysql,int ctrolID,int triggerid)
 		{
 			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			try {
@@ -169,7 +178,7 @@ public class Trigger {
 			}
 			String sql="select "
 					+"ctrolid  ,"    			
-					+"regularid  ,"     
+					+"triggerid  ,"     
 					+"logicalrelation ,"
 					+"roomtype ,"
 					+"roomid ,"					
@@ -183,7 +192,7 @@ public class Trigger {
 					+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 					+ "  from  "				
 					+triggerFactorInfoTable
-					+" where regularid="+regularid
+					+" where triggerid="+triggerid
 					+" and ctrolid="+ctrolID
 					+ ";";
 			System.out.println("query:"+sql);
@@ -232,13 +241,13 @@ public class Trigger {
 			TriggerTemplateReact react=null;
 			String sql2="select  "
 					+"ctrolid  ,"    			
-     				+" regularid ," 
+     				+" triggerid ," 
 					+" reacttype ," 
 					+"targetid ,"
 					+"reactway "	
 					+ " from  "	
 					+triggerReactInfoTable
-					+" where regularid="+regularid
+					+" where triggerid="+triggerid
 					+ ";";
 			System.out.println("query:"+sql2);
 			String res2=mysql.select(sql2);
@@ -378,5 +387,7 @@ public class Trigger {
 		}		
 		return modifyTime;
 	}
+	
+	
 
 }

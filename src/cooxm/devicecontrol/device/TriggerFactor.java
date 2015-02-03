@@ -19,28 +19,32 @@ public class TriggerFactor extends Factor {
 	int roomID;
 	String logicalRelation;
 	int accumilateTime;
+	/**记录该规则是否命中，命中则为ture */
+	Boolean state;
+	
 
+	public Boolean getState() {
+		return state;
+	}
+	public void setState(Boolean state) {
+		this.state = state;
+	}
 	public int getRoomID() {
 		return roomID;
 	}
-
 	public void setRoomID(int roomID) {
 		this.roomID = roomID;
-	}
-	
+	}	
 
 	public String getLogicalRelation() {
 		return logicalRelation;
 	}
-
 	public void setLogicalRelation(String logicalRelation) {
 		this.logicalRelation = logicalRelation;
 	}
-
 	public int getAccumilateTime() {
 		return accumilateTime;
 	}
-
 	public void setAccumilateTime(int accumilateTime) {
 		this.accumilateTime = accumilateTime;
 	}

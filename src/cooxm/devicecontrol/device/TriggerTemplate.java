@@ -27,8 +27,8 @@ public class TriggerTemplate {
 	private List<TriggerTemplateFactor>  triggerTemplateFactorList;
 	private List<TriggerTemplateReact>   triggerTemplateReactList;
 	
-	private static String triggerFactorTable="cfg_regular_template";
-	private static String triggerReactTable="cfg_regular_template_react";
+	private static String triggerFactorTable="cfg_trigger_template";
+	private static String triggerReactTable="cfg_trigger_template_react";
 	
 
 	public int getTriggerTemplateID() {
@@ -134,7 +134,7 @@ public class TriggerTemplate {
 		}
 		for (TriggerTemplateFactor ft:this.triggerTemplateFactorList) {
 			String sql="insert into "+triggerFactorTable
-					+" (regularid  ,"     
+					+" (triggerid  ,"     
 					+"logicalrelation,"
 					+"roomtype ,"
 					+"factorid ,"
@@ -167,7 +167,7 @@ public class TriggerTemplate {
 	
 		for (TriggerTemplateReact react:this.triggerTemplateReactList) {
 		String sql2="insert into "+triggerReactTable
-				+" (regularid ," 
+				+" (triggerid ," 
 				+" reacttype ," 
 				+"targetid ,"
 				+"reactway "
@@ -197,7 +197,7 @@ public class TriggerTemplate {
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
-	public	static TriggerTemplate getFromDB(MySqlClass mysql,int regularid)
+	public	static TriggerTemplate getFromDB(MySqlClass mysql,int triggerid)
 		{
 			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			try {
@@ -206,7 +206,7 @@ public class TriggerTemplate {
 				e1.printStackTrace();
 			}
 			String sql="select "
-					+"regularid  ,"     
+					+"triggerid  ,"     
 					+"logicalrelation ,"
 					+"roomtype ,"
 					+"factorid ,"
@@ -219,7 +219,7 @@ public class TriggerTemplate {
 					+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 					+ "  from  "				
 					+triggerFactorTable
-					+" where regularid="+regularid
+					+" where triggerid="+triggerid
 					+ ";";
 			System.out.println("query:"+sql);
 			String res=mysql.select(sql);
@@ -264,13 +264,13 @@ public class TriggerTemplate {
 			List<TriggerTemplateReact> triggerReactList=new ArrayList<TriggerTemplateReact>();
 			TriggerTemplateReact react=null;
 			String sql2="select  "
-					+" regularid ," 
+					+" triggerid ," 
 					+" reacttype ," 
 					+"targetid ,"
 					+"reactway "	
 					+ " from  "	
 					+triggerReactTable
-					+" where regularid="+regularid
+					+" where triggerid="+triggerid
 					+ ";";
 			System.out.println("query:"+sql2);
 			String res2=mysql.select(sql2);

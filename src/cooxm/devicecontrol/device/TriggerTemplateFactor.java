@@ -67,7 +67,7 @@ public class TriggerTemplateFactor extends FactorTemplate{
 			factor.setMaxValue(factorJson.getInt("maxValue"));
 			factor.setMaxValue(factorJson.getInt("accumilateTime"));
 			factor.setValidFlag(factorJson.getInt("validFlag"));
-			factor.setCreateTime(sdf.parse(factorJson.getString("createTime")) );
+			factor.setCreateTime(sdf.parse(factorJson.getString("createTime")));
 			factor.setModifyTime(sdf.parse(factorJson.getString("modifyTime")) );
 		} catch (ParseException e) {
 			e.printStackTrace();
