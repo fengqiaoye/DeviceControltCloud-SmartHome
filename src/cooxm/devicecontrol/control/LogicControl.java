@@ -212,7 +212,9 @@ public class LogicControl {
 		this.jedis= new Jedis(redis_ip, redis_port,200);
 		try {
 			this.msgSock=new MsgSocketClient(msg_server_IP, msg_server_port);
-			new Thread((Runnable) this.msgSock).start();
+			if(this.msgSock!=null  && this.msgSock.isConnected()){
+				new Thread((Runnable) this.msgSock).start();
+			}
 			this.profileMap= new ProfileMap(mysql);
 			this.profileSetMap= new ProfileSetMap(mysql);
 			this.deviceMap=new DeviceMap(mysql);

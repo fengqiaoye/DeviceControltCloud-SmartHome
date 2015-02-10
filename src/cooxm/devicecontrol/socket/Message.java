@@ -2,6 +2,7 @@
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.text.DateFormat;
@@ -15,7 +16,7 @@ import org.json.JSONObject;
 import cooxm.devicecontrol.util.BytesUtil;
 
 public class Message extends Header {
-	
+	public static final short COMMAND_ACK_OFFSET       		   =  0x4000;
 
 	 //public Header header;
 	 private String cookie;
@@ -36,6 +37,7 @@ public class Message extends Header {
 	public Message(){}
 	
 	public Message(Message msg){
+		this.headTag=msg.headTag;
 		this.mainVersion=msg.mainVersion;
 		this.subVersion=msg.subVersion;
 		this.msgLen=msg.msgLen;
@@ -129,9 +131,9 @@ public class Message extends Header {
     	super.cookieLen=(short) cookie.length();
     	super.msgLen=(short) ((short) cookie.length()+json2.toString().length());
 	}
-	public boolean isValid() {   
+	/*public boolean isValid() {   
 		return this.isValid();
-	}
+	}*/
     
    public String msgToString(){
 	   String out=new String();
@@ -232,12 +234,20 @@ public class Message extends Header {
     
 	public static Message readFromClient(Socket clientRequest) 
     {  
+		if(clientRequest==null){
+			return null;
+		}
 		byte[] b23=new byte[23]; 
 		Header head=new Header();
 		Message msg=new Message();
     	try {
-			clientRequest.getInputStream().read(b23,0,23);
+			InputStream inputsream = clientRequest.getInputStream();//.read(b23,0,23);
+			if(inputsream.available()>=23){
+				inputsream.read(b23,0,23);
 			head=new Header(b23);
+			}else{
+				return null;
+			}
 			//head.printHeader();
 		} catch (IOException e) {
 			e.printStackTrace();

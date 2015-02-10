@@ -27,8 +27,8 @@ public class Header{
  	/*保留字段*/	
 	 protected int reserve; 
 
- 	private static final int commandMax=0x19FF;
- 	private static final int commandMin=0x1600;	
+ 	public static final int commandMax=0x19FF;
+ 	public static final int commandMin=0x1600;	
  	
  	
 

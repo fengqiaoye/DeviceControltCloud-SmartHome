@@ -43,7 +43,7 @@ public class CtrolSocketServer {
      * @key clientID
      * @value clientIP
      */
-	public static Map<Integer,String> clientMap;
+	public static Map<Integer,Server> clientMap;
 	
    // public static BlockingQueue<Message> receiveCommandQueue;
    // public static BlockingQueue<Message> sendCommandQueue;
@@ -59,10 +59,6 @@ public class CtrolSocketServer {
 		threadMap= new HashMap<String,Thread>();
 		
 		int serverPort=Integer.parseInt(config.getValue("server_port"));
-		//int max_send_msg_queue=Integer.parseInt(config.getValue("max_send_msg_queue"));
-		//int max_recv_msg_queue=Integer.parseInt(config.getValue("max_recv_msg_queue"));
-		//sendCommandQueue= new ArrayBlockingQueue<Message>(max_send_msg_queue);
-		//receiveCommandQueue= new ArrayBlockingQueue<Message>(max_recv_msg_queue);
 		sendCommandQueue=SendCommandQueue.getInstance();
 		receiveCommandQueue=ReceiveCommandQueue.getInstance();
         try{
@@ -77,7 +73,7 @@ public class CtrolSocketServer {
 	}
 	
 	public static  void initclientMap(Config cf){
-		clientMap=new HashMap<Integer, String>();
+		clientMap=new HashMap<Integer, Server>();
 		String mysql_ip			=cf.getValue("mysql_ip");
 		String mysql_port		=cf.getValue("mysql_port");
 		String mysql_user		=cf.getValue("mysql_user");
@@ -87,8 +83,11 @@ public class CtrolSocketServer {
 		MySqlClass mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
 		
 		String sql="select  "
-				+" serverid       ,"
-				+"serverip "
+				+" serverid  ,"				
+				+"serverip ,"
+				+"serverport ,"
+				+"servertype ,"
+				+"clusterid "
 				+ "  from "				
 				+"info_server"
 				+ ";";
@@ -104,12 +103,12 @@ public class CtrolSocketServer {
 		String[] resArray=res.split("\n");
 		for(String line:resArray){
 			String[]  cells=line.split(",");
-		  clientMap.put(Integer.parseInt(cells[0]), cells[1]);
-		}		
-		//System.out.println("1");
+			Server server=new Server(cells[1], Integer.parseInt(cells[2]), Integer.parseInt(cells[3]), Integer.parseInt(cells[4]));
+		  clientMap.put(Integer.parseInt(cells[0]), server);
+		}	
 	}
 	
-
+	
 	
 	public void listen() throws IOException, Exception  
 	{
@@ -148,9 +147,7 @@ public class CtrolSocketServer {
     public static void main(String [] args) throws IOException, Exception      
     {  
     	Config cf = new Config();
-		//new CtrolSocketServer(cf).listen();
-    	initclientMap(cf);    	
-    }
-
-    
+		new CtrolSocketServer(cf).listen();
+    	//initclientMap(cf);    	
+    }    
 }

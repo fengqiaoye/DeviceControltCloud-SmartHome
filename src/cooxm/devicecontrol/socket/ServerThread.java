@@ -7,6 +7,9 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
@@ -58,87 +61,86 @@ public class ServerThread extends Thread  {
 
         while (true)  
         { 
+            msg= Message.readFromClient(clientRequest);
+            if(msg!=null){
+            	switch (msg.getCommandID()) {
+				case 0x1101:
+					authenrize(msg);
+					break;
+				case 0x1102:
+					replyHeartBeat(msg);
+					break;
+				default:
+		            try {
+						CtrolSocketServer.receiveCommandQueue.offer(msg,100, TimeUnit.MICROSECONDS);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+					break;
+				}
+
+            }
         	if(!CtrolSocketServer.sendCommandQueue.isEmpty()){
         		Message outMsg=null;
 				try {
 					outMsg=CtrolSocketServer.sendCommandQueue.peek();
 					String clientIP=getClientIP(outMsg.getServerID());
 					if(null!=outMsg && clientRequest.getInetAddress().getHostAddress()==clientIP ){
+						
 						outMsg = CtrolSocketServer.sendCommandQueue.poll(100, TimeUnit.MICROSECONDS);
 						outMsg.writeToSock(clientRequest);
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
-				}       		     		
+				} 				
         	}
         	
-            msg= Message.readFromClient(clientRequest);
-           
-			//readTest(); 
-            try {
-				CtrolSocketServer.receiveCommandQueue.offer(msg,100, TimeUnit.MICROSECONDS);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+
         }   
     } 
     
 	public String getClientIP(int clientID){
-		return CtrolSocketServer.clientMap.get(clientID);		
+		Server server= CtrolSocketServer.clientMap.get(clientID);
+		return server.getServerIP();
 	}
-    
-/*	private void readTest() 
-    {  
-		byte[] b2=new byte[50]; 
+	
+	/**回复心跳 */
+	public void replyHeartBeat(Message heartBeatMsg){
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		Message replyMsg=new Message(heartBeatMsg);
+		replyMsg.setCommandID((short) (heartBeatMsg.getCommandID()+Message.COMMAND_ACK_OFFSET));
+		JSONObject json=new JSONObject();
 		try {
-			clientRequest.getInputStream().read(b2,0,2);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			json.put("uiTime", sdf.format(new Date()));
+			replyMsg.setJson(json);
+			System.out.println("Beat  : "+replyMsg.msgToString());
+			CtrolSocketServer.receiveCommandQueue.offer(msg,100, TimeUnit.MICROSECONDS);
+		} catch (JSONException e) {
 			e.printStackTrace();
-		}
-		
-		System.out.println("B2: "+b2[0]+","+b2[1]);
-		//byte[] b2={b2[0],b2[1]};
-		System.out.println("B2 int: "+BytesUtil.getShort(b2) );
-		System.out.println("B2 int: "+BytesUtil.bytesToShort(b2) );
-		System.out.println("String:"+new String(b2));
-		
-		byte[] b50=new byte[50]; 
-		try {
-			//clientRequest.getInputStream().read(b50,0,50);
-			System.out.println(new String(b2,"UTF-8"));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
-		
-		try {
-			Thread.sleep(5000);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}		
-    }*/
-
-    
-    /*private String readFromClient2()  
-    {        
-        try  
-        {  
-        	str = input.readLine(); 
-            return str;  
-        }  
-        //如果捕捉到异常，表明该Socket对应的客户端已经关闭  
-        catch (IOException e)  
-        {  
-            //删除该Socket。  
-            CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress());    //① 
-            //System.out.println("error:exception happened,connection from "+clientRequest.getInetAddress().getHostAddress() + " has been closed!");  
-        }  
-        return null;  
-    } */
-      
+	}
+	
+	public void authenrize(Message msg){
+		try {
+			int serverID = msg.getJson().getInt("uiServerID");
+			int serverType=msg.getJson().getInt("usServerType");	
+			if(CtrolSocketServer.clientMap.get(serverID).getServerType()==serverType){
+				JSONObject json=new JSONObject();
+				json.put("errorCode", 0);
+				Message replyMsg=new Message(msg);
+				replyMsg.setCommandID((short) (msg.getCommandID()+Message.COMMAND_ACK_OFFSET));
+				replyMsg.setJson(json);
+				System.out.println("Auth  : "+replyMsg.msgToString());
+				CtrolSocketServer.receiveCommandQueue.offer(msg,100, TimeUnit.MICROSECONDS);
+			}
+		} catch (JSONException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} 		
+	}      
 }  
 
 

@@ -1,6 +1,12 @@
 ﻿package cooxm.devicecontrol.util;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.nio.charset.Charset;
+
 
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
@@ -130,5 +136,22 @@ public class BytesUtil {
 	    	byte[] bchar=getBytes(ch);
 	    	System.out.println(bchar[0]+","+bchar[1]);
 		}
-
+		
+/* ------------- 深度复制  ----------------------------*/
+		public static Object depthClone(Object srcObj){ 
+			Object cloneObj = null; 
+			try { 
+				ByteArrayOutputStream out = new ByteArrayOutputStream(); 
+				ObjectOutputStream oo = new ObjectOutputStream(out); 
+				oo.writeObject(srcObj); 
+				ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray()); 
+				ObjectInputStream oi = new ObjectInputStream(in); 
+				cloneObj = oi.readObject(); 
+			} catch (IOException e) { 
+				e.printStackTrace(); 
+			} catch (ClassNotFoundException e) { 
+				e.printStackTrace(); 
+			} 
+			return cloneObj; 
+		}
 }

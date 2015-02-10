@@ -58,6 +58,7 @@ public class TriggerFactor extends Factor {
 		this.logicalRelation=logicalRelation;
 		this.accumilateTime=accumilateTime;
 		this.roomID = roomID;
+		this.state=false;
 	}
 
 	public TriggerFactor() {

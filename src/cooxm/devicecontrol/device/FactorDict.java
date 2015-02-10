@@ -156,6 +156,12 @@ public class FactorDict {
 	
 
 
+	public FactorDict(int factorID, String factorName) {
+		super();
+		this.factorID = factorID;
+		this.factorName = factorName;
+	}
+
 	public FactorDict(int factorID, Date createTime, Date modifyTime) {
 		this.factorID = factorID;
 		this.createTime = createTime;

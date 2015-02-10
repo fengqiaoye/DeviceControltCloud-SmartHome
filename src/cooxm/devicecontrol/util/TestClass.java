@@ -15,12 +15,16 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.List;
+import java.util.function.Predicate;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import cooxm.devicecontrol.device.TriggerFactor;
 import cooxm.devicecontrol.socket.Header;
 import cooxm.devicecontrol.socket.Message;
 import redis.clients.jedis.Jedis;
@@ -215,6 +219,39 @@ public class TestClass {
 		return ip;
 	}
 	
+	public static void testPredicate(){
+		List<Integer> strList=new ArrayList<Integer>();
+		strList.add(5);
+		strList.add(1001);
+		strList.add(1002);
+		final Predicate< Integer> filter=new Predicate<Integer>() {
+			@Override
+			public boolean test(Integer t) {
+				if(t>4){
+				    return true;
+				}else{
+					return false;
+				}
+			}				
+		};		
+		strList.removeIf(filter);
+		System.out.println(strList.size()+strList.toString());
+		
+	}
+	
+	void inetAddress(){
+		InetAddress remoteaddress;
+		InetAddress localaddress;
+		try {
+			localaddress = InetAddress.getByName(getLocalIP());	
+			remoteaddress = InetAddress.getByName("172.16.35.174");			
+			//printReachableIP(remoteaddress, 6379);
+			Boolean b=isReachable(localaddress, remoteaddress, 6379, 5000);
+			System.out.println(b);
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+	}
 
 	public static void main(String[] args) {
 //		String str1="{\"student\":[{\"name\":\"leilei\",\"age\":23},{\"name\":\"leilei02\",\"age\":23}]}";
@@ -230,21 +267,20 @@ public class TestClass {
 		
 		//referenceTest();
 		
-	//	sendMsgTest();
+	//	sendMsgTest();	
 		
-
-//		InetAddress remoteaddress;
-//		InetAddress localaddress;
-//		try {
-//			localaddress = InetAddress.getByName(getLocalIP());	
-//			remoteaddress = InetAddress.getByName("172.16.35.174");			
-//			//printReachableIP(remoteaddress, 6379);
-//			Boolean b=isReachable(localaddress, remoteaddress, 6379, 5000);
-//			System.out.println(b);
-//		} catch (UnknownHostException e) {
-//			e.printStackTrace();
-//		}
 		
+		
+//		testPredicate();
+		
+		Date date=new Date(0);
+		
+		
+		int x=(int) (System.currentTimeMillis()/1000);
+	
+		
+		Boolean b= true && (Boolean)null;
+		System.out.println(b);
 
 
 	

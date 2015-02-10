@@ -27,7 +27,7 @@ public class SendCommandQueue  extends ArrayBlockingQueue<Message>{
 	
 	static MySqlClass mysql;
 
-	private static SendCommandQueue instance = new SendCommandQueue(getCapacity());
+	private static SendCommandQueue instance = new SendCommandQueue(3000);//getCapacity());
 	
 	private  SendCommandQueue(int capacity) {
 		super(capacity);	
@@ -54,11 +54,13 @@ public class SendCommandQueue  extends ArrayBlockingQueue<Message>{
     public boolean offer(Message msg){
     	Event event=new Event(msg);
     	checkMysql();
-     	try {
-			event.toReplyDB(mysql);
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+    	if(msg.isValid()){
+	     	try {
+				event.toReplyDB(mysql);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+    	}
      	return super.offer(msg);
 
     }

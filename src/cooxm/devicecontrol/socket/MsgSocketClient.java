@@ -33,7 +33,7 @@ public class MsgSocketClient extends Socket implements Runnable {
     
     public static Logger log = Logger.getLogger(CtrolSocketServer.class);  
 	/**用户连接的通信套接字*/  
-    static Socket sock;
+    static Socket sock=null;
     BufferedReader input;
 	
     public Socket getSock() {
@@ -123,7 +123,9 @@ public class MsgSocketClient extends Socket implements Runnable {
 	public void run() {
         while(true){
      	   Message msg=Message.readFromClient(sock);
-     	   decodeMsg(msg);
+     	   if(msg!=null){
+     		   decodeMsg(msg);
+     	   }
         }
    }
 	

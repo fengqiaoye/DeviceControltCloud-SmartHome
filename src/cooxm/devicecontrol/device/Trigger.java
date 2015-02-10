@@ -10,7 +10,6 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -68,6 +67,12 @@ public class Trigger {
 		this.triggerReactList = triggerReactList;
 	}
 	public Trigger(){}
+	public Trigger(Trigger trigger){
+		this.ctrolID=trigger.ctrolID;		
+		this.triggerID = trigger.triggerID;
+		this.triggerFactorList = trigger.triggerFactorList;
+		this.triggerReactList = trigger.triggerReactList;
+	}
 	
 	public Trigger(int ctrolID,int triggerID,
 			List<TriggerFactor> triggerFactorList,
@@ -226,6 +231,7 @@ public class Trigger {
 					} catch (ParseException e) {
 						e.printStackTrace();
 					}
+					ft.setState(false);
 					
 					factorList.add(ft);
 					triggert.setTriggerFactorList(factorList);
@@ -275,14 +281,7 @@ public class Trigger {
 		 return triggert;			
 	}
 	
-	
-	public static void main(String[] args) {
-		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
-		
-		Trigger T=getFromDB(mysql, 1234567,1025);
-		T.saveToDB(mysql);
 
-	}
 	public static int deleteFromDB(MySqlClass mysql, int ctrolID,	int triggerID) {
 		try {
 			mysql.conn.setAutoCommit(false);
@@ -388,6 +387,15 @@ public class Trigger {
 		return modifyTime;
 	}
 	
+
 	
+	public static void main(String[] args) {
+		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+		
+		Trigger T=getFromDB(mysql, 1234567,1025);
+		T.saveToDB(mysql);
+
+	}
+
 
 }

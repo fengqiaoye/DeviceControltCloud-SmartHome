@@ -27,7 +27,7 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
 	private static final long serialVersionUID = -8076018759025681161L;
 
 	static MySqlClass mysql;
-	private static ReceiveCommandQueue instance = new ReceiveCommandQueue(getCapacity());
+	private static ReceiveCommandQueue instance = new ReceiveCommandQueue(3000);//getCapacity());
 	
 	private  ReceiveCommandQueue(int capacity) {
 		super(capacity);	
@@ -54,7 +54,9 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
     public boolean offer(Message msg, long time, TimeUnit unit) throws InterruptedException {
     	Event event=new Event(msg);
     	checkMysql();
-     	event.toReceiveDB(mysql);
+    	if(msg.isValid()){
+    		event.toReceiveDB(mysql);
+    	}
 		return super.offer(msg,time,unit);
     }
     
