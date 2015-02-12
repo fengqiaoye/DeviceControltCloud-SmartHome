@@ -33,7 +33,7 @@ import cooxm.devicecontrol.device.Trigger;
 import cooxm.devicecontrol.device.TriggerMap;
 import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.socket.Message;
-import cooxm.devicecontrol.socket.MsgSocketClient;
+import cooxm.devicecontrol.socket.SocketClient;
 import cooxm.devicecontrol.util.MySqlClass;
 import redis.clients.jedis.Jedis;
 
@@ -180,7 +180,7 @@ public class LogicControl {
 	/***********************   resource needed   ************************/	
 	static Logger log= Logger.getLogger(LogicControl.class);
 	static MySqlClass mysql=null;
-	Socket msgSock=null;
+	SocketClient msgSock=null;
 	Jedis jedis=null;// new Jedis("172.16.35.170", 6379,200);
 	ProfileMap profileMap =null;
 	ProfileSetMap profileSetMap =null;
@@ -210,9 +210,9 @@ public class LogicControl {
 		
 		mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
 		this.jedis= new Jedis(redis_ip, redis_port,200);
-		try {
-			this.msgSock=new MsgSocketClient(msg_server_IP, msg_server_port);
-			if(this.msgSock!=null  && this.msgSock.isConnected()){
+		try{
+			this.msgSock=new SocketClient(msg_server_IP, msg_server_port);		
+			if(this.msgSock!=null  && this.msgSock.sock.isConnected()){
 				new Thread((Runnable) this.msgSock).start();
 			}
 			this.profileMap= new ProfileMap(mysql);
@@ -226,7 +226,7 @@ public class LogicControl {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+		} 
 		log.info("Initialization of map successful :  profileMap,size="+profileMap.size()
 				+";profileSetMap size="+profileMap.size()
 				+"; deviceMap, size="+deviceMap.size()
@@ -1199,8 +1199,8 @@ public class LogicControl {
 	  }
 	  */
 	public void send_warning_msg(final Message msg){
-		if(this.msgSock!=null &&  !this.msgSock.isOutputShutdown()  && !this.msgSock.isClosed())
-		msg.writeBytesToSock(this.msgSock);		
+		if(this.msgSock!=null &&  !this.msgSock.sock.isOutputShutdown()  && !this.msgSock.sock.isClosed())
+		msg.writeBytesToSock(this.msgSock.sock);		
 	}   
 	
     /*** 请求触发模板

@@ -74,14 +74,14 @@ public class CtrolSocketServer {
         	log.info(" Listening at port:"+severSock.getLocalPort()+"...");
         	Socket sock = severSock.accept();
         	 InetAddress clientAdress=sock.getInetAddress();
-        	log.info(" Accept connection from client:"+clientAdress.getHostAddress()+"("+clientAdress.getHostName()+")");  
-        	//sockMap.put(clientAdress.getHostAddress(), sock);
+        	 int count=severMap.size()+1;
+        	log.info(" Accept the "+ count +"th connection from client:"+clientAdress.getHostAddress()+"("+clientAdress.getHostName()+")");  
+
 
             ReadThread rt = new ReadThread(sock);    
        		rt.start(); 
        		WriteThread wr=new  WriteThread(sock);
        		wr.start();
-       		log.info(" Started the "+severMap.size()+"th socket!");
         }
 	}
 	
@@ -118,7 +118,17 @@ public class CtrolSocketServer {
 						}
 						break;
 					}
-	            }	            
+	            }else{   //socket关闭
+	            	try {
+						
+						sockMap.remove(this.serverID);
+						severMap.remove(this.serverID);
+						this.socket.close();
+						log.info("socket closed :"+this.socket.getInetAddress().getHostAddress()+",serverID: "+serverID);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+	            }
 	        }	
 		}
 	}
@@ -140,7 +150,7 @@ public class CtrolSocketServer {
 						outMsg=CtrolSocketServer.sendCommandQueue.peek();
 						if(null!=outMsg){
 							int serverID=outMsg.getServerID();	
-							System.out.println("write Thread: size of sockMap: "+sockMap.size());
+							//System.out.println("write Thread: size of sockMap: "+sockMap.size());
 							 if(serverID>0 && null!=sockMap.get(serverID)){							
 								outMsg = CtrolSocketServer.sendCommandQueue.take();//poll(100, TimeUnit.MICROSECONDS);
 								System.out.println("write Thread: size of sendCommandQueue: "+CtrolSocketServer.sendCommandQueue.size()+"\nSend  :"+outMsg.msgToString());
@@ -204,7 +214,6 @@ public class CtrolSocketServer {
 
 				CtrolSocketServer.sendCommandQueue.offer(msg,100, TimeUnit.MICROSECONDS);
 				log.info("anth faild: "+replyMsg.toString());
-				//replyMsg.writeToSock(sock);
 				Thread.sleep(5000);
 				sock.close();
 				return serverID;
@@ -292,21 +301,15 @@ public class CtrolSocketServer {
 				//inputsream.read(b23,0,23);
 			   head=new Header(b23);
 			}else{
-				log.error("Null socket:"+clientRequest.getInetAddress().getHostAddress()+", will be closed.");
-				clientRequest.close();
+				log.error("Read Null from socket:"+clientRequest.getInetAddress().getHostAddress());
 				return null;
 			}
 			//head.printHeader();
 		} catch (IOException e) {
-			log.error("Null socket:"+clientRequest.getInetAddress().getHostAddress()+" , will be closed.");
+			log.error("IOException socket:"+clientRequest.getInetAddress().getHostAddress()+" , socket will be closed.");
 			e.printStackTrace();
-			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress());  
-			log.error("socket:"+clientRequest.getInetAddress().getHostAddress()+" has been removed from sockmap.");
-			try {
-				clientRequest.close();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
+//			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress());  
+//			log.error("socket:"+clientRequest.getInetAddress().getHostAddress()+" has been removed from sockmap.");
 			return null;			
 		}
     	

@@ -21,7 +21,7 @@ import org.json.JSONException;
 
 
 
-public class MsgSocketClient extends Socket implements Runnable {
+public class SocketClient implements Runnable {
 
 	private static final short ACK_OFFSET = 0x4000;
 	private static final short CMDCODE_RESERVED_FOR_COMMON_BEGIN 		= 0x1100;
@@ -33,48 +33,133 @@ public class MsgSocketClient extends Socket implements Runnable {
     
     public static Logger log = Logger.getLogger(CtrolSocketServer.class);  
 	/**用户连接的通信套接字*/  
-    static Socket sock=null;
+    public Socket sock=null;
     BufferedReader input;
+    String IP;
+    int port;
 	
     public Socket getSock() {
 		return sock;
 	}
-
 	public void setSock(Socket sock) {
 		this.sock = sock;
 	}
 
-	public MsgSocketClient(String IP,int port) throws UnknownHostException, IOException  
-    {   
+	public SocketClient(String IP,int port) throws UnknownHostException, IOException  
+    {   this.IP=IP;
+        this.port=port;
     	log.info("starting connect to  message server...");
-		InetAddress remoteaddress;
-		InetAddress localaddress;
-        try  
-        { 
-			localaddress =InetAddress.getByName("0.0.0.0");// InetAddress.getByName(getLocalIP());	
-			remoteaddress = InetAddress.getByName(IP);
-			Boolean b=isReachable(localaddress, remoteaddress, port, 5000);
-        	if(b){
-        		sock = new Socket(IP, port);
-    			input=new BufferedReader(new InputStreamReader(sock.getInputStream()));	
-    			
-        		Header header=Message.getOneHeaer((short)CMD__Identity_REQ);
-        		String jsonStr="{\"uiClusterID\":1,\"usServerType\":201,\"uiServerID\":6}";
-        		Message authMsg=new Message(header, "", jsonStr);
-        		authMsg.writeBytesToSock(sock);
-        		System.out.println("Send to MsgServer : "+authMsg.msgToString());
-        		//new readThread(sock).run();
-
-        	}else{
-        		log.error("Initialize MsgSocketClient failed, during to connetion to remote host "+IP+":"+port+" failed.");
-        	}
-
-        } catch (IOException e)  
-        {  
-            System.out.println(e.getMessage());  
-        }
+		sock = new Socket(IP, port);
+		if(sock!=null){
+			sendAuth();
+		}
     } 
+	
+	public void sendAuth(){
+		try {
+			input=new BufferedReader(new InputStreamReader(sock.getInputStream()));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}					
+		Header header=Message.getOneHeaer((short)CMD__Identity_REQ);
+		String jsonStr="{\"uiClusterID\":1,\"usServerType\":201,\"uiServerID\":6}";
+		Message authMsg=new Message(header, "", jsonStr);
+		authMsg.writeBytesToSock(sock);
+		System.out.println("Send to MsgServer : "+authMsg.msgToString());		
+	}
     
+
+	
+	public static String getLocalIP(){
+		InetAddress addr;
+		String ip=null;
+		try {
+			addr = InetAddress.getLocalHost();
+			ip=addr.getHostAddress().toString();
+			
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		}
+		return ip;
+	}
+	
+
+	@Override
+	public void run() {
+        while(true){
+     	   Message msg=CtrolSocketServer.readFromClient(sock);
+     	   if(msg!=null){
+     		   decodeMsg(msg);
+     	   }else{
+     		   try {
+				sock.close();
+				Thread.sleep(10*1000);
+				sock=new Socket(IP, port);
+				if(sock!=null){
+					sendAuth();
+				}
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+     	   }
+        }
+   }
+	
+/*	public  class ReadThread extends Thread
+	{
+		private Socket socket;
+		
+		public ReadThread(Socket client)
+		{socket = client;}
+		
+		public void run()
+		{
+           while(true){
+        	   Message msg=CtrolSocketServer.readFromClient(socket);
+        	   decodeMsg(msg);
+           }
+        }	
+	}	*/
+	
+	public  void decodeMsg(Message msg){
+		short commandID=msg.commandID;
+		switch (commandID) {
+		case CMD__Identity_ACK:			
+			break;
+		case CMD__HEARTBEAT_REQ:
+			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			try {
+				msg.getJson().put("uiTime", sdf.format(new Date()));
+				msg.msgLen=msg.getMsgLength();
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			msg.commandID=CMD__HEARTBEAT_ACK;
+			msg.writeBytesToSock(this.sock);
+			System.out.println("Send to MsgServer : "+msg.msgToString());
+			break;
+		default:
+			break;
+		}
+		
+	}
+	
+	public void start(SocketClient msgSock){
+	    try {
+	        while (true) {
+	        	if(sock==null ||sock.isClosed()){
+	        		msgSock= new SocketClient(IP, port);
+	        	}else{
+	        		new Thread(msgSock).start();
+	        	}
+	        }
+	      } catch (IOException e) {	    	  
+	        e.printStackTrace();
+	      } 
+	}
+	
 	public static boolean isReachable(InetAddress localInetAddr, InetAddress remoteInetAddr,int port, int timeout) { 		
 		boolean isReachable = false; 
 		Socket socket = null; 
@@ -104,79 +189,15 @@ public class MsgSocketClient extends Socket implements Runnable {
 		} 
 		return isReachable; 
 	}
-	
-	public static String getLocalIP(){
-		InetAddress addr;
-		String ip=null;
-		try {
-			addr = InetAddress.getLocalHost();
-			ip=addr.getHostAddress().toString();
-			
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		}
-		return ip;
-	}
-	
-
-	@Override
-	public void run() {
-        while(true){
-     	   Message msg=CtrolSocketServer.readFromClient(sock);
-     	   if(msg!=null){
-     		   decodeMsg(msg);
-     	   }
-        }
-   }
-	
-	public  class ReadThread extends Thread
-	{
-		private Socket socket;
-		
-		public ReadThread(Socket client)
-		{socket = client;}
-		
-		public void run()
-		{
-           while(true){
-        	   Message msg=CtrolSocketServer.readFromClient(socket);
-        	   decodeMsg(msg);
-           }
-        }	
-	}	
-	
-	public  void decodeMsg(Message msg){
-		short commandID=msg.commandID;
-		switch (commandID) {
-		case CMD__Identity_ACK:			
-			break;
-		case CMD__HEARTBEAT_REQ:
-			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			try {
-				msg.getJson().put("uiTime", sdf.format(new Date()));
-				msg.msgLen=msg.getMsgLength();
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-			msg.commandID=CMD__HEARTBEAT_ACK;
-			msg.writeBytesToSock(MsgSocketClient.sock);
-			System.out.println("Send to MsgServer : "+msg.msgToString());
-			break;
-		default:
-			break;
-		}
-		
-	}
    
     public static void main(String [] args)       
     {  
 
     	try {
-			MsgSocketClient msgSock= new MsgSocketClient("172.16.35.174", 10790);
+			SocketClient msgSock= new SocketClient("172.16.35.174", 10790);
 			new Thread(msgSock).start();
 			//msgSock.new ReadThread(sock).start();
-			
-		    System.out.println(" i love you "); 
+			//msgSock.start(msgSock);
 		    
 		} catch (UnknownHostException e) {
 			e.printStackTrace();
