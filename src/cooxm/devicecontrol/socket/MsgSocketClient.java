@@ -122,7 +122,7 @@ public class MsgSocketClient extends Socket implements Runnable {
 	@Override
 	public void run() {
         while(true){
-     	   Message msg=Message.readFromClient(sock);
+     	   Message msg=CtrolSocketServer.readFromClient(sock);
      	   if(msg!=null){
      		   decodeMsg(msg);
      	   }
@@ -139,7 +139,7 @@ public class MsgSocketClient extends Socket implements Runnable {
 		public void run()
 		{
            while(true){
-        	   Message msg=Message.readFromClient(socket);
+        	   Message msg=CtrolSocketServer.readFromClient(socket);
         	   decodeMsg(msg);
            }
         }	

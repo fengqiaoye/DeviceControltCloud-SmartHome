@@ -9,30 +9,45 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.apache.log4j.Logger;
 import org.json.CookieList;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.mysql.jdbc.log.Log;
+
+import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.BytesUtil;
 
 public class Message extends Header {
 	public static final short COMMAND_ACK_OFFSET       		   =  0x4000;
-
+	static Logger log= Logger.getLogger(LogicControl.class);
 	 //public Header header;
-	 private String cookie;
+	 private String cookie=null;
 	 private JSONObject json;
+	 int serverID=-1;
+
+
 	 
+	public void setServerID(int serverID) {
+		this.serverID = serverID;
+	}	
+	public int getServerID() {
+		return serverID;
+	}
 	public String getCookie() {
 		return cookie;
 	}
 	public void setCookie(String cookie) {
 		this.cookie = cookie;
+		this.msgLen=(short) ((short) cookie.length()+this.json.toString().length());
 	}
 	public JSONObject getJson() {
 		return json;
 	}
 	public void setJson(JSONObject json) {
 		this.json = json;
+		this.msgLen=(short) ((short) cookie.length()+json.toString().length());
 	}
 	public Message(){}
 	
@@ -171,7 +186,7 @@ public class Message extends Header {
    
    /** <pre> 根据cookie获取发送命令的serverID
     * 如果cookie为空则返回 -1 */
-   public int getServerID() {
+   /*public int getServerID() {
 	   int serverID=-1;
 	   if(this.cookie==null){
          return -1;
@@ -179,7 +194,7 @@ public class Message extends Header {
 		   serverID=Integer.parseInt(this.cookie.split("_")[1]);
 	   }	   
 	return serverID;	
-   }
+   }*/
    
    public int getSequenceNO() {
 	   int SequenceNO=-1;
@@ -212,7 +227,7 @@ public class Message extends Header {
 		}    	
     }
     
-    public void writeToSock(Socket sock){
+ /*   public void writeToSock(Socket sock){
     	try {
 			DataOutputStream dataout= new DataOutputStream(sock.getOutputStream());
 			   dataout.writeUTF(  	this.headTag            )  ;
@@ -230,54 +245,9 @@ public class Message extends Header {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}    	
-    }
+    }*/
     
-	public static Message readFromClient(Socket clientRequest) 
-    {  
-		if(clientRequest==null){
-			return null;
-		}
-		byte[] b23=new byte[23]; 
-		Header head=new Header();
-		Message msg=new Message();
-    	try {
-			InputStream inputsream = clientRequest.getInputStream();//.read(b23,0,23);
-			if(inputsream.available()>=23){
-				inputsream.read(b23,0,23);
-			head=new Header(b23);
-			}else{
-				return null;
-			}
-			//head.printHeader();
-		} catch (IOException e) {
-			e.printStackTrace();
-			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress());  
-		}
-    	
-    	
-    	byte[] cookie=new byte[head.cookieLen];
-    	try {
-			clientRequest.getInputStream().read(cookie,0,head.cookieLen);
-		} catch (IOException e) {			
-			e.printStackTrace();
-			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress()); 
-		}
-    	String cookieStr=new String(cookie);
-    	//System.out.print(" cookie: "+cookieStr);    
-    	
-    	byte[] commnad=new byte[head.msgLen-head.cookieLen];
-    	try {
-			clientRequest.getInputStream().read(commnad,0,head.msgLen-head.cookieLen);
-		} catch (IOException e) {
-			e.printStackTrace();
-			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress()); 
-			System.out.println("error:exception happened,connection from "+clientRequest.getInetAddress().getHostAddress() + " has been closed!");
-		}  
-    	String comString=new String(commnad);
-    	msg=new Message(head, cookieStr, comString);
-    	System.out.println("Recv  : "+msg.msgToString());
-        return msg; 
-    } 
+
 	
 	public short getMsgLength(){
 		return (short)(this.cookie.length()+this.json.toString().length());

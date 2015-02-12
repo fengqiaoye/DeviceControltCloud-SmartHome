@@ -1,4 +1,7 @@
 package cooxm.devicecontrol.socket;
+
+import java.util.Date;
+
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
  * @version Created：Feb 10, 2015 10:59:08 AM 
@@ -10,6 +13,7 @@ public class Server {
 	private int serverPort;
 	private int serverType;
 	private int clusterid;
+	private Date lastHeartBeatTime;
 	
 	
 	
@@ -39,6 +43,12 @@ public class Server {
 		this.clusterid = clusterid;
 	}
 	
+	public Date getLastHeartBeatTime() {
+		return lastHeartBeatTime;
+	}
+	public void setLastHeartBeatTime(Date lastHeartBeatTime) {
+		this.lastHeartBeatTime = lastHeartBeatTime;
+	}
 	public Server(String serverIP, int serverPort, int serverType,
 			int clusterid) {
 		this.serverIP = serverIP;

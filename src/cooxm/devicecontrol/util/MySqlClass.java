@@ -36,6 +36,7 @@ public class MySqlClass {
        try{
            rs=st.executeQuery(sqlStatement);
            size=st.getResultSet().getMetaData().getColumnCount();
+           
            while(rs!=null && rs.next()){
         	   for(int i=0;i<size;i++){
         		   result=result+rs.getString(i+1);//+",";
@@ -44,10 +45,9 @@ public class MySqlClass {
         		   }
         	   }
         	   result=result+"\n";
-           }
-           
+           }           
            rs.close();
-           return result;
+           return result.substring(0, result.length()-1);
        }catch(Exception e){
            //System.out.println("ERROR:"+e.toString());
     	   logger.error(e.toString(),e);
@@ -101,9 +101,9 @@ public class MySqlClass {
 	   System.out.println(mysql==null?false:true);  
 	   
        //mysql=new MySqlClass("172.20.36.247","3306","realTimeTraffic", "ghchen", "ghchen");
-	   //String s=mysql.select("show databases;");
-	   //String ss=mysql.select("select * from HIS_Mobile_Operation_1507;");
-	   //System.out.println(ss);
+	   String s=mysql.select("show databases like 'information_schema';");
+	   System.out.print(s);System.out.print(s);
+
 	   
  	   
    }

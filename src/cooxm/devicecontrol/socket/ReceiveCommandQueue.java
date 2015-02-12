@@ -52,9 +52,10 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
     
     @Override
     public boolean offer(Message msg, long time, TimeUnit unit) throws InterruptedException {
+    	if(msg.isValid()){
     	Event event=new Event(msg);
     	checkMysql();
-    	if(msg.isValid()){
+    	
     		event.toReceiveDB(mysql);
     	}
 		return super.offer(msg,time,unit);
