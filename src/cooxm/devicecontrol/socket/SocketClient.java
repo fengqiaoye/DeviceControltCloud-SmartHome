@@ -48,21 +48,21 @@ public class SocketClient implements Runnable {
 	public SocketClient(String IP,int port) throws UnknownHostException, IOException  
     {   this.IP=IP;
         this.port=port;
-    	log.info("starting connect to  message server...");
-		sock = new Socket(IP, port);
-		if(sock!=null){
-			sendAuth();
-		}
+        log.info("starting connect to  message server,IP"+IP+" port: "+port);
+
+		this.sock=new Socket(IP,port);
+
+
     } 
 	
-	public void sendAuth(){
+	public void sendAuth(int serverType,int serverID){
 		try {
 			input=new BufferedReader(new InputStreamReader(sock.getInputStream()));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}					
 		Header header=Message.getOneHeaer((short)CMD__Identity_REQ);
-		String jsonStr="{\"uiClusterID\":1,\"usServerType\":201,\"uiServerID\":6}";
+		String jsonStr="{\"uiClusterID\":1,\"usServerType\":"+serverType+",\"uiServerID\":"+serverID+"}";
 		Message authMsg=new Message(header, "", jsonStr);
 		authMsg.writeBytesToSock(sock);
 		System.out.println("Send to MsgServer : "+authMsg.msgToString());		
@@ -87,16 +87,28 @@ public class SocketClient implements Runnable {
 	@Override
 	public void run() {
         while(true){
+        	
+    		try {
+    			if(sock==null ||sock.isClosed()){
+    				log.info("Reconnect to  message server,IP"+IP+" port: "+port);
+    				sock = new Socket(IP, port);
+    				sendAuth(201,6);
+    			}
+    		} catch (UnknownHostException e) {
+    			e.printStackTrace();
+    		} catch (IOException e) {
+    			e.printStackTrace();
+    		}
+    		
      	   Message msg=CtrolSocketServer.readFromClient(sock);
      	   if(msg!=null){
      		   decodeMsg(msg);
      	   }else{
      		   try {
-				sock.close();
-				Thread.sleep(10*1000);
+				Thread.sleep(20*1000);
 				sock=new Socket(IP, port);
 				if(sock!=null){
-					sendAuth();
+					sendAuth(201,6);
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -147,17 +159,13 @@ public class SocketClient implements Runnable {
 	}
 	
 	public void start(SocketClient msgSock){
-	    try {
-	        while (true) {
-	        	if(sock==null ||sock.isClosed()){
-	        		msgSock= new SocketClient(IP, port);
-	        	}else{
-	        		new Thread(msgSock).start();
-	        	}
-	        }
-	      } catch (IOException e) {	    	  
-	        e.printStackTrace();
-	      } 
+	    while (true) {
+			if(sock==null ||sock.isClosed()){
+				//msgSock= new SocketClient(IP, port);
+			}else{
+				new Thread(msgSock).start();
+			}
+		} 
 	}
 	
 	public static boolean isReachable(InetAddress localInetAddr, InetAddress remoteInetAddr,int port, int timeout) { 		
@@ -190,20 +198,23 @@ public class SocketClient implements Runnable {
 		return isReachable; 
 	}
    
-    public static void main(String [] args)       
+    public static void main(String [] args) throws UnknownHostException, IOException       
     {  
-
-    	try {
-			SocketClient msgSock= new SocketClient("172.16.35.174", 10790);
+		SocketClient msgSock= new SocketClient("172.16.35.173", 20190);
+		new Thread(msgSock).start();
+    	//SocketClient msgSock= new SocketClient("172.16.35.174", 10790);
+		if(msgSock!=null){
+	    	msgSock.sendAuth(201,6);
+	
 			new Thread(msgSock).start();
-			//msgSock.new ReadThread(sock).start();
-			//msgSock.start(msgSock);
-		    
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
+			
+			Message msg=Message.getOneMsg();
+			msg.writeBytesToSock(msgSock.sock);
+			System.out.println(msg.msgToString());
 		}
+
+		//msgSock.new ReadThread(sock).start();
+		//msgSock.start(msgSock);
    	
     }
 

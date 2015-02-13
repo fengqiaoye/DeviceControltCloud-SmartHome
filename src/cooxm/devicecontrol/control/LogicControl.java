@@ -194,7 +194,7 @@ public class LogicControl {
 	
     //public LogicControl() {}
     
-    public LogicControl(Config cf) {
+    public LogicControl(Configure cf) {
     	log.info("Starting logic control module ... ");
     	
 		String mysql_ip			=cf.getValue("mysql_ip");
@@ -211,20 +211,26 @@ public class LogicControl {
 		mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
 		this.jedis= new Jedis(redis_ip, redis_port,200);
 		try{
-			this.msgSock=new SocketClient(msg_server_IP, msg_server_port);		
+	    	ConnectThread th=new ConnectThread(msg_server_IP,msg_server_port);
+	    	th.start();			
+			/*try {
+				this.msgSock=new SocketClient(msg_server_IP, msg_server_port);
+			} catch (UnknownHostException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+				
+			}		
 			if(this.msgSock!=null  && this.msgSock.sock.isConnected()){
+				msgSock.sendAuth(201, 6);
 				new Thread((Runnable) this.msgSock).start();
-			}
+			}*/			
 			this.profileMap= new ProfileMap(mysql);
 			this.profileSetMap= new ProfileSetMap(mysql);
 			this.deviceMap=new DeviceMap(mysql);
 			this.triggerMap=new TriggerMap(mysql);
 			this.roomMap=new RoomMap(mysql);
 		} catch (SQLException  e) {
-			e.printStackTrace();
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
 			e.printStackTrace();
 		} 
 		log.info("Initialization of map successful :  profileMap,size="+profileMap.size()
@@ -1489,7 +1495,7 @@ public class LogicControl {
     
 
 	public static void main(String[] args) {
-		Config cf= new Config();
+		Configure cf= new Configure();
 		LogicControl lc= new LogicControl(cf);
 	}		
 }

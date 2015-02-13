@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 
-import cooxm.devicecontrol.control.Config;
+import cooxm.devicecontrol.control.Configure;
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.socket.Message;
@@ -18,16 +18,16 @@ import cooxm.devicecontrol.socket.Message;
 public class MainEntry {
 	
 	static Logger log =Logger.getLogger(MainEntry.class);	
-	private static Config cf ;
+	private static Configure cf ;
 	/*** 
 	 * 整个程序包的入口
-	 * @param  Config 配置文件
+	 * @param  Configure 配置文件
 	 * 
 	 * @throws InterruptedException  从接收到的消息队列poll出一个消息时，可能会发生异常
 	 * */
 	public static void main(String[] args)  {
 		log.info("Starting from main entry...");		
-		cf = new Config();	
+		cf = new Configure();	
 		LogicControl lcontrol=new LogicControl(cf);
 
 			try {
@@ -51,7 +51,7 @@ public class MainEntry {
 		}
 	}
 	
-	public static Config getConfig() {
+	public static Configure getConfig() {
 		return cf;		
 	}
 }

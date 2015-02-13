@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import cooxm.devicecontrol.control.Config;
+import cooxm.devicecontrol.control.Configure;
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.control.MainEntry;
 import cooxm.devicecontrol.util.MySqlClass;
@@ -37,7 +37,7 @@ public class SendCommandQueue  extends ArrayBlockingQueue<Message>{
         return instance;
     }
     private static int getCapacity(){
-    	Config conf=MainEntry.getConfig();//new Config();//
+    	Configure conf=MainEntry.getConfig();//new Config();//
     	return Integer.parseInt(conf.getValue("max_send_msg_queue"));    	
     }
     

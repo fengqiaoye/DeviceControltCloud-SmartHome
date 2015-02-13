@@ -24,11 +24,11 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import cooxm.devicecontrol.control.Config;
+import cooxm.devicecontrol.control.Configure;
 import cooxm.devicecontrol.util.MySqlClass;
 
 public class CtrolSocketServer {
-	Config config=null;
+	Configure configure=null;
     ServerSocket severSock = null;
 	static OutputStream output = null;
 	
@@ -49,10 +49,10 @@ public class CtrolSocketServer {
 	static Logger log =Logger.getLogger(CtrolSocketServer.class);	
 	
 	/***@param serverPort: 从配置文件中读取: ./conf/control.conf */
-	public CtrolSocketServer(Config config) {
+	public CtrolSocketServer(Configure configure) {
 		log.info("starting device control socket server...");
 		
-		int serverPort=Integer.parseInt(config.getValue("server_port"));
+		int serverPort=Integer.parseInt(configure.getValue("server_port"));
 		sendCommandQueue=SendCommandQueue.getInstance();
 		receiveCommandQueue=ReceiveCommandQueue.getInstance();
         try{
@@ -63,7 +63,7 @@ public class CtrolSocketServer {
          	log.error(e);
             System.exit(1);
         }
-        this.config=config;
+        this.configure=configure;
 	}
 	
 
@@ -200,8 +200,9 @@ public class CtrolSocketServer {
 	}
 	/** 返回serverID*/	
 	public  int authenrize(Message msg,Socket sock){
+		int serverID=-1;
 		try {
-			int serverID=-1;
+			
 			if(msg.getJson().has("uiServerID")){
 				serverID= msg.getJson().getInt("uiServerID");
 			}
@@ -246,16 +247,16 @@ public class CtrolSocketServer {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-		return -1; 	
+		return serverID; 	
 	}      
 		
 	public synchronized  Server getServerInfo(int serverID){
 		severMap=new HashMap<Integer, Server>();
-		String mysql_ip			=this.config.getValue("mysql_ip");
-		String mysql_port		=this.config.getValue("mysql_port");
-		String mysql_user		=this.config.getValue("mysql_user");
-		String mysql_password	=this.config.getValue("mysql_password");
-		String mysql_database	=this.config.getValue("mysql_database_main");
+		String mysql_ip			=this.configure.getValue("mysql_ip");
+		String mysql_port		=this.configure.getValue("mysql_port");
+		String mysql_user		=this.configure.getValue("mysql_user");
+		String mysql_password	=this.configure.getValue("mysql_password");
+		String mysql_database	=this.configure.getValue("mysql_database_main");
 		
 		MySqlClass mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
 		
@@ -301,10 +302,10 @@ public class CtrolSocketServer {
 				//inputsream.read(b23,0,23);
 			   head=new Header(b23);
 			}else{
-				log.error("Read Null from socket:"+clientRequest.getInetAddress().getHostAddress());
+				//log.error("Read Null from socket:"+clientRequest.getInetAddress().getHostAddress());
 				return null;
 			}
-			//head.printHeader();
+			head.printHeader();
 		} catch (IOException e) {
 			log.error("IOException socket:"+clientRequest.getInetAddress().getHostAddress()+" , socket will be closed.");
 			e.printStackTrace();
@@ -322,17 +323,16 @@ public class CtrolSocketServer {
 			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress()); 
 		}
     	String cookieStr=new String(cookie);
-    	//System.out.print(" cookie: "+cookieStr);    
+    	System.out.println(" cookie: "+cookieStr);    
     	
     	byte[] commnad=new byte[head.msgLen-head.cookieLen];
     	try {
 			clientRequest.getInputStream().read(commnad,0,head.msgLen-head.cookieLen);
 		} catch (IOException e) {
 			e.printStackTrace();
-			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress()); 
-			System.out.println("error:exception happened,connection from "+clientRequest.getInetAddress().getHostAddress() + " has been closed!");
 		}  
     	String comString=new String(commnad);
+    	System.out.println(" json:"+comString);    
     	msg=new Message(head, cookieStr, comString);
     	System.out.println("Recv  : "+msg.msgToString());
         return msg; 
@@ -341,7 +341,7 @@ public class CtrolSocketServer {
 
     public static void main(String [] args) throws IOException, Exception      
     {  
-    	Config cf = new Config();
+    	Configure cf = new Configure();
 		new CtrolSocketServer(cf).listen();
     	//initseverMap(cf);    	
     }    

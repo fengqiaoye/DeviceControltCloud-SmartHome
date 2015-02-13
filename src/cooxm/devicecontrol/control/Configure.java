@@ -17,16 +17,16 @@ import org.apache.log4j.Logger;
  * @version Created：24 Dec 2014 14:22:48 
  */
 
-public class Config extends Properties {
+public class Configure extends Properties {
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
 	private	static Properties pps=new Properties(); 
     private static final String configFile="./conf/control.conf";
-	private static Logger log=Logger.getLogger(Config.class);
+	private static Logger log=Logger.getLogger(Configure.class);
 	
-	public Config(){		
+	public Configure(){		
 	    try {
     	    log.info("Starting reading system config file : "+configFile+"...");
 	    	checkExist(configFile);
@@ -75,7 +75,7 @@ public class Config extends Properties {
 	}
 
 	public static void main(String[] args) {		
-		Config cf= new Config();
+		Configure cf= new Configure();
 		System.out.println(cf.getValue("server_port"));	
 
 	}
