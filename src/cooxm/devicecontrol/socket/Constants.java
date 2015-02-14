@@ -4,7 +4,7 @@ package cooxm.devicecontrol.socket;
  * @version Created：Feb 11, 2015 5:35:45 PM 
  */
 
-public class Constans {
+public class Constants {
 	
 	
 	

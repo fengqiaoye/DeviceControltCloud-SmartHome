@@ -3,6 +3,8 @@ package cooxm.devicecontrol.control;
 import java.io.IOException;
 import java.net.UnknownHostException;
 
+import org.apache.log4j.Logger;
+
 import cooxm.devicecontrol.socket.SocketClient;
 
 /** 
@@ -11,15 +13,21 @@ import cooxm.devicecontrol.socket.SocketClient;
  */
 
 public class ConnectThread extends Thread{
+	static Logger log= Logger.getLogger(ConnectThread.class);
 	SocketClient client;
 	String IP ;
 	int port ;
+	int clusterID;
+	int serverID;
+	int serverType;
 	
 	
-	ConnectThread(	String IP ,	int port ){
+	ConnectThread(	String IP ,	int port ,	int clusterID,	int serverID,	int serverType){
 		this.IP=IP;
 		this.port=port;	
-		
+		this.clusterID=clusterID;
+		this.serverID=serverID;
+		this.serverType=serverType;		
 	}
 	
 	@Override
@@ -27,34 +35,30 @@ public class ConnectThread extends Thread{
 		while (true){
 			if(this.client==null){
 				try {
-					this.client=new SocketClient(IP, port);
+					this.client=new SocketClient(IP, port,clusterID,serverID,serverType);
 				} catch (UnknownHostException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
 					e.printStackTrace();
 					try {
 						Thread.sleep(30*1000);
-						try {
-							this.client=new SocketClient(IP, port);
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
+						log.error("Failiar:connect to "+IP+":"+port+"failed ,Waiting for 30 seconds to reconnect...");
 					} catch (InterruptedException e1) {
 						e1.printStackTrace();
 					}
 				}
 			}else{				
-				this.client.sendAuth(201, 6);
+				this.client.sendAuth(this.clusterID,this.serverID,this.serverType);
 				new Thread((Runnable) this.client).start();
+				log.info("successful connected to :"+IP+":"+port);
 				break;
 			}
 		}
 	}
 	
     public static void main(String [] args)  {
-    	ConnectThread th=new ConnectThread("172.16.35.173",10790);
-    	th.start();
-    	
+    	ConnectThread th=new ConnectThread("172.16.35.173",10790,1,5,200);
+    	th.start();   	
     	
     	
     }

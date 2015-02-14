@@ -15,6 +15,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
+import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.MySqlClass;
 
 /**
@@ -25,7 +28,7 @@ import cooxm.devicecontrol.util.MySqlClass;
 public class ProfileMap extends HashMap<String, Profile>{
 
 	private static final long serialVersionUID = 1L;
-
+	static Logger log= Logger.getLogger(ProfileMap.class);
 	/***Map<ctrolID_profileID,Profile>*/
 	//public static Map<String, Profile> profileMap=new HashMap<String, Profile>();  
 	//static final String  profileIndexTable="info_user_room_st";
@@ -50,7 +53,7 @@ public class ProfileMap extends HashMap<String, Profile>{
     */
 	public static HashMap<String, Profile> getProfileMapFromDB(MySqlClass mysql) throws SQLException		
 	{   
-		System.out.println("Start to initialize profileMap....");
+		log.info("Start to initialize profileMap....");
 		HashMap<String, Profile> profileMap=new HashMap<String, Profile>();
 		Profile profile= null;//new Profile();
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -97,7 +100,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 			if(!profile.isEmpty())
 			profileMap.put(profile.getctrolID()+"_"+profile.getProfileID(), profile);		
 		}
-		System.out.println("Initialize profileMap finished !");
+		log.info("Initialize profileMap finished !");
 		return profileMap;		
 	}
 	

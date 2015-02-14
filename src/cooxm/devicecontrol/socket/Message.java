@@ -124,6 +124,12 @@ public class Message extends Header {
 		this.encType=encType; 
 		this.cookieLen=BytesUtil.bytesToShort(cookieLen);
 		this.reserve=BytesUtil.bytesToInt(reserve);
+		/*System.out.println("mainVersion="+this.mainVersion+",subVersion="+this.subVersion+",msgLen="+this.msgLen+",commandID="+this.commandID+
+				",sequeeceNo="+this.sequeeceNo+
+				",encType="+this.encType+
+				",cookieLen="+this.cookieLen+
+				",reserve="+this.reserve
+				);*/
 		
 		 byte[] cookieByte=new byte[this.cookieLen];
 		 for(int i=0;i<this.cookieLen;i++){
@@ -131,9 +137,10 @@ public class Message extends Header {
 		 }
 		 this.cookie=new String(cookieByte);
 		 
-		String jsonStr=new String(msg);		
+		String str=new String(msg);		
+		String jsonStr=str.substring(23+this.cookieLen, str.length());
 		try {
-			this.json=new JSONObject(jsonStr.substring(23+this.cookieLen, -1));
+			this.json=new JSONObject(jsonStr);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -163,38 +170,43 @@ public class Message extends Header {
 	   out+=		this.cookieLen	+",";
 	   out+=		this.reserve		+",";  
 	   out+=		this.cookie		+","; 
-	   out+=		this.json.toString()	+","; 
+	   if(this.json!=null){
+		   out+=		this.json.toString()	; 
+	   }
 
 	   return out;
     }
    
-   /*public String MessageToBytes(){
-	   byte[] out =new byte[this.msgLen+23];
-	   out=  	BytesUtil.getBytes(this.headTag, "UTF-8");
-	   out+=	BytesUtil.getBytes(	this.mainVersion)	;
-	   out+=	BytesUtil.getBytes(	this.subVersion)   ;
-	   out+=	BytesUtil.getBytes(	this.msgLen)		;
-	   out+=	BytesUtil.getBytes(	this.commandID)	;
-	   out+=	BytesUtil.getBytes(	this.sequeeceNo)	;
-	   out+=	BytesUtil.getBytes(	this.encType)		;
-	   out+=	BytesUtil.getBytes(	this.cookieLen)	;
-	   out+=	BytesUtil.getBytes(	this.reserve	)	;  
-	   out+=	BytesUtil.getBytes(	this.cookie)		; 
-	   out+=	BytesUtil.getBytes(	this.json.toString(),"UTF-8")	; 
-	   return out;
-    }*/
+   public byte[] toBytes(){
+	   
+	   byte[] b1=	BytesUtil.mergeBytes(BytesUtil.getBytes(this.headTag, "UTF-8"), BytesUtil.getBytes(this.mainVersion));
+	   byte[] b3=	BytesUtil.mergeBytes(b1, BytesUtil.getBytes(this.subVersion));
+	   byte[] b4=	BytesUtil.mergeBytes(b3, BytesUtil.getBytes(this.msgLen));
+	   byte[] b5=	BytesUtil.mergeBytes(b4, BytesUtil.getBytes(this.commandID));
+	   byte[] b6=	BytesUtil.mergeBytes(b5, BytesUtil.getBytes(this.sequeeceNo));
+	   byte[] b7=	BytesUtil.mergeBytes(b6, BytesUtil.getBytes(this.encType));
+	   byte[] b8=	BytesUtil.mergeBytes(b7, BytesUtil.getBytes(this.cookieLen));
+	   byte[] b9=	BytesUtil.mergeBytes(b8, BytesUtil.getBytes(this.reserve));
+	   byte[] b10=	BytesUtil.mergeBytes(b9, BytesUtil.getBytes(this.cookie, "UTF-8"));
+	   byte[] b11=	BytesUtil.mergeBytes(b10,BytesUtil.getBytes(this.json.toString(), "UTF-8"));
+	   return b11;
+    }
    
-   /** <pre> 根据cookie获取发送命令的serverID
-    * 如果cookie为空则返回 -1 */
-   /*public int getServerID() {
-	   int serverID=-1;
-	   if(this.cookie==null){
-         return -1;
-	   }else{
-		   serverID=Integer.parseInt(this.cookie.split("_")[1]);
-	   }	   
-	return serverID;	
-   }*/
+   public byte[] toBytesSmallEnd(){
+	   
+	   byte[] b1=	BytesUtil.mergeBytes(BytesUtil.toBytes(this.headTag, "UTF-8"), BytesUtil.toBytes(this.mainVersion));
+	   byte[] b3=	BytesUtil.mergeBytes(b1, BytesUtil.toBytes(this.subVersion));
+	   byte[] b4=	BytesUtil.mergeBytes(b3, BytesUtil.toBytes(this.msgLen));
+	   byte[] b5=	BytesUtil.mergeBytes(b4, BytesUtil.toBytes(this.commandID));
+	   byte[] b6=	BytesUtil.mergeBytes(b5, BytesUtil.toBytes(this.sequeeceNo));
+	   byte[] b7=	BytesUtil.mergeBytes(b6, BytesUtil.toBytes(this.encType));
+	   byte[] b8=	BytesUtil.mergeBytes(b7, BytesUtil.toBytes(this.cookieLen));
+	   byte[] b9=	BytesUtil.mergeBytes(b8, BytesUtil.toBytes(this.reserve));
+	   byte[] b10=	BytesUtil.mergeBytes(b9, BytesUtil.toBytes(this.cookie, "UTF-8"));
+	   byte[] b11=	BytesUtil.mergeBytes(b10,BytesUtil.toBytes(this.json.toString(), "UTF-8"));
+	   return b11;
+    }
+   
    
    public int getSequenceNO() {
 	   int SequenceNO=-1;
@@ -227,10 +239,20 @@ public class Message extends Header {
 		}    	
     }
     
- /*   public void writeToSock(Socket sock){
+    public void writeBytesToSock2(Socket sock){
     	try {
 			DataOutputStream dataout= new DataOutputStream(sock.getOutputStream());
-			   dataout.writeUTF(  	this.headTag            )  ;
+			dataout.write(this.toBytes());
+			dataout.flush();			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}    	
+    }
+    
+   /*public void writeToSock(Socket sock){
+    	try {
+			DataOutputStream dataout= new DataOutputStream(sock.getOutputStream());
+			   dataout.writeBytes(  	this.headTag            )  ;
 			   dataout.writeByte(		this.mainVersion)	  ;
 			   dataout.writeByte(		this.subVersion)       ;
 			   dataout.writeShort(		this.msgLen)		      ;
@@ -239,8 +261,8 @@ public class Message extends Header {
 			   dataout.writeByte(		this.encType)		  ;
 			   dataout.writeByte(		this.cookieLen)	      ;	   
 			   dataout.writeInt(		this.reserve	)	       ;  
-			   dataout.writeUTF(		this.cookie)		             ; 
-			   dataout.writeUTF(		this.json.toString()   ) 	;
+			   dataout.writeBytes(		this.cookie)		             ; 
+			   dataout.writeBytes(		this.json.toString()   ) 	;
 			   dataout.flush();		
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -276,9 +298,11 @@ public class Message extends Header {
     	short msgLen=15;
     	short commandID=0x1601;
     	int sequeeceNo=(int) (System.currentTimeMillis()/1000);
-    	byte encType=1; 
-    	short cookieLen=4;
+    	byte encType=1;
+    	
     	int reserve=0;
+    	int timeStamp=(int) (System.currentTimeMillis()/1000);
+    	short cookieLen=(short) String.valueOf(timeStamp).length();
     	
     	JSONObject json=new JSONObject();
     	try {
@@ -291,10 +315,8 @@ public class Message extends Header {
 		}
     	
     	Header head= new Header(headTag, mainVersion, subVersion, msgLen, commandID, sequeeceNo, encType, cookieLen, reserve);
-    	long timeStamp=System.currentTimeMillis()/1000;
-    	Message msg= new Message(head,String.valueOf(timeStamp),json);
 
-    	
+    	Message msg= new Message(head,String.valueOf(timeStamp),json);
     	return msg;
 	}
 	    
@@ -308,12 +330,11 @@ public class Message extends Header {
 //		}
 		
 		Message msg= Message.getOneMsg();
-		try {
-			msg.getJson().put("key", "value");
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
-		System.out.println(msg.getJson().toString());
-
+        byte[] x=msg.toBytesSmallEnd();
+        byte[] y=BytesUtil.subByte(x, 23+msg.cookieLen, msg.msgLen-msg.cookieLen);
+        
+		System.out.println("jspn="+new String(y));
+		Message msg2=new Message(msg.toBytesSmallEnd());
+		System.out.println(msg2.msgToString());
 	}
 }

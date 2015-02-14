@@ -211,7 +211,7 @@ public class LogicControl {
 		mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
 		this.jedis= new Jedis(redis_ip, redis_port,200);
 		try{
-	    	ConnectThread th=new ConnectThread(msg_server_IP,msg_server_port);
+	    	ConnectThread th=new ConnectThread(msg_server_IP, msg_server_port, 1, 6, 201);
 	    	th.start();			
 			/*try {
 				this.msgSock=new SocketClient(msg_server_IP, msg_server_port);
@@ -1206,7 +1206,7 @@ public class LogicControl {
 	  */
 	public void send_warning_msg(final Message msg){
 		if(this.msgSock!=null &&  !this.msgSock.sock.isOutputShutdown()  && !this.msgSock.sock.isClosed())
-		msg.writeBytesToSock(this.msgSock.sock);		
+		msg.writeBytesToSock2(this.msgSock.sock);		
 	}   
 	
     /*** 请求触发模板

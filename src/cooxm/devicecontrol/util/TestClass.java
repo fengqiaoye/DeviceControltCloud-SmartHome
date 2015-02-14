@@ -27,6 +27,7 @@ import org.json.JSONObject;
 import cooxm.devicecontrol.device.TriggerFactor;
 import cooxm.devicecontrol.socket.Header;
 import cooxm.devicecontrol.socket.Message;
+import cooxm.devicecontrol.socket.SocketClient;
 import redis.clients.jedis.Jedis;
 
 
@@ -253,7 +254,7 @@ public class TestClass {
 		}
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws UnknownHostException, IOException {
 //		String str1="{\"student\":[{\"name\":\"leilei\",\"age\":23},{\"name\":\"leilei02\",\"age\":23}]}";
 //		Jedis jedis=new Jedis("172.16.35.170", 6379,200);
 //		 writeObj( jedis,"student",str1);
@@ -273,14 +274,7 @@ public class TestClass {
 		
 //		testPredicate();
 		
-		Date date=new Date(0);
-		
-		
-		int x=(int) (System.currentTimeMillis()/1000);
-	
-		
-		Boolean b= true && (Boolean)null;
-		System.out.println(b);
+
 
 
 	

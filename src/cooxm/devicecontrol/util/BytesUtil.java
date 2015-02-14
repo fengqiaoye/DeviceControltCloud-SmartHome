@@ -39,10 +39,62 @@ public class BytesUtil {
 				| (((long) array[3] & 0xff) << 24) | (((long) array[4] & 0xff) << 32)  
 				| (((long) array[5] & 0xff) << 40) | (((long) array[6] & 0xff) << 48) | (((long) array[7] & 0xff) <<56));  
 	} 
-/*  -----------------------end of   small End  --------------------*/ 
+	
+    public static byte[] toBytes(short data)
+    {
+        byte[] bytes = new byte[2];
+        bytes[0] = (byte) (data & 0xff);
+        bytes[1] = (byte) ((data & 0xff00) >> 8);
+        return bytes;
+    }
+    public static byte[] toBytes(byte data)
+    {
+    	byte[] bytes=new byte[1];
+         bytes[0]=data;
+         return bytes;
+    }
+
+    public static byte[] toBytes(char data)
+    {
+        byte[] bytes = new byte[2];
+        bytes[0] = (byte) (data);
+        bytes[1] = (byte) (data >> 8);
+        return bytes;
+    }
+
+    public static byte[] toBytes(int data)
+    {
+        byte[] bytes = new byte[4];
+        bytes[0] = (byte) (data & 0xff);
+        bytes[1] = (byte) ((data & 0xff00) >> 8);
+        bytes[2] = (byte) ((data & 0xff0000) >> 16);
+        bytes[3] = (byte) ((data & 0xff000000) >> 24);
+        return bytes;
+    }
+
+    public static byte[] toBytes(long data)
+    {
+        byte[] bytes = new byte[8];
+        bytes[0] = (byte) (data & 0xff);
+        bytes[1] = (byte) ((data >> 8) & 0xff);
+        bytes[2] = (byte) ((data >> 16) & 0xff);
+        bytes[3] = (byte) ((data >> 24) & 0xff);
+        bytes[4] = (byte) ((data >> 32) & 0xff);
+        bytes[5] = (byte) ((data >> 40) & 0xff);
+        bytes[6] = (byte) ((data >> 48) & 0xff);
+        bytes[7] = (byte) ((data >> 56) & 0xff);
+        return bytes;
+    }
+    
+    public static byte[] toBytes(String data, String charsetName)
+    {
+        Charset charset = Charset.forName(charsetName);
+        return data.getBytes(charset);
+    }
+/*  -----------------------   end of   small End  ----------------------------*/ 
 	  
 
-/*  -----------------------start of   Big End  --------------------*/ 	  
+/*  -----------------------   start of   Big End  -----------------------------*/ 	  
    public static short getShort(byte[] bytes)
     {
         return (short) ((0xff & bytes[1]) | (0xff00 & (bytes[0] << 8)));
@@ -69,7 +121,7 @@ public class BytesUtil {
         return new String(bytes, Charset.forName(charsetName));
     }
   
-//------------------------------------------------------------------------------------
+//------------------------------------------------------
     public static byte[] getBytes(short data)
     {
         byte[] bytes = new byte[2];
@@ -122,20 +174,8 @@ public class BytesUtil {
         return data.getBytes(charset);
     }
 
-/*  -----------------------end of   Big End  --------------------*/ 		
-		public static void main(String[] args) {
+/*  ---------------------------   end of   Big End  --------------------------------*/ 		
 
-	    	byte[] b2={1,26};
-	    	short x=getShort(b2);
-	    	byte[] b4=getBytes(x);
-	    	
-	    	System.out.println(x);	 
-	    	System.out.println(b4[0]+","+b4[1]);
-	    	
-	    	char ch='5';
-	    	byte[] bchar=getBytes(ch);
-	    	System.out.println(bchar[0]+","+bchar[1]);
-		}
 		
 /* ------------- 深度复制  ----------------------------*/
 		public static Object depthClone(Object srcObj){ 
@@ -153,5 +193,46 @@ public class BytesUtil {
 				e.printStackTrace(); 
 			} 
 			return cloneObj; 
+		}
+		
+		
+/* ---------------------------- merger -----------------*/
+	    public static byte[] mergeBytes(byte[] pByteA, byte[] pByteB){  
+	        int aCount = pByteA.length;  
+	        int bCount = pByteB.length;  
+	        byte[] b = new byte[aCount + bCount];  
+	        for(int i=0;i<aCount;i++){  
+	            b[i] = pByteA[i];  
+	        }  
+	        for(int i=0;i<bCount;i++){  
+	            b[aCount + i] = pByteB[i];  
+	        }  
+	        return b;  
+	    }
+	    public static byte[] subByte(byte[] b,int start,int length){  
+	        if(b.length==0 || length==0 || start+length>b.length){  
+	            return null;  
+	        }  
+	        byte[] bjq = new byte[length];  
+	        for(int i = 0; i<length;i++){  
+	            bjq[i]=b[start+i];  
+	        }  
+	        return bjq;  
+	    }
+// -------------------------------------------
+	    
+	    
+		public static void main(String[] args) {
+
+	    	byte[] b2={1,26};
+	    	short x=getShort(b2);
+	    	byte[] b4=getBytes(x);
+	    	
+	    	System.out.println(x);	 
+	    	System.out.println(b4[0]+","+b4[1]);
+	    	
+	    	char ch='5';
+	    	byte[] bchar=getBytes(ch);
+	    	System.out.println(bchar[0]+","+bchar[1]);
 		}
 }

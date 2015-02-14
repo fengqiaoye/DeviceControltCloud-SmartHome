@@ -41,7 +41,7 @@ public class MainEntry {
 		if(!CtrolSocketServer.receiveCommandQueue.isEmpty()){
 			Message msg;
 			try {
-				msg = CtrolSocketServer.receiveCommandQueue.poll(100, TimeUnit.MICROSECONDS);
+				msg = CtrolSocketServer.receiveCommandQueue.poll(200, TimeUnit.MICROSECONDS);
 				if(msg!=null){
 					lcontrol.decodeCommand(msg);					
 				}

@@ -15,11 +15,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
+import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.MySqlClass;
 
 /*** Map< ctrolID_deviceID,Device >*/
 public class DeviceMap extends HashMap<String, Device> {
-	
+	static Logger log= Logger.getLogger(DeviceMap.class);
 	/*** Map<ctrolID_deviceID,Device>*/
 	//static Map<String, Device> deviceMap=new HashMap<String, Device>(); 	
 
@@ -42,7 +45,7 @@ public class DeviceMap extends HashMap<String, Device> {
    * @throws SQLException 
    */
 	public static HashMap<String, Device> getDeviceMapFromDB(MySqlClass mysql )throws SQLException	{
-		System.out.println("Start to initialize deviceMap....");
+		log.info("Start to initialize deviceMap....");
 		HashMap<String, Device> deviceMap=new HashMap<String, Device>();
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String sql="select  "
@@ -90,7 +93,7 @@ public class DeviceMap extends HashMap<String, Device> {
 			}
 			deviceMap.put(device.ctrolID+"_"+device.deviceID, device);
 		}
-		System.out.println("Initialize deviceMap finished !");
+		log.info("Initialize deviceMap finished !");
 		return deviceMap;
 	}
 	

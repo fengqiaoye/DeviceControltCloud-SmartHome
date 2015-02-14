@@ -21,7 +21,7 @@ import org.json.JSONException;
 
 
 
-public class SocketClient implements Runnable {
+public class SocketClient extends Socket implements Runnable {
 
 	private static final short ACK_OFFSET = 0x4000;
 	private static final short CMDCODE_RESERVED_FOR_COMMON_BEGIN 		= 0x1100;
@@ -37,6 +37,9 @@ public class SocketClient implements Runnable {
     BufferedReader input;
     String IP;
     int port;
+	int clusterID;
+	int serverID;
+	int serverType;
 	
     public Socket getSock() {
 		return sock;
@@ -45,9 +48,12 @@ public class SocketClient implements Runnable {
 		this.sock = sock;
 	}
 
-	public SocketClient(String IP,int port) throws UnknownHostException, IOException  
+	public SocketClient(String IP,int port,int clusterID,	int serverID,	int serverType) throws UnknownHostException, IOException  
     {   this.IP=IP;
         this.port=port;
+		this.clusterID=clusterID;
+		this.serverID=serverID;
+		this.serverType=serverType;	
         log.info("starting connect to  message server,IP"+IP+" port: "+port);
 
 		this.sock=new Socket(IP,port);
@@ -55,17 +61,17 @@ public class SocketClient implements Runnable {
 
     } 
 	
-	public void sendAuth(int serverType,int serverID){
+	public void sendAuth(int clusterID,int  serverID ,int serverType){
 		try {
 			input=new BufferedReader(new InputStreamReader(sock.getInputStream()));
 		} catch (IOException e) {
 			e.printStackTrace();
 		}					
 		Header header=Message.getOneHeaer((short)CMD__Identity_REQ);
-		String jsonStr="{\"uiClusterID\":1,\"usServerType\":"+serverType+",\"uiServerID\":"+serverID+"}";
+		String jsonStr="{\"uiClusterID\":"+clusterID+",\"usServerType\":"+serverType+",\"uiServerID\":"+serverID+"}";
 		Message authMsg=new Message(header, "", jsonStr);
 		authMsg.writeBytesToSock(sock);
-		System.out.println("Send to MsgServer : "+authMsg.msgToString());		
+		System.out.println("Send Auth "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()+":"+authMsg.msgToString());		
 	}
     
 
@@ -86,13 +92,12 @@ public class SocketClient implements Runnable {
 
 	@Override
 	public void run() {
-        while(true){
-        	
+        while(true){        	
     		try {
     			if(sock==null ||sock.isClosed()){
     				log.info("Reconnect to  message server,IP"+IP+" port: "+port);
     				sock = new Socket(IP, port);
-    				sendAuth(201,6);
+    				sendAuth(this.clusterID, this.serverID, this.serverType);;
     			}
     		} catch (UnknownHostException e) {
     			e.printStackTrace();
@@ -106,12 +111,6 @@ public class SocketClient implements Runnable {
      	   }else{
      		   try {
 				Thread.sleep(20*1000);
-				sock=new Socket(IP, port);
-				if(sock!=null){
-					sendAuth(201,6);
-				}
-			} catch (IOException e) {
-				e.printStackTrace();
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -138,7 +137,22 @@ public class SocketClient implements Runnable {
 	public  void decodeMsg(Message msg){
 		short commandID=msg.commandID;
 		switch (commandID) {
-		case CMD__Identity_ACK:			
+		case CMD__Identity_ACK:	
+			int ack_res=-1;
+			try {
+				ack_res = msg.getJson().getInt("errorCode");
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			if(ack_res==0){
+				//System.out.println("Recv from "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()+":"+msg.msgToString());
+			}else{
+				log.error("Get authenrize failed: myIP:"+sock.getLocalAddress().getHostAddress()+",myPort:"+sock.getLocalPort()
+						+",remoteIP:"+this.IP+",remotePort:"+this.port
+						+"Auth:"
+						+"{\"uiClusterID\":"+this.clusterID+",\"usServerType\":"+serverType+",\"uiServerID\":"+serverID+"}");
+				sendAuth(clusterID, commandID, ack_res);
+			}			
 			break;
 		case CMD__HEARTBEAT_REQ:
 			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -149,8 +163,8 @@ public class SocketClient implements Runnable {
 				e.printStackTrace();
 			}
 			msg.commandID=CMD__HEARTBEAT_ACK;
-			msg.writeBytesToSock(this.sock);
-			System.out.println("Send to MsgServer : "+msg.msgToString());
+			msg.writeBytesToSock2(this.sock);
+			System.out.println("HeartBeat "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()+":"+msg.msgToString());
 			break;
 		default:
 			break;
@@ -200,21 +214,14 @@ public class SocketClient implements Runnable {
    
     public static void main(String [] args) throws UnknownHostException, IOException       
     {  
-		SocketClient msgSock= new SocketClient("172.16.35.173", 20190);
-		new Thread(msgSock).start();
-    	//SocketClient msgSock= new SocketClient("172.16.35.174", 10790);
+		SocketClient msgSock= new SocketClient("172.16.35.173", 20190,1,5,200);
 		if(msgSock!=null){
-	    	msgSock.sendAuth(201,6);
+	    	msgSock.sendAuth(1,5,200);
 	
 			new Thread(msgSock).start();
-			
-			Message msg=Message.getOneMsg();
-			msg.writeBytesToSock(msgSock.sock);
-			System.out.println(msg.msgToString());
+
 		}
 
-		//msgSock.new ReadThread(sock).start();
-		//msgSock.start(msgSock);
    	
     }
 

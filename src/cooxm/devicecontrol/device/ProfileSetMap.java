@@ -16,10 +16,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Logger;
+
+import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.MySqlClass;
 
 public class ProfileSetMap extends HashMap<String, ProfileSet> {
-	
+	static Logger log= Logger.getLogger(ProfileSetMap.class);
 	private static final long serialVersionUID = 1L;
 	///***Map<ctrolID+profileID,Profile>*/
 	//static Map<String, ProfileSet> profileSetMap=new HashMap<String, ProfileSet>();  
@@ -43,7 +46,7 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
     */
 	public static HashMap<String, ProfileSet> getProfileSetMapFromDB(MySqlClass mysql) throws SQLException	
 	{   
-		System.out.println("Start to initialize profileSetMap....");
+		log.info("Start to initialize profileSetMap....");
 		HashMap<String, ProfileSet> profileSetMap=new HashMap<String, ProfileSet>();
 		ProfileSet profileSet=null; 		
 	    List<Integer> profileIDList=new ArrayList<Integer>();
@@ -88,7 +91,7 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 		
 		if(!profileSet.isEmpty())
 		profileSetMap.put(profileSet.ctrolID+"_"+profileSet.profileSetID, profileSet);
-		System.out.println("Initialize profileSetMap finished !");
+		log.info("Initialize profileSetMap finished !");
 		return profileSetMap;
 	}
 
