@@ -15,6 +15,9 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -253,6 +256,7 @@ public class TestClass {
 			e.printStackTrace();
 		}
 	}
+	
 
 	public static void main(String[] args) throws UnknownHostException, IOException {
 //		String str1="{\"student\":[{\"name\":\"leilei\",\"age\":23},{\"name\":\"leilei02\",\"age\":23}]}";

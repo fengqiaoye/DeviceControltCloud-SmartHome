@@ -172,12 +172,14 @@ public class CtrolSocketServer {
 						break;
 					}
 	            }else{   //socket关闭
-	            	try {		            		
-						sockMap.remove(this.serverID);
-						severMap.remove(this.serverID);
+	            	try {
+	            		if(serverID>0){
+							sockMap.remove(this.serverID);
+							severMap.remove(this.serverID);							
+							log.info("socket hase been closed :"+this.socket.getInetAddress().getHostAddress()+":"+this.socket.getPort()
+									+",serverID: "+serverID+",serverType: "+getServerInfo(serverID).getServerType());
+	            		}
 						this.socket.close();
-						log.info("socket hase been closed :"+this.socket.getInetAddress().getHostAddress()+":"+this.socket.getPort()
-								+",serverID: "+serverID+",serverType: "+getServerInfo(serverID).getServerType());
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -231,7 +233,7 @@ public class CtrolSocketServer {
 		String jsonStr="{\"uiClusterID\":"+clusterID+",\"usServerType\":"+serverType+",\"uiServerID\":"+serverID+"}";
 		Message authMsg=new Message(header, "", jsonStr);
 		authMsg.writeBytesToSock(sock);
-		System.out.println("Send Auth "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()+":"+authMsg.msgToString());		
+		log.info("Send Auth "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()+":"+authMsg.msgToString());		
 	}
 	
 	public int getServerID(Message msg) {
@@ -416,9 +418,12 @@ public class CtrolSocketServer {
     	}else{
     		msg=new Message(head, cookieStr, comString);
     	}
-    	System.out.println("Recv from "+clientRequest.getInetAddress().getHostAddress()+":"+clientRequest.getPort()+":"+msg.msgToString());
+    	if(msg.isAuth() && msg.commandID!=4354){
+    		log.info("Recv from "+clientRequest.getInetAddress().getHostAddress()+":"+clientRequest.getPort()+":"+msg.msgToString());
+    	}
         return msg; 
     } 
+	
 
 
     public static void main(String [] args) throws IOException, Exception      

@@ -176,7 +176,15 @@ public class Header{
   
   public boolean isValid() {   
   	int commandID=this.commandID;
-  	if(commandID>=commandMin && commandID<=commandMax)  {	
+  	if(commandID>=commandMin && commandID<=commandMax || commandID>=0x1100 && commandID<= 0x1104+0x4000)  {	
+		return true;
+	}
+    return false;
+  }
+  
+  public boolean isAuth() { 
+  	int commandID=this.commandID;
+  	if(commandID>=0x1100 && commandID<= 0x1104+0x4000)  {	
 		return true;
 	}
     return false;

@@ -41,8 +41,8 @@ public class ConnectThread extends Thread{
 				} catch (IOException e) {
 					e.printStackTrace();
 					try {
-						Thread.sleep(30*1000);
-						log.error("Failiar:connect to "+IP+":"+port+"failed ,Waiting for 30 seconds to reconnect...");
+						Thread.sleep(60*1000);
+						System.out.println("Failiar:connect to "+IP+":"+port+" failed ,Waiting for 60 seconds to reconnect...");
 					} catch (InterruptedException e1) {
 						e1.printStackTrace();
 					}
@@ -50,14 +50,14 @@ public class ConnectThread extends Thread{
 			}else{				
 				this.client.sendAuth(this.clusterID,this.serverID,this.serverType);
 				new Thread((Runnable) this.client).start();
-				log.info("successful connected to :"+IP+":"+port);
+				log.info("successful connected to :"+IP+":"+port+",serverID:"+this.serverID+",serverType:"+this.serverType);
 				break;
 			}
 		}
 	}
 	
     public static void main(String [] args)  {
-    	ConnectThread th=new ConnectThread("172.16.35.173",10790,1,5,200);
+    	ConnectThread th=new ConnectThread("172.16.35.173",20190,1,5,200);
     	th.start();   	
     	
     	
