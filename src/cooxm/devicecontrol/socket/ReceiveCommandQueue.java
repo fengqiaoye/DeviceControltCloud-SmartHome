@@ -72,12 +72,9 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
     }
 
     private static void checkMysql(){
-    	MySqlClass mySQL =LogicControl.getMysql();
-    	if (mySQL!=null) {
-    		mysql=mySQL;			
-		}else{
-			mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
-		}    	
+    	if (mysql==null ||mysql.isClosed()) {
+    		mysql=LogicControl.getMysql();			
+		}   	
     } 
 
     

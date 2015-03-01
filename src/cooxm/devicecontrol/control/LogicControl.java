@@ -179,6 +179,7 @@ public class LogicControl {
 
 	/***********************   resource needed   ************************/	
 	static Logger log= Logger.getLogger(LogicControl.class);
+	static Configure config=null;
 	static MySqlClass mysql=null;
 	SocketClient msgSock=null;
 	Jedis jedis=null;// new Jedis("172.16.35.170", 6379,200);
@@ -196,7 +197,7 @@ public class LogicControl {
     
     public LogicControl(Configure cf) {
     	log.info("Starting logic control module ... ");
-    	
+    	this.config=cf;
 		String mysql_ip			=cf.getValue("mysql_ip");
 		String mysql_port		=cf.getValue("mysql_port");
 		String mysql_user		=cf.getValue("mysql_user");
@@ -242,7 +243,17 @@ public class LogicControl {
 	}
     
   public static MySqlClass  getMysql(){
-	  return mysql;    	
+	  if(mysql==null ||mysql.isClosed()){		  
+		String mysql_ip			=config.getValue("mysql_ip");
+		String mysql_port		=config.getValue("mysql_port");
+		String mysql_user		=config.getValue("mysql_user");
+		String mysql_password	=config.getValue("mysql_password");
+		String mysql_database	=config.getValue("mysql_database");			
+		mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
+	  }else{
+		return mysql;
+	  }
+	return mysql;
     }
 	
 	public void decodeCommand(Message msg){		

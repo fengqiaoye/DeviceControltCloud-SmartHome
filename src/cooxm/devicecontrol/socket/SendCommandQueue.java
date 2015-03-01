@@ -42,12 +42,9 @@ public class SendCommandQueue  extends ArrayBlockingQueue<Message>{
     }
     
     private static void checkMysql(){
-    	MySqlClass mySQL =LogicControl.getMysql();
-    	if (mySQL!=null) {
-    		mysql=mySQL;			
-		}else{
-			mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
-		}    	
+    	if (mysql==null ||mysql.isClosed()) {
+    		mysql=LogicControl.getMysql();			
+		}  	
     }
     
     @Override
@@ -99,7 +96,7 @@ public class SendCommandQueue  extends ArrayBlockingQueue<Message>{
     
 
 	public static void main(String[] args) throws JSONException {
-		Message msg=new Message().getOneMsg();     	
+		Message msg= Message.getOneMsg();     	
     	SendCommandQueue.getInstance().put(msg);    	
     	SendCommandQueue qe=SendCommandQueue.getInstance();    	
     	System.out.println(qe.size());	

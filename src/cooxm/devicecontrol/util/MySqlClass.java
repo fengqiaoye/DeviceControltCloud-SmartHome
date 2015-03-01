@@ -12,6 +12,7 @@ import org.apache.log4j.Logger;
 
 public class MySqlClass {
    
+	
    public Connection conn=null;
    private Statement st=null;
    private ResultSet rs=null;
@@ -22,11 +23,20 @@ public class MySqlClass {
            Class.forName("com.mysql.jdbc.Driver").newInstance();
 	       //conn=DriverManager.getConnection("jdbc:mysql://"+host+":"+port+"/"+databaseName,userName,password);
 	       conn=DriverManager.getConnection("jdbc:mysql://"+host+":"+port+"/"+databaseName+"?useUnicode=true&characterEncoding=utf8",userName,password);
-		   st=conn.createStatement();          
+		   st=conn.createStatement();  		   
        }catch(Exception e){
            System.out.println("ERROR:"+e.toString());
            logger.fatal(e.getMessage(),e);          
        }       
+   }
+   
+   public boolean isClosed(){
+	   try {
+		return this.conn.isClosed();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	   return false;
    }
    
   
