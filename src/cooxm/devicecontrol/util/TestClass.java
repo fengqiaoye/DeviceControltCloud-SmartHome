@@ -257,6 +257,45 @@ public class TestClass {
 		}
 	}
 	
+	static void btye2str(){
+		int[] b=new int[30];
+		b[0]=0x0;
+		b[1]=0x0   ;
+		b[2]=0x5f  ;
+		b[3]=0x23  ;
+		b[4]=0xe4  ;
+		b[5]=0x11  ;
+		b[6]=0x8   ;
+		b[7]=0x2   ;
+		b[8]=0x50  ;
+		b[9]=0x2   ;
+		b[10]=0x9  ;
+		b[11]=0x2  ;
+		b[12]=0xbe ;
+		b[13]=0x6  ;
+		b[14]=0x4  ;
+		b[15]=0x0  ;
+		b[16]=0xae ;
+		b[17]=0x51 ;
+		b[18]=0xff ;
+		b[19]=0x0  ;
+		b[20]=0x0  ;
+		b[21]=0x0  ;
+		b[22]=0x0  ;
+		b[23]=0x0  ;
+		b[24]=0x0  ;
+		b[25]=0x0  ;
+		b[26]=0x0  ;
+		b[27]=0x0  ;
+		b[28]=0x0  ;
+		b[29]=0x0  ;
+		
+		for(int i : b) {
+			System.out.print(i + " ");
+		}
+		
+	}
+	
 
 	public static void main(String[] args) throws UnknownHostException, IOException {
 //		String str1="{\"student\":[{\"name\":\"leilei\",\"age\":23},{\"name\":\"leilei02\",\"age\":23}]}";
@@ -277,6 +316,9 @@ public class TestClass {
 		
 		
 //		testPredicate();
+		
+		btye2str();
+
 		
 
 
