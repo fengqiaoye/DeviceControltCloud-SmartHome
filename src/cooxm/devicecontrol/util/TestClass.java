@@ -258,12 +258,12 @@ public class TestClass {
 	}
 	
 	static void btye2str(){
-		int[] b=new int[30];
+		byte[] b=new byte[30];
 		b[0]=0x0;
 		b[1]=0x0   ;
 		b[2]=0x5f  ;
 		b[3]=0x23  ;
-		b[4]=0xe4  ;
+		b[4]=(byte) 0xe4  ;
 		b[5]=0x11  ;
 		b[6]=0x8   ;
 		b[7]=0x2   ;
@@ -271,13 +271,13 @@ public class TestClass {
 		b[9]=0x2   ;
 		b[10]=0x9  ;
 		b[11]=0x2  ;
-		b[12]=0xbe ;
+		b[12]=(byte) 0xbe ;
 		b[13]=0x6  ;
 		b[14]=0x4  ;
 		b[15]=0x0  ;
-		b[16]=0xae ;
+		b[16]=(byte) 0xae ;
 		b[17]=0x51 ;
-		b[18]=0xff ;
+		b[18]=(byte) 0xff ;
 		b[19]=0x0  ;
 		b[20]=0x0  ;
 		b[21]=0x0  ;
@@ -290,10 +290,75 @@ public class TestClass {
 		b[28]=0x0  ;
 		b[29]=0x0  ;
 		
-		for(int i : b) {
-			System.out.print(i + " ");
-		}
+		String x=bytesToHexString(b);
+		System.out.print(x + " ");
 		
+//		for(int i : b) {
+//			System.out.print(i + " ");
+//		}
+		
+	}
+	
+	public static String toHexString(String s) 
+	{ 
+		String str=""; 
+		for (int i=0;i<s.length();i++) 
+		{ 
+			int ch = (int)s.charAt(i); 
+			String s4 = Integer.toHexString(ch); 
+			str = str + s4; 
+		} 
+		return str; 
+	} 
+	
+	/**
+	 *  Convert byte[] to hex string
+	 * @param src
+	 * @return
+	 */
+	public static String bytesToHexString(byte[] src){
+		StringBuilder stringBuilder = new StringBuilder("");
+		if(src==null||src.length<=0){
+			return null;
+		}
+		for (int i = 0; i < src.length; i++) {
+			int v = src[i] & 0xFF;
+			String hv = Integer.toHexString(v);
+			if (hv.length() < 2) {
+				stringBuilder.append(0);
+			}   
+			stringBuilder.append(hv);
+		}   
+		return stringBuilder.toString();   
+	}
+	 
+	/**
+	 * Convert hex string to byte[]
+	 * @param hexString
+	 * @return
+	 */
+	public static byte[] hexStringToBytes(String hexString) {  
+	    if (hexString == null || hexString.equals("")) {  
+	        return null;  
+	    }  
+	    hexString = hexString.toUpperCase();  
+	    int length = hexString.length() / 2;  
+	    char[] hexChars = hexString.toCharArray();  
+	    byte[] d = new byte[length];  
+	    for (int i = 0; i < length; i++) {  
+	        int pos = i * 2;  
+	        d[i] = (byte) (charToByte(hexChars[pos]) << 4 | charToByte(hexChars[pos + 1]));  
+	    }  
+	    return d;  
+	}
+	
+	/**
+	 * Convert char to byte
+	 * @param c
+	 * @return
+	 */
+	private static byte charToByte(char c) {  
+	    return (byte) "0123456789ABCDEF".indexOf(c);  
 	}
 	
 

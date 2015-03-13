@@ -7,9 +7,6 @@
  */
 
 
-import java.io.IOException;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -1123,12 +1120,12 @@ public class LogicControl {
     	int ctrolID=msg.getJson().getInt("ctrolID");
     	int deviceID=msg.getJson().getInt("deviceID");
     	String key=ctrolID+"_"+deviceID;
-    	Device device=null;
     	int sender=0;
+    	Device device=new Device();
     	if(msg.getJson().has("sender")){
     		sender=msg.getJson().getInt("sender"); 
     	}
-    	if((device=deviceMap.get(key))!=null || (device=Device.getOneDeviceFromDB(mysql, ctrolID, deviceID))!=null){
+		if((device=deviceMap.get(key))!=null || (device=Device.getOneDeviceFromDB(mysql, ctrolID, deviceID))!=null){
     		deviceMap.remove(key);
     		msg.setJson(new JSONObject());
     		msg.getJson().put("errorCode", SUCCESS);    		
@@ -1508,5 +1505,6 @@ public class LogicControl {
 	public static void main(String[] args) {
 		Configure cf= new Configure();
 		LogicControl lc= new LogicControl(cf);
+		System.out.println(lc);
 	}		
 }

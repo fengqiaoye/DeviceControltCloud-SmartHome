@@ -57,7 +57,12 @@ public class MySqlClass {
         	   result=result+"\n";
            }           
            rs.close();
-           return result.substring(0, result.length()-1);
+           if(result.length()>=1){
+        	   return result.substring(0, result.length()-1);
+           }else{
+        	   return null;
+           }
+           
        }catch(Exception e){
            //System.out.println("ERROR:"+e.toString());
     	   logger.error(e.toString(),e);

@@ -176,7 +176,7 @@ public class Header{
   
   public boolean isValid() {   
   	int commandID=this.commandID;
-  	if(commandID>=commandMin && commandID<=commandMax || commandID>=0x1100 && commandID<= 0x1104+0x4000)  {	
+  	if(commandID>=commandMin && commandID<=commandMax )  {	
 		return true;
 	}
     return false;
@@ -184,7 +184,8 @@ public class Header{
   
   public boolean isAuth() { 
   	int commandID=this.commandID;
-  	if(commandID>=0x1100 && commandID<= 0x1104+0x4000)  {	
+  	if(commandID==SocketClient.CMD__Identity_REQ || commandID==SocketClient.CMD__Identity_ACK
+  			|| commandID==SocketClient.CMD__HEARTBEAT_REQ || commandID<= SocketClient.CMD__HEARTBEAT_ACK)  {	
 		return true;
 	}
     return false;
