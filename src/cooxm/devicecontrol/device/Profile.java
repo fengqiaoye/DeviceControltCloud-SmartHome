@@ -123,8 +123,8 @@ public class Profile  {
 				factorList.add(factor);		
 			}		
 			setFactorList(factorList);
-			setCreateTime(sdf.parse(profileJson.getString("createTime")));
-			setModifyTime(sdf.parse(profileJson.getString("createTime")));	
+			setCreateTime(sdf.parse(profileJson.optString("createTime")));
+			setModifyTime(sdf.parse(profileJson.optString("createTime")));	
 		} catch (JSONException | ParseException e) {
 			e.printStackTrace();
 		}

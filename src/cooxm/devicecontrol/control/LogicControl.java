@@ -1502,9 +1502,9 @@ public class LogicControl {
     }
     
 
-	public static void main(String[] args) {
+	public static void main(String[] args) {		
 		Configure cf= new Configure();
-		LogicControl lc= new LogicControl(cf);
+		LogicControl lc= new LogicControl(cf);		
 		System.out.println(lc);
 	}		
 }

@@ -39,13 +39,22 @@ public class FactorDict {
 	701：天气（预报）
 	901：声音*/
 	private int factorID;
+	private String  factorName     ;
 	
 	/*** 0:家电因素，如灯 空调;  
-         1：环境因素，如光强度'
+         1：环境因素，如光强度
+         2:系统因素，如时间、日期
     */
-	private int  factorType     ;
-	private String  factorName     ;
-	private String   description    ;
+	private int  majorTypeID     ;
+	private String  majortypename;
+	/** 40: 空调类
+	 *  10： 灯光类 等等 */
+	private int  minorTypeID     ;
+	private String  minorTypeName;
+	
+	/**是否是电器的开关 */
+	private boolean isSwitch;
+
 	/** 度量单位*/
 	private String   unit    ;
 	
@@ -65,13 +74,60 @@ public class FactorDict {
 	public void setFactorID(int factorID) {
 		this.factorID = factorID;
 	}
-
-	public int getFactorType() {
-		return factorType;
+	public int getMajorTypeID() {
+		return majorTypeID;
 	}
 
-	public void setFactorType(int factorType) {
-		this.factorType = factorType;
+	public void setMajorTypeID(int majorTypeID) {
+		this.majorTypeID = majorTypeID;
+	}
+
+	public String getMajortypename() {
+		return majortypename;
+	}
+
+	public void setMajortypename(String majortypename) {
+		this.majortypename = majortypename;
+	}
+
+	public int getMinorTypeID() {
+		return minorTypeID;
+	}
+
+	public void setMinorTypeID(int minorTypeID) {
+		this.minorTypeID = minorTypeID;
+	}
+
+	public String getMinorTypeName() {
+		return minorTypeName;
+	}
+
+	public void setMinorTypeName(String minorTypeName) {
+		this.minorTypeName = minorTypeName;
+	}
+
+	public boolean isSwitch() {
+		return isSwitch;
+	}
+
+	public void setSwitch(boolean isSwitch) {
+		this.isSwitch = isSwitch;
+	}
+
+	public String getUnit() {
+		return unit;
+	}
+
+	public void setUnit(String unit) {
+		this.unit = unit;
+	}
+
+	public int getMstype() {
+		return mstype;
+	}
+
+	public void setMstype(int mstype) {
+		this.mstype = mstype;
 	}
 
 	public String getFactorName() {
@@ -118,30 +174,24 @@ public class FactorDict {
 	
 	public FactorDict(int factorid){
 		this.factorID=factorid;
-	}
-	public FactorDict(
-			int  factorid       ,
-			int  factortype     ,
-			String  factorname     ,
-			String  description    ,
-			String  measurement    ,
-			int  mstype         ,
-			int  createoperator ,
-			int  modifyoperator ,
-			Date  createTime     ,
-			Date  modifyTime		)
-	{	
-		this.factorID       =  factorid       ;
-		this.factorType     =  factortype     ;
-		this.factorName     =  factorname     ;
-		this.description    =  description    ;
-		this.unit    =  measurement    ;
-		this.mstype         =  mstype         ;
-		this.createOperator =  createoperator ;
-		this.modifyOperator =  modifyoperator ;
-		this.createTime     =  createTime     ;
-		this.modifyTime		=  modifyTime	  ;
-		
+	}	
+	public FactorDict(int factorID, String factorName, int majorTypeID,
+			String majortypename, int minorTypeID, String minorTypeName,
+			boolean isSwitch, String unit, int mstype, int createOperator,
+			int modifyOperator, Date createTime, Date modifyTime) {
+		this.factorID = factorID;
+		this.factorName = factorName;
+		this.majorTypeID = majorTypeID;
+		this.majortypename = majortypename;
+		this.minorTypeID = minorTypeID;
+		this.minorTypeName = minorTypeName;
+		this.isSwitch = isSwitch;
+		this.unit = unit;
+		this.mstype = mstype;
+		this.createOperator = createOperator;
+		this.modifyOperator = modifyOperator;
+		this.createTime = createTime;
+		this.modifyTime = modifyTime;
 	}
 
 	public FactorDict(int factorID, int createOperator, int modifyOperator,
@@ -152,12 +202,8 @@ public class FactorDict {
 		this.createTime = createTime;
 		this.modifyTime = modifyTime;
 	}
-	
-	
-
 
 	public FactorDict(int factorID, String factorName) {
-		super();
 		this.factorID = factorID;
 		this.factorName = factorName;
 	}
@@ -174,11 +220,15 @@ public class FactorDict {
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String sql2="select  "
 		+"factorid     ,"
-		+"factortype   ,"
-		+"factorname   ,"
-		+"description  ,"
+		+"factorname   ,"		
+		+"majortypeid   ,"
+		+"majortypename ,"
+		+"minortypeid   ,"
+		+"minortypename   ,"
+		+"isswitch ,"
 		+"measurement  ,"
 		+"mstype  ,"
+		+"createoperator  ,"
 		+"modifyoperator  ,"
 		+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
 		+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
@@ -197,16 +247,19 @@ public class FactorDict {
 			fd =new FactorDict();
 			String[] index=res2.split(",");
 			fd.factorID=Integer.parseInt(index[0]);	
-			fd.factorType=Integer.parseInt(index[1]);
-			fd.factorName=index[2];	
-			fd.description=index[3];	
-			fd.unit=index[4]; 
-			fd.mstype=Integer.parseInt(index[5]);	
-			fd.createOperator=Integer.parseInt(index[6]);	
-			fd.modifyOperator=Integer.parseInt(index[7]); 
+			fd.factorName=index[1];
+			fd.majorTypeID=Integer.parseInt(index[2]);	
+			fd.majortypename=index[3];	
+			fd.minorTypeID=Integer.parseInt(index[3]);	
+			fd.minorTypeName=index[4];	
+			fd.isSwitch=Boolean.parseBoolean(index[5]);			
+			fd.unit=index[6]; 
+			fd.mstype=Integer.parseInt(index[7]);	
+			fd.createOperator=Integer.parseInt(index[8]);	
+			fd.modifyOperator=Integer.parseInt(index[9]); 
 			try {
-				fd.createTime=sdf.parse(index[8]);
-				fd.modifyTime=sdf.parse(index[9]);
+				fd.createTime=sdf.parse(index[10]);
+				fd.modifyTime=sdf.parse(index[11]);
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}			
@@ -220,10 +273,13 @@ public class FactorDict {
 		FactorDict fd= null;//new FactorDictionary();
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String sql2="select  "
-		+"factorid        ,"
-		+"factortype        ,"
-		+"factorname      ,"
-		+"description  ,"
+		+"factorid     ,"
+		+"factorname   ,"		
+		+"majortypeid   ,"
+		+"majortypename ,"
+		+"minortypeid   ,"
+		+"minortypename ,"
+		+"isswitch ,"
 		+"measurement  ,"
 		+"mstype  ,"
 		+"createoperator ,"
@@ -246,16 +302,19 @@ public class FactorDict {
 			fd =new FactorDict();
 			String[] index=line.split(",");
 			fd.factorID=Integer.parseInt(index[0]);	
-			fd.factorType=Integer.parseInt(index[1]);
-			fd.factorName=index[2];	
-			fd.description=index[3];	
-			fd.unit=index[4]; 
-			fd.mstype=Integer.parseInt(index[5]);	
-			fd.createOperator=Integer.parseInt(index[6]);	
-			fd.modifyOperator=Integer.parseInt(index[7]); 
+			fd.factorName=index[1];
+			fd.majorTypeID=Integer.parseInt(index[2]);	
+			fd.majortypename=index[3];	
+			fd.minorTypeID=Integer.parseInt(index[4]);	
+			fd.minorTypeName=index[5];	
+			fd.isSwitch=Boolean.parseBoolean(index[6]);			
+			fd.unit=index[7]; 
+			fd.mstype=Integer.parseInt(index[8]);	
+			fd.createOperator=Integer.parseInt(index[9]);	
+			fd.modifyOperator=Integer.parseInt(index[10]); 
 			try {
-				fd.createTime=sdf.parse(index[8]);
-				fd.modifyTime=sdf.parse(index[9]);
+				fd.createTime=sdf.parse(index[11]);
+				fd.modifyTime=sdf.parse(index[12]);
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}			
@@ -271,6 +330,8 @@ public class FactorDict {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		
 		InitializeFactorDictMap(mysql);
+		
+		System.out.println("初始化成功");
 	}
 
 }
