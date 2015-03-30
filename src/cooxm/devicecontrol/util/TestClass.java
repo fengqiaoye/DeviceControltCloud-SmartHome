@@ -382,7 +382,20 @@ public class TestClass {
 		
 //		testPredicate();
 		
-		btye2str();
+//		btye2str();
+		
+		for(int i=0;i<100;i++)
+		{
+			long time=System.currentTimeMillis();
+			long second=time/1000;
+			int  milsecond=(int) (time%1000);
+			System.out.println(time+", "+second+", "+ milsecond);
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 
 		
 
