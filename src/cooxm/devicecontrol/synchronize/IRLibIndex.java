@@ -1,8 +1,5 @@
-package cooxm.devicecontrol.httpRequest;
-/** 
- * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created：Mar 27, 2015 5:24:54 PM 
- */
+package cooxm.devicecontrol.synchronize;
+
 
 import java.sql.SQLException;
 import java.text.DateFormat;
@@ -13,7 +10,10 @@ import java.util.List;
 import cooxm.devicecontrol.util.MySqlClass;
 
 
-
+/** 
+ * @author Chen Guanghua E-mail: richard@cooxm.com
+ * @version Created：Mar 27, 2015 5:24:54 PM 
+ */
 public class IRLibIndex {
 	
 	List<IRLibFile> iRLibFileList;
@@ -85,7 +85,7 @@ public class IRLibIndex {
 		for(IRLibFile ir:this.iRLibFileList){
 			ir.saveToDB(mysql);
 		}
-		return this.iRLibFileList.size();		
+		return this.iRLibFileList.size();	
 	}
 	
 	

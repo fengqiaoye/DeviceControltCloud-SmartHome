@@ -133,7 +133,7 @@ public class TriggerTemplate {
 			e.printStackTrace();
 		}
 		for (TriggerTemplateFactor ft:this.triggerTemplateFactorList) {
-			String sql="insert into "+triggerFactorTable
+			String sql="replace into "+triggerFactorTable
 					+" (triggerid  ,"     
 					+"logicalrelation,"
 					+"roomtype ,"
@@ -166,7 +166,7 @@ public class TriggerTemplate {
 		}			
 	
 		for (TriggerTemplateReact react:this.triggerTemplateReactList) {
-		String sql2="insert into "+triggerReactTable
+		String sql2="replace into "+triggerReactTable
 				+" (triggerid ," 
 				+" reacttype ," 
 				+"targetid ,"

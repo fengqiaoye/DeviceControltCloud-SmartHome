@@ -101,7 +101,7 @@ public class Trigger {
 			e.printStackTrace();
 		}
 		for (TriggerFactor ft:this.triggerFactorList) {
-			String sql="insert into "+triggerFactorInfoTable
+			String sql="replace into "+triggerFactorInfoTable
 					+" ("
 					+ "ctrolid ," 
 					+ "triggerid ,"     
@@ -139,7 +139,7 @@ public class Trigger {
 		}			
 	
 		for (TriggerTemplateReact react:this.triggerReactList) {
-		String sql2="insert into "+triggerReactInfoTable
+		String sql2="replace into "+triggerReactInfoTable
 				+" ("
 				+ "ctrolid ," 
 				+ "triggerid ," 
@@ -322,11 +322,11 @@ public class Trigger {
 	return 1;		
 	}
 	
-	public static  Trigger fromJson(JSONObject TriggerJson){
+	public  Trigger(JSONObject TriggerJson){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");	
-		Trigger trigger=new Trigger();
+		//Trigger trigger=new Trigger();
 		try {
-			trigger.triggerID=TriggerJson.getInt("triggerID");
+			this.triggerID=TriggerJson.getInt("triggerID");
 			JSONArray factorListJSON= TriggerJson.getJSONArray("factorList");
 			List<TriggerFactor> factorList = new ArrayList<TriggerFactor>() ;
 			for(int i=0;i<factorListJSON.length();i++){
@@ -335,7 +335,7 @@ public class Trigger {
 				factor=TriggerFactor.fromJson(factorJson);
 				factorList.add(factor);		
 			}		
-			trigger.setTriggerFactorList(factorList);
+			this.setTriggerFactorList(factorList);
 			
 			JSONArray reactListJSON= TriggerJson.getJSONArray("reactList");
 			List<TriggerTemplateReact> reactList = new ArrayList<TriggerTemplateReact>() ;
@@ -345,11 +345,11 @@ public class Trigger {
 				react=TriggerTemplateReact.fromJson(reactJson);
 				reactList.add(react);		
 			}		
-			trigger.setTriggerTemplateReactList(reactList);			
+			this.setTriggerTemplateReactList(reactList);			
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		return trigger;
+		//return trigger;
 	}
 	
 	public JSONObject toJson() {		

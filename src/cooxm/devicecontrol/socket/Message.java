@@ -2,24 +2,21 @@
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
-
 import org.apache.log4j.Logger;
-import org.json.CookieList;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import com.mysql.jdbc.log.Log;
 
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.BytesUtil;
 
+/** 
+ * @author Chen Guanghua E-mail: richard@cooxm.com
+ * @version Created：22 Dec 2014 16:58:28 
+ */
 public class Message extends Header {
 	public static final short COMMAND_ACK_OFFSET       		   =  0x4000;
 	static Logger log= Logger.getLogger(LogicControl.class);

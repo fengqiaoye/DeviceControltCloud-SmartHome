@@ -168,7 +168,7 @@ public class ProfileTemplate {
 		int resultCount=0;
 		mysql.conn.setAutoCommit(false);		
 		for (FactorTemplate factor:this.factorTempList) {
-		String sql="insert into "+profileTemplatDetailTable
+		String sql="replace into "+profileTemplatDetailTable
 				+" ("
 				+ "sttemplateid ," 
 				+" factorid     ," 
@@ -199,7 +199,7 @@ public class ProfileTemplate {
 		System.out.println(sql);		
 		mysql.query(sql);
 		
-		String sql2="insert into   "
+		String sql2="replace into   "
 				+ profileTemplatIndexTable
 				+"("
 				+" templateid       ,"

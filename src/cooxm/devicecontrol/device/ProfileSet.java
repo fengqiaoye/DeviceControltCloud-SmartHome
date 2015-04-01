@@ -129,7 +129,7 @@ public class ProfileSet {
 		int resultCount=0;
 		mysql.conn.setAutoCommit(false);		
 		for (Integer profileID:this.profileList) {
-		String sql="insert into "+profileSetTable
+		String sql="replace into "+profileSetTable
 				+" (ctr_id       ," 
 				+" userstsetid       ," 
 				+"stsetname        ,"

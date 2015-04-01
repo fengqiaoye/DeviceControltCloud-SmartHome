@@ -1,8 +1,5 @@
 ﻿package cooxm.devicecontrol.util;
-/** 
- * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created：6 Jan 2015 09:48:27 
- */
+
 import java.io.ByteArrayOutputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -34,7 +31,10 @@ import cooxm.devicecontrol.socket.SocketClient;
 import redis.clients.jedis.Jedis;
 
 
-
+/** 
+ * @author Chen Guanghua E-mail: richard@cooxm.com
+ * @version Created：6 Jan 2015 09:48:27 
+ */
 public class TestClass {
 	
 	public void jsonDecodeTest() throws JSONException{

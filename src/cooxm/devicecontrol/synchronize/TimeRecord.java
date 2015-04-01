@@ -1,4 +1,4 @@
-package cooxm.devicecontrol.device;
+package cooxm.devicecontrol.synchronize;
 
 import java.sql.SQLException;
 import java.text.DateFormat;

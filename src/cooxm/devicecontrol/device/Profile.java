@@ -1,8 +1,5 @@
 ﻿package cooxm.devicecontrol.device;
-/** 
- * @author Chen Guanghua E-mail: richard@cooxm.com
- * @version Created：2014年12月15日 下午3:03:30 
- */
+
 
 import java.sql.SQLException;
 import java.text.DateFormat;
@@ -20,7 +17,9 @@ import cooxm.devicecontrol.util.MySqlClass;
 
 
 /***
- * 一个房间的情景模式，可能包含多个情景因素(家电、环境等)
+ * @author Chen Guanghua E-mail: richard@cooxm.com
+ * @version Created：2014年12月15日 下午3:03:30 
+ * @function  一个房间的情景模式，可能包含多个情景因素(家电、环境等)
  * */
 public class Profile  {
 	
@@ -199,11 +198,16 @@ public class Profile  {
 		}		
 		return false;		
 	}
+	
+	public boolean isExistInDB(MySqlClass mysql){
+		
+		return false;
+	}
 
 	
 	/*** 
 	 * Save Profile info to Mysql:
-	 * @param  Mysql:				MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	 * @param  Mysql:				MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "XXXX");
 	 * @table profileDetailTable :  info_user_room_st_factor
 	 * @table profileIndexTable  :	info_user_room_st
 	 * @throws SQLException
@@ -223,7 +227,7 @@ public class Profile  {
 			e.printStackTrace();
 		}
 		for (Factor ft:factorList) {
-			String sql="insert into "+profileDetailTable
+			String sql="replace into "+profileDetailTable
 					+" (userroomstid  ,"     
 					+"ctr_id ,"
 					+"factorid ,"
@@ -252,7 +256,7 @@ public class Profile  {
 		}		
 		
 		
-		String sql2="insert into "+profileIndexTable
+		String sql2="replace into "+profileIndexTable
 				+" (userroomstid ," 
 				+" userroomstname ," 
 				+"ctr_id ,"
@@ -569,22 +573,7 @@ public class Profile  {
 		}
 	
 	
-	/*public boolean SynProfile(MySqlClass mysql,Profile srcProfile) throws SQLException{
-		
-		Profile target=Profile.getProfileHeadFromDB(mysql, srcProfile.ctrolID, srcProfile.profileID);
-		
-		if(target.modifyTime.before(srcProfile.modifyTime)){ //mysql表的时间比较旧，则保存上报的profile
-			if(srcProfile.saveProfileToDB(mysql)>0){
-				return true;
-			}else
-				return false;
-		}else { //mysql表的时间的时间比较新，则下发mysql的profile                                              
-			
-		}
-		
-		
-		
-	}*/
+
 
 	
 	

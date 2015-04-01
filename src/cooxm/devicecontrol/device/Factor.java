@@ -30,8 +30,8 @@ public class Factor  extends FactorDict  {
 	6：>大于
 	7:  ≤小于等于
 	8:  <小于
-	9： 介于(左右都开)
-	10:  介于[左闭右开)
+	9：    介于(左右都开)
+	10: 介于[左闭右开)
 	11: 介于(左开右闭]
     */
 	private int operator;

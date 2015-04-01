@@ -237,7 +237,7 @@ public class Device {
 	public int saveToDB(MySqlClass mysql){
 		String tablename="info_user_room_bind";
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		String sql="insert into "+tablename
+		String sql="replace into "+tablename
 				+" (ctr_id       ,"     
 				+"devid        ,"
 				+"devsn        ,"

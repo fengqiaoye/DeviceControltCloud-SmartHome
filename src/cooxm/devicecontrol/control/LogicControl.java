@@ -12,9 +12,11 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -135,11 +137,10 @@ public class LogicControl {
 	/*** 上报或者下发 触发规则 模板回复*/
 	private static final short DELETE_TRIGGER_ACK			=	COMMAND_START+73+COMMAND_ACK_OFFSET;
 	
+	/**断网重新联网时， 同步 时间表 */
+	private static final short SYN_UPDATETIME               =   COMMAND_START+81;
+	private static final short SYN_UPDATETIME_ACK			=	COMMAND_START+81+COMMAND_ACK_OFFSET;
 	
-	
-	
-	
-		
     /*** 告警消息   */
 	private static final short WARNING_MSG				 	=	WARNING_START+3;
     /*** 告警消息  的回复  */
@@ -429,7 +430,14 @@ public class LogicControl {
 			} catch (JSONException | SQLException e) {
 				e.printStackTrace();
 			}
-			break;				
+			break;
+		case SYN_UPDATETIME:	
+			try {
+				syn_updatetime(msg);
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			break;
 		default:
 			int sender=0;
 			if(msg.getJson().has("sender")){
@@ -564,15 +572,13 @@ public class LogicControl {
     	String key=ctrolID+"_"+profileID;
     	int sender=0;
     	
-    	if((dbProfile=this.profileMap.get(key))==null && (dbProfile=Profile.getFromDB(mysql, ctrolID, profileID))==null){
-			msg.getJson().put("errorCode",PROFILE_NOT_EXIST);    		
-    	}else if(  dbProfile.getModifyTime().after(msgModifyTime)){	//云端较新  
+    	if( (dbProfile=this.profileMap.get(key))!=null && dbProfile.getModifyTime().after(msgModifyTime)){	//云端较新  
 			msg.getJson().put("errorCode",PROFILE_OBSOLETE);    		
-    	}else if(  dbProfile.getModifyTime().before(msgModifyTime)){ //云端较旧，则保存
+    	}else { //云端较旧  或者 不存在，则保存
     		this.profileMap.put(key, msgProfile);
 			msg.setJson(new JSONObject());
 			msg.getJson().put("errorCode",SUCCESS);   
-			}    	
+		}    	
   		msg.setCommandID(SET_ROOM_PROFILE_ACK);
 		msg.getJson().put("sender",2);
 		if(msg.getJson().has("sender")){
@@ -768,7 +774,9 @@ public class LogicControl {
     	}
     	
     	if((dbProfileSet=profileSetMap.get(key))==null && (dbProfileSet=ProfileSet.getProfileSetFromDB(mysql, ctrolID, profileSetID))==null ){
-			msg.getJson().put("errorCode",PROFILE_SET_NOT_EXIST);     		
+    		profileSetMap.put(key, msgProfileSet);
+			msg.setJson(new JSONObject());
+			msg.getJson().put("errorCode",SUCCESS);     		
     	}else if( dbProfileSet.modifyTime.after(msgModifyTime)){	//云端较新  
 			msg.getJson().put("errorCode",PROFILE_SET_OBSOLETE);    		
     	}else if( dbProfileSet.modifyTime.before(msgModifyTime)){
@@ -993,7 +1001,8 @@ public class LogicControl {
     	int sender=0;
     	
     	if((dbProfile=ProfileTemplate.getFromDB(mysql, profileTemplatID))==null){
-			msg.getJson().put("errorCode",PROFILE_TEMPLATE_NOT_EXIST);    		
+			msg.setJson(new JSONObject());
+			msg.getJson().put("errorCode",SUCCESS);     		
     	}else if(  dbProfile.getModifyTime().after(msgModifyTime)){	//云端较新  
 			msg.getJson().put("errorCode",PROFILE_TEMPLATE_OBSOLETE);    		
     	}else if(  dbProfile.getModifyTime().before(msgModifyTime)){ //云端较旧，则保存
@@ -1086,7 +1095,9 @@ public class LogicControl {
     	}
     	
     	if((dbDevice=this.deviceMap.get(key))==null  && (dbDevice=Device.getOneDeviceFromDB(mysql, ctrolID, deviceID))==null ){	
-    		msg.getJson().put("errorCode",DEVICE_NOT_EXIST);    		
+    		this.deviceMap.put(key, msgDevice);
+    		msg.setJson(new JSONObject());
+			msg.getJson().put("errorCode",SUCCESS);   		
     	}else if(dbDevice.modifyTime.after(msgModifyTime)){ ////云端较新  
 			msg.getJson().put("errorCode",DEVICE_OBSOLETE);   
 		}else if (dbDevice.modifyTime.before(msgModifyTime)){ //云端较旧
@@ -1307,7 +1318,7 @@ public class LogicControl {
     public void set_trigger_template( Message msg) throws JSONException, SQLException, ParseException{
     	//JSONObject json=msg.json;
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    	Trigger msgTrigger=Trigger.fromJson(msg.getJson().getJSONObject("triggerTemplate"));
+    	Trigger msgTrigger=new Trigger(msg.getJson().getJSONObject("triggerTemplate"));
     	Trigger dbTrigger;
     	int ctrolID=msg.getJson().getInt("ctrolID");
     	int triggerID=msg.getJson().getInt("triggerID");
@@ -1316,7 +1327,9 @@ public class LogicControl {
     	int sender=0;
     	
     	if((dbTrigger=this.triggerMap.get(key))==null && (dbTrigger=Trigger.getFromDB(mysql, ctrolID, triggerID))==null){
-			msg.getJson().put("errorCode",PROFILE_NOT_EXIST);    		
+    		this.triggerMap.put(key, msgTrigger);
+			msg.setJson(new JSONObject());
+			msg.getJson().put("errorCode",SUCCESS);    		
     	}else if(  dbTrigger.getModifyTime().after(msgModifyTime)){	//云端较新  
 			msg.getJson().put("errorCode",PROFILE_OBSOLETE);    		
     	}else if(  dbTrigger.getModifyTime().before(msgModifyTime)){ //云端较旧，则保存
@@ -1427,7 +1440,7 @@ public class LogicControl {
     public void set_trigger( Message msg) throws JSONException, SQLException, ParseException{
     	//JSONObject json=msg.json;
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    	Trigger msgTrigger=Trigger.fromJson(msg.getJson().getJSONObject("trigger"));
+    	Trigger msgTrigger=new Trigger(msg.getJson().getJSONObject("trigger"));
     	Trigger dbTrigger;
     	int ctrolID=msg.getJson().getInt("ctrolID");
     	int triggerID=msg.getJson().getInt("triggerID");
@@ -1436,7 +1449,9 @@ public class LogicControl {
     	int sender=0;
     	
     	if((dbTrigger=this.triggerMap.get(key))==null && (dbTrigger=Trigger.getFromDB(mysql, ctrolID, triggerID))==null){
-			msg.getJson().put("errorCode",PROFILE_NOT_EXIST);    		
+    		this.triggerMap.put(key, msgTrigger);
+			msg.setJson(new JSONObject());
+			msg.getJson().put("errorCode",SUCCESS);    		
     	}else if(  dbTrigger.getModifyTime().after(msgModifyTime)){	//云端较新  
 			msg.getJson().put("errorCode",PROFILE_OBSOLETE);    		
     	}else if(  dbTrigger.getModifyTime().before(msgModifyTime)){ //云端较旧，则保存
@@ -1467,8 +1482,7 @@ public class LogicControl {
      * }
      * @throws JSONException 
      * @return message 的json格式：
-     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50002}
-           
+     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50002}           
      */
     public void delete_trigger(Message msg) throws JSONException, SQLException{
     	int ctrolID=msg.getJson().getInt("ctrolID");
@@ -1500,6 +1514,75 @@ public class LogicControl {
 			e.printStackTrace();
 		}    	
     }
+    
+    
+    /*** 同步所有表
+     * <pre> 当且仅当用在中控断网重新联网时，中控需要从info_syn_updatetime 表中读取每一个表的更新时间，将晚于这个时间的所有记录(情景模式、家电列表)上报云端；
+     *       每一个表的记录，用单独的一个命令上报；
+     * @Note 需要注意：在联网情况下，用户每次修改情景、触发、家电等配置时，都要刷新一下info_syn_updatetime 最后同步时间；
+     *             在断网时，不能刷新最后同步时间 ；        
+     * 请求的json格式为：
+     * { 
+     *   senderRole:    中控:0 ; 手机:1 ; 云:2;
+     *   receiverRole:  中控:0 ; 手机:1 ; 云:2;
+     *   ctrolID:1234567
+     *   recordType: 记录对象的类型，例如 profile,device,trigger ...
+     *   record：[
+                { ...	记录1的json格式			},	
+                { ...	记录2的json格式			}
+               ]
+     * }
+     * @throws JSONException 
+     * @return message 的json格式：
+     *   （1） 同步成功返回0，否则返回           -1
+     */
+    public void syn_updatetime(Message msg) throws JSONException {
+    	String tableName=msg.getJson().optString("recordType");
+    	JSONArray ja=null;
+    	switch (tableName) {
+		case "profile":
+			ja=msg.getJson().getJSONArray("record");
+			for (int i=0;i<ja.length();i++) {
+				JSONObject jo=ja.getJSONObject(i);
+				Profile profile=new Profile(jo);
+				profile.saveToDB(mysql);
+			}			
+			break;
+		case "profileSet":
+			ja=msg.getJson().getJSONArray("record");
+			for (int i=0;i<ja.length();i++) {
+				JSONObject jo=ja.getJSONObject(i);
+				ProfileSet profile=new ProfileSet(jo);
+				try {
+					profile.saveProfileSetToDB(mysql);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}			
+			break;
+		case "device":
+			ja=msg.getJson().getJSONArray("record");
+			for (int i=0;i<ja.length();i++) {
+				JSONObject jo=ja.getJSONObject(i);
+				Device device=new Device(jo);
+				device.saveToDB(mysql);
+			}			
+			break;
+		case "trigger":
+			ja=msg.getJson().getJSONArray("record");
+			for (int i=0;i<ja.length();i++) {
+				JSONObject jo=ja.getJSONObject(i);
+				Trigger trigger=new Trigger(jo);
+				trigger.saveToDB(mysql);
+			}			
+			break;
+		default:
+			break;
+		}
+    	
+    }
+    
+    
     
 
 	public static void main(String[] args) {		
