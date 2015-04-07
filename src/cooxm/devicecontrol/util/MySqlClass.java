@@ -18,6 +18,7 @@ public class MySqlClass {
    private ResultSet rs=null;
    static final Logger logger = Logger.getLogger(MySqlClass.class);
    
+   /**初始化Mysql连接 */
    public MySqlClass(String host, String port,String databaseName,String userName,String password){
        try{
            Class.forName("com.mysql.jdbc.Driver").newInstance();
@@ -29,6 +30,18 @@ public class MySqlClass {
            logger.fatal(e.getMessage(),e);          
        }       
    }
+   
+   public MySqlClass(String dbNanme){
+	    try {
+			Class.forName("org.sqlite.JDBC");
+		    Connection conn =	      DriverManager.getConnection("jdbc:sqlite:"+dbNanme);
+		    this.st = conn.createStatement();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
    
    public boolean isClosed(){
 	   try {

@@ -141,6 +141,14 @@ public class LogicControl {
 	private static final short SYN_UPDATETIME               =   COMMAND_START+81;
 	private static final short SYN_UPDATETIME_ACK			=	COMMAND_START+81+COMMAND_ACK_OFFSET;
 	
+	/**请求遥控 文件 */
+	private static final short DOWNLOAD_INFRARED_FILE       =   COMMAND_START+91;
+	private static final short DOWNLOAD_INFRARED_FILE_ACK			=	COMMAND_START+91+COMMAND_ACK_OFFSET;
+	
+	/** */
+	private static final short UPLOAD_INFRARED_LEARN       =   COMMAND_START+92;
+	private static final short UPLOAD_INFRARED_LEARN_ACK   =   COMMAND_START+92+COMMAND_ACK_OFFSET;
+	
     /*** 告警消息   */
 	private static final short WARNING_MSG				 	=	WARNING_START+3;
     /*** 告警消息  的回复  */
@@ -171,6 +179,9 @@ public class LogicControl {
 	public static final int TIME_OUT		   	      = -50022;
 	/**命令号码段不对*/
 	public static final int WRONG_COMMAND		   	  = -50023;
+	
+	/** 红外码库文件不存在*/
+	public static final int INFRARED_FILE_NOT_EXIST	  = -50031;
 	
 
 	
@@ -434,6 +445,13 @@ public class LogicControl {
 		case SYN_UPDATETIME:	
 			try {
 				syn_updatetime(msg);
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			break;
+		case DOWNLOAD_INFRARED_FILE:	
+			try {
+				download_infrared_file(msg);
 			} catch (JSONException e1) {
 				e1.printStackTrace();
 			}
@@ -1539,6 +1557,10 @@ public class LogicControl {
     public void syn_updatetime(Message msg) throws JSONException {
     	String tableName=msg.getJson().optString("recordType");
     	JSONArray ja=null;
+    	int sender=0;
+		if(msg.getJson().has("sender")){
+			   sender=msg.getJson().getInt("sender");
+			}
     	switch (tableName) {
 		case "profile":
 			ja=msg.getJson().getJSONArray("record");
@@ -1579,10 +1601,47 @@ public class LogicControl {
 		default:
 			break;
 		}
+    	msg.setCommandID(SYN_UPDATETIME_ACK);
+		msg.getJson().put("sender",2);
+		msg.getJson().put("receiver",sender); 
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
     	
     }
-    
-    
+  
+    /*** 下载某一个型号家电的 红外码库文件
+     * <pre> ；        
+     * 请求的json格式为：
+     * { 
+     *   senderRole:    中控:0 ; 手机:1 ; 云:2;
+     *   receiverRole:  中控:0 ; 手机:1 ; 云:2;
+     *   ctrolID:1234567
+     *   applianceType: 填写家电的factorID,
+     *   fileID:这一型号的 家电对应的文件名ID
+     * @throws JSONException 
+     * @return message 的json格式：
+     *   （1）若 这一型号的家电的 红外库存在，则返回  红外码库文件的URL 地址；
+     *   （2）若 这一型号的家电的 红外库存在，则返回 
+     */
+    public void    download_infrared_file(Message msg) throws JSONException{
+    	int sender=0;
+		if(msg.getJson().has("sender")){
+			   sender=msg.getJson().getInt("sender");
+		}
+    	
+    	
+    	msg.setCommandID(DOWNLOAD_INFRARED_FILE_ACK);
+		msg.getJson().put("sender",2);
+		msg.getJson().put("receiver",sender); 
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+    }
     
 
 	public static void main(String[] args) {		
