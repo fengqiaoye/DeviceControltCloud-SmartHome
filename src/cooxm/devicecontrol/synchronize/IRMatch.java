@@ -7,6 +7,8 @@ import java.util.Set;
 
 import org.apache.log4j.Logger;
 
+import com.hp.hpl.sparta.xpath.ThisNodeTest;
+
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.encode.SQLiteUtil;
 
@@ -17,6 +19,10 @@ import cooxm.devicecontrol.encode.SQLiteUtil;
 
 public class IRMatch {
 	static Logger log= Logger.getLogger(IRMatch.class);
+	/*String rawdata;	
+	String iRString;	
+	String encode;
+	List<String []> ids;*/
 	
 
 	/**万能码库格式转成Comsumer IR 格式*/
@@ -65,8 +71,9 @@ public class IRMatch {
 						waves += hs + ",";
 					}
 				}
-				
-				if((Long.parseLong(modulea[5],16) & 240) == 0){
+				//2015-04-10 周先生
+				if((Long.parseLong(modulea[5],16) & 240) != 0){
+				//if((Long.parseLong(modulea[5],16) & 240) == 0){
 					hs = (Long.parseLong(modulea[7],16) & 127) * 256 + Long.parseLong(modulea[8],16);
 		            		waves += hs + ",";
 				}
@@ -234,7 +241,7 @@ public class IRMatch {
 	
 	
 	/** Comsumer IR格式转成适合匹配的 */
-	public static String Encode(String wavas){
+	public static String encode(String wavas){
 		String[] dump = new String[512];
 		String[] machd = new String[512];
 		float fcycle;
@@ -397,9 +404,12 @@ public class IRMatch {
 	   String raw12="2a,04,00,00,24,00,26,81,8c,01,8c,81,8c,04,f9,c1,0d,6e,c2,00,04,f9,c3,00,88,40,00,14,80,43,01,a8,ee,03,00,68,00,00,02,00,00,52,00";
 	   String raw13="33,04,00,00,24,00,26,82,34,02,34,82,34,06,5b,c1,14,a9,c2,00,14,a9,c3,00,30,4d,b2,f8,07,1b,e4,c2,00,14,a9,c1,14,a9,c2,00,14,a9,c3,00,30,4d,b2,f8,07,1b,e4,00";
 	   String raw14="27,04,00,00,24,00,26,82,16,02,16,82,16,04,70,c1,0e,34,c2,00,04,70,c3,00,70,23,cb,26,01,00,20,08,07,09,00,00,00,00,4d,00";
-	   String wave=getIRString(raw14.toUpperCase());
+	   String raw15="47,04,00,00,24,00,26,82,6b,02,6b,82,6b,06,93,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,50,02,c2,00,4e,3d,c3,00,20,00,20,00,e0,c2,00,9c,6f,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,70,02,c2,00,4e,3d,c3,00,20,00,00,18,c0,00";
+	   String raw16="47,04,00,00,24,00,26,82,6b,02,6b,82,6b,06,93,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,50,02,c2,00,4e,3a,c3,00,20,00,20,00,d0,c2,00,9c,6c,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,70,02,c2,00,4e,3a,c3,00,20,00,00,18,c0,00";
+	   String raw17="47,04,00,00,24,00,26,82,a0,02,a0,82,a0,06,61,c1,23,4b,c2,00,11,89,c3,00,23,59,9,20,50,02,c2,00,4e,08,c3,00,20,10,20,00,f0,c2,00,9c,3b,c1,23,4b,c2,00,11,89,c3,00,23,59,09,20,70,02,c2,00,4e,08,c3,00,20,00,00,10,d0,00";
+	   String wave=getIRString(raw12.toUpperCase());
 		//System.out.println(wave.substring(0, wave.length()-1));
-		String encode=Encode(wave.substring(0, wave.length()-1));
+		String encode=encode(wave.substring(0, wave.length()-1));
 		System.out.println("encode = "+encode);
 		List<String[]> fids =getID(encode);
 		List<Set<String>> models=getModels(fids); 
@@ -407,11 +417,8 @@ public class IRMatch {
 			System.out.println(fids.get(i)[2]+":");
 			for (int j = 0; j < models.get(i).size(); j++) {
 				System.out.println("\t"+models.get(i).toArray()[j]);	
-			}
-			
+			}			
 		}
-
-
 	}
 
 }

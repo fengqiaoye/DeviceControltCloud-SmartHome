@@ -33,6 +33,7 @@ import cooxm.devicecontrol.device.TriggerMap;
 import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.socket.Message;
 import cooxm.devicecontrol.socket.SocketClient;
+import cooxm.devicecontrol.synchronize.IRFileDownload;
 import cooxm.devicecontrol.util.MySqlClass;
 import redis.clients.jedis.Jedis;
 
@@ -589,12 +590,12 @@ public class LogicControl {
     	Date msgModifyTime=sdf.parse(msg.getJson().getString("modifyTime"));
     	String key=ctrolID+"_"+profileID;
     	int sender=0;
-    	
+    	msg.setJson(new JSONObject());
     	if( (dbProfile=this.profileMap.get(key))!=null && dbProfile.getModifyTime().after(msgModifyTime)){	//云端较新  
 			msg.getJson().put("errorCode",PROFILE_OBSOLETE);    		
     	}else { //云端较旧  或者 不存在，则保存
     		this.profileMap.put(key, msgProfile);
-			msg.setJson(new JSONObject());
+			
 			msg.getJson().put("errorCode",SUCCESS);   
 		}    	
   		msg.setCommandID(SET_ROOM_PROFILE_ACK);
@@ -1624,16 +1625,23 @@ public class LogicControl {
      * @throws JSONException 
      * @return message 的json格式：
      *   （1）若 这一型号的家电的 红外库存在，则返回  红外码库文件的URL 地址；
-     *   （2）若 这一型号的家电的 红外库存在，则返回 
+     *   （2）若 这一型号的家电的 红外库不存在，则返回  NOT_EXIST 
      */
     public void    download_infrared_file(Message msg) throws JSONException{
     	int sender=0;
 		if(msg.getJson().has("sender")){
 			   sender=msg.getJson().getInt("sender");
 		}
-    	
-    	
+		int fileID=msg.getJson().optInt("fileID");
+		IRFileDownload irDownload=new IRFileDownload(fileID);
+		String url=irDownload.getURL();
+		msg.setJson(new JSONObject());
     	msg.setCommandID(DOWNLOAD_INFRARED_FILE_ACK);
+		if(url.equals("") || url==null){
+			msg.getJson().put("errorCode", INFRARED_FILE_NOT_EXIST);
+		}else{
+	    	msg.getJson().put("url", url);
+		}
 		msg.getJson().put("sender",2);
 		msg.getJson().put("receiver",sender); 
     	try {
