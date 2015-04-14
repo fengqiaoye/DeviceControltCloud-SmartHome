@@ -216,7 +216,7 @@ public class Message extends Header {
 	return SequenceNO;	
    }
    
-    public void writeBytesToSock(Socket sock){
+ /*   public void writeBytesToSock(Socket sock){
     	try {
 			DataOutputStream dataout= new DataOutputStream(sock.getOutputStream());
 			   dataout.write(  	BytesUtil.getBytes(this.headTag, "UTF-8")  );
@@ -235,7 +235,7 @@ public class Message extends Header {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}    	
-    }
+    }*/
     
     public void writeBytesToSock2(Socket sock){
     	try {

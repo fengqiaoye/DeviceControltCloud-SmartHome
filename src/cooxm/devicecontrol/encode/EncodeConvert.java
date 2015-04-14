@@ -41,7 +41,7 @@ public class EncodeConvert {
 
 	public static void main(String[] args) {
 		
-		EncodeConvert.convert(new File("D:\\documents\\小秘智能家居后台设计\\红外码库\\ird\\keyfiles\\AC\\codes1"));
+		EncodeConvert.convert(new File("D:\\documents\\小秘智能家居后台设计\\红外码库\\ird2\\keyfiles\\AC\\codes"));
 		
 //		String encoding = System.getProperty("file.encoding"); 
 //		System.out.println(encoding); 

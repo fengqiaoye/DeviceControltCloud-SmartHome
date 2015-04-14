@@ -222,8 +222,9 @@ public class LogicControl {
 		mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
 		this.jedis= new Jedis(redis_ip, redis_port,200);
 		try{
-	    	ConnectThread th=new ConnectThread(msg_server_IP, msg_server_port, 1, 6, 201);
-	    	th.start();			
+	    	//ConnectThread th=new ConnectThread(msg_server_IP, msg_server_port, 1, 6, 201);
+	    	//th.start();	
+			
 			/*try {
 				this.msgSock=new SocketClient(msg_server_IP, msg_server_port);
 			} catch (UnknownHostException e) {
@@ -266,7 +267,7 @@ public class LogicControl {
 	return mysql;
     }
 	
-	public void decodeCommand(Message msg){		
+	public  void decodeCommand(Message msg){		
 		int commandID=msg.getCommandID();
 			
 		switch (commandID)
@@ -1632,18 +1633,19 @@ public class LogicControl {
 		if(msg.getJson().has("sender")){
 			   sender=msg.getJson().getInt("sender");
 		}
-		int fileID=msg.getJson().optInt("fileID");
+		String fileID=msg.getJson().optString("fileID");
 		IRFileDownload irDownload=new IRFileDownload(fileID);
-		String url=irDownload.getURL();
-		msg.setJson(new JSONObject());
+		String url=irDownload.getURL();		
+		JSONObject json= new JSONObject();
     	msg.setCommandID(DOWNLOAD_INFRARED_FILE_ACK);
 		if(url.equals("") || url==null){
-			msg.getJson().put("errorCode", INFRARED_FILE_NOT_EXIST);
+			json.put("errorCode", INFRARED_FILE_NOT_EXIST);
 		}else{
-	    	msg.getJson().put("url", url);
+			json.put("url", url);
 		}
-		msg.getJson().put("sender",2);
-		msg.getJson().put("receiver",sender); 
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {

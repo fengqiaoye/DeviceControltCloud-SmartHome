@@ -94,7 +94,7 @@ public class IRMatch {
 		}
 		
 		long fcarr=(Long.parseLong(modulea[6],16) - 18)*1000;
-		log.info("17b6 = " + Long.parseLong(modulea[16] + modulea[18],16));
+		//log.info("17b6 = " + Long.parseLong(modulea[16] + modulea[18],16));
 		float fcycle = (float)1000/(Long.parseLong(modulea[6],16)-18);
 		/*log.info("fcycle = " + fcycle);
 		String[] wavesa = waves.split(",");
@@ -108,7 +108,7 @@ public class IRMatch {
 		}
 		String makewave = fcarr + "," + wvs + "10";*/
 		String makewave = fcarr + "," + waves;
-		log.info("makewave =" + makewave);
+		//log.info("makewave =" + makewave);
 		return makewave;
 	}
 	
@@ -226,7 +226,7 @@ public class IRMatch {
 		
 	public static String[][] getAllMaches(){
 		
-		SQLiteUtil sqlite=new SQLiteUtil("ird.db");
+		SQLiteUtil sqlite=new SQLiteUtil("ird2.db");
 		String sql="select id,matchs,format_name from formats;";
 		String rs=sqlite.select(sql);
 		//System.out.println(rs);
@@ -252,7 +252,7 @@ public class IRMatch {
 		}
 		
 		fcycle =  Math.round((float)1000000*1.0/Integer.parseInt(wava[0],10));
-		log.info("fcycle = " + fcycle + ", wava[0] = " + wava[0]);
+		//log.info("fcycle = " + fcycle + ", wava[0] = " + wava[0]);
 		for(int i=1; i< wava.length; i++){
 			// 2015-04-03 周先生 更改			
 			//wava[i] = Integer.toString(Math.round(Integer.parseInt(wava[i])*fcycle), 10);
@@ -291,7 +291,7 @@ public class IRMatch {
 			 
 			 if(finds == 0){
 				 dump[cnt] = samples;
-				 log.info("dump[" + cnt + "] = " + dump[cnt]);
+				 //log.info("dump[" + cnt + "] = " + dump[cnt]);
 				 cnt++;
 			 }
 		 }
@@ -300,7 +300,7 @@ public class IRMatch {
 		 if(cnt >32){
 			 log.info("sample > 32.");
 		 }
-		 log.info("cnt = " + cnt);
+		 //log.info("cnt = " + cnt);
 		 for(int i=0; i<= cnt-1; i++){
 			 for(int j= i+1; j<= cnt; j++){
 				 if(Long.parseLong(dump[i]) > Long.parseLong(dump[j])){
@@ -361,14 +361,14 @@ public class IRMatch {
 			 }
 			 rets += machd[i] + ",";
 		 }
-		 log.info("rets = " + rets);
+		// log.info("rets = " + rets);
        String ret= rets.replaceAll("null,", "");
 		return ret;
 	}
 	
 	public static List<Set<String>> getModels(List<String[]> fids){
 		List<Set<String>> models=new ArrayList<Set<String>>() ;
-		SQLiteUtil sqlite=new SQLiteUtil("ird.db");
+		SQLiteUtil sqlite=new SQLiteUtil("ird2.db");
 		for(int i=0;i<fids.size();i++){
 			String sql="select m_search_string from model where m_format_id='"+fids.get(i)[1]+"';";
 			//System.out.println(sql);
@@ -391,26 +391,26 @@ public class IRMatch {
 	
 	public static void main(String[] args) {
 		
-		String raw1="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
-		String raw2="1e,04,00,00,24,00,26,82,a0,02,a0,82,a0,06,86,c1,23,4d,c2,00,11,85,c3,00,23,04,0c,00,50,02,00";
-		String raw3="33,04,00,00,24,00,26,82,4e,01,f7,82,4e,6,3f,c1,11,76,c2,00,11,76,c3,00,30,4d,b2,f8,07,1b,e4,c2,00,14,a6,c1,11,76,c2,00,11,76,c3,00,30,4d,b2,f8,07,1b,e4,00,";
-		String raw4="2e,04,00,00,24,00,26,82,11,02,45,82,11,06,6a,c1,0b,c8,c2,00,0b,c8,c1,0b,c8,c2,00,11,4c,c3,00,70,65,01,00,00,02,35,00,00,00,00,00,00,a0,e8,00";
-		String raw6="24,04,00,00,24,00,26,81,b0,02,bd,81,b0,06,fc,c1,0b,d1,c2,00,11,8f,c3,00,58,65,01,00,00,35,00,00,00,00,00,4b,00";
-		String raw7="27,04,00,00,24,00,26,81,f8,01,f8,81,f8,04,8d,c1,0e,11,c2,00,05,ff,c3,00,70,23,cb,26,01,00,20,08,07,09,00,00,00,00,4d,00";
-		String raw8="47,04,00,00,24,00,26,82,88,02,88,82,88,06,79,c1,23,4d,c2,00,11,87,c3,00,23,18,09,20,50,02,c2,00,4e,1d,c3,00,20,00,20,00,e0,c2,00,9c,51,c1,23,4d,c2,00,11,87,c3,00,23,18,09,20,70,02,c2,00,4e,1d,c3,00,20,00,00,18,c0,00";
-		String raw9="1e,04,00,00,24,00,26,82,6d,02,6d,82,6d,06,7c,c1,23,02,c2,00,11,63,c3,00,23,08,00,00,50,02,00";
-	   String raw10="2e,04,00,00,24,00,26,82,3e,02,3e,82,3e,06,3a,c1,0b,dc,c2,00,0b,dc,c1,0b,dc,c2,00,11,1c,c3,00,70,65,01,00,00,02,35,00,00,00,00,00,00,a0,e8,00";
-	   String raw11="2b,04,00,00,24,00,26,81,e1,02,8d,81,e1,06,cc,c1,0b,fd,c2,00,0b,fd,c1,0b,fd,c2,00,11,5d,c3,00,58,65,81,00,00,35,00,00,00,00,00,cb,00";
-	   String raw12="2a,04,00,00,24,00,26,81,8c,01,8c,81,8c,04,f9,c1,0d,6e,c2,00,04,f9,c3,00,88,40,00,14,80,43,01,a8,ee,03,00,68,00,00,02,00,00,52,00";
-	   String raw13="33,04,00,00,24,00,26,82,34,02,34,82,34,06,5b,c1,14,a9,c2,00,14,a9,c3,00,30,4d,b2,f8,07,1b,e4,c2,00,14,a9,c1,14,a9,c2,00,14,a9,c3,00,30,4d,b2,f8,07,1b,e4,00";
-	   String raw14="27,04,00,00,24,00,26,82,16,02,16,82,16,04,70,c1,0e,34,c2,00,04,70,c3,00,70,23,cb,26,01,00,20,08,07,09,00,00,00,00,4d,00";
-	   String raw15="47,04,00,00,24,00,26,82,6b,02,6b,82,6b,06,93,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,50,02,c2,00,4e,3d,c3,00,20,00,20,00,e0,c2,00,9c,6f,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,70,02,c2,00,4e,3d,c3,00,20,00,00,18,c0,00";
-	   String raw16="47,04,00,00,24,00,26,82,6b,02,6b,82,6b,06,93,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,50,02,c2,00,4e,3a,c3,00,20,00,20,00,d0,c2,00,9c,6c,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,70,02,c2,00,4e,3a,c3,00,20,00,00,18,c0,00";
-	   String raw17="47,04,00,00,24,00,26,82,a0,02,a0,82,a0,06,61,c1,23,4b,c2,00,11,89,c3,00,23,59,9,20,50,02,c2,00,4e,08,c3,00,20,10,20,00,f0,c2,00,9c,3b,c1,23,4b,c2,00,11,89,c3,00,23,59,09,20,70,02,c2,00,4e,08,c3,00,20,00,00,10,d0,00";
-	   String wave=getIRString(raw12.toUpperCase());
-		//System.out.println(wave.substring(0, wave.length()-1));
+		String[] raw=new String[30];
+		raw[0]="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
+		raw[1]="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
+		raw[2]="1e,04,00,00,24,00,26,82,a0,02,a0,82,a0,06,86,c1,23,4d,c2,00,11,85,c3,00,23,04,0c,00,50,02,00";
+		raw[3]="33,04,00,00,24,00,26,82,4e,01,f7,82,4e,6,3f,c1,11,76,c2,00,11,76,c3,00,30,4d,b2,f8,07,1b,e4,c2,00,14,a6,c1,11,76,c2,00,11,76,c3,00,30,4d,b2,f8,07,1b,e4,00,";
+		raw[4]="2e,04,00,00,24,00,26,82,11,02,45,82,11,06,6a,c1,0b,c8,c2,00,0b,c8,c1,0b,c8,c2,00,11,4c,c3,00,70,65,01,00,00,02,35,00,00,00,00,00,00,a0,e8,00";
+		raw[5]="24,04,00,00,24,00,26,81,b0,02,bd,81,b0,06,fc,c1,0b,d1,c2,00,11,8f,c3,00,58,65,01,00,00,35,00,00,00,00,00,4b,00";
+		raw [6]="27,04,00,00,24,00,26,81,f8,01,f8,81,f8,04,8d,c1,0e,11,c2,00,05,ff,c3,00,70,23,cb,26,01,00,20,08,07,09,00,00,00,00,4d,00";
+		raw [7]="47,04,00,00,24,00,26,82,88,02,88,82,88,06,79,c1,23,4d,c2,00,11,87,c3,00,23,18,09,20,50,02,c2,00,4e,1d,c3,00,20,00,20,00,e0,c2,00,9c,51,c1,23,4d,c2,00,11,87,c3,00,23,18,09,20,70,02,c2,00,4e,1d,c3,00,20,00,00,18,c0,00";
+		raw [8]="1e,04,00,00,24,00,26,82,6d,02,6d,82,6d,06,7c,c1,23,02,c2,00,11,63,c3,00,23,08,00,00,50,02,00";
+		raw[9]="2e,04,00,00,24,00,26,82,3e,02,3e,82,3e,06,3a,c1,0b,dc,c2,00,0b,dc,c1,0b,dc,c2,00,11,1c,c3,00,70,65,01,00,00,02,35,00,00,00,00,00,00,a0,e8,00";
+	    raw[10]="2b,04,00,00,24,00,26,81,e1,02,8d,81,e1,06,cc,c1,0b,fd,c2,00,0b,fd,c1,0b,fd,c2,00,11,5d,c3,00,58,65,81,00,00,35,00,00,00,00,00,cb,00";
+	    raw[11]="2a,04,00,00,24,00,26,81,8c,01,8c,81,8c,04,f9,c1,0d,6e,c2,00,04,f9,c3,00,88,40,00,14,80,43,01,a8,ee,03,00,68,00,00,02,00,00,52,00";
+	    raw[12]="33,04,00,00,24,00,26,82,34,02,34,82,34,06,5b,c1,14,a9,c2,00,14,a9,c3,00,30,4d,b2,f8,07,1b,e4,c2,00,14,a9,c1,14,a9,c2,00,14,a9,c3,00,30,4d,b2,f8,07,1b,e4,00";
+	    raw[13]="27,04,00,00,24,00,26,82,16,02,16,82,16,04,70,c1,0e,34,c2,00,04,70,c3,00,70,23,cb,26,01,00,20,08,07,09,00,00,00,00,4d,00";
+	    raw[14]="47,04,00,00,24,00,26,82,6b,02,6b,82,6b,06,93,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,50,02,c2,00,4e,3d,c3,00,20,00,20,00,e0,c2,00,9c,6f,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,70,02,c2,00,4e,3d,c3,00,20,00,00,18,c0,00";
+	    raw[15]="47,04,00,00,24,00,26,82,6b,02,6b,82,6b,06,93,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,50,02,c2,00,4e,3a,c3,00,20,00,20,00,d0,c2,00,9c,6c,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,70,02,c2,00,4e,3a,c3,00,20,00,00,18,c0,00";
+        String wave=getIRString(raw[0].toUpperCase());
 		String encode=encode(wave.substring(0, wave.length()-1));
-		System.out.println("encode = "+encode);
+		//System.out.println("encode = "+encode);
 		List<String[]> fids =getID(encode);
 		List<Set<String>> models=getModels(fids); 
 		for (int i = 0; i < fids.size(); i++) {

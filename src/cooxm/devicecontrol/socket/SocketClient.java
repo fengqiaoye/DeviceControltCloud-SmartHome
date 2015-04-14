@@ -70,7 +70,7 @@ public class SocketClient extends Socket implements Runnable {
 		Header header=Message.getOneHeaer((short)CMD__Identity_REQ);
 		String jsonStr="{\"uiClusterID\":"+clusterID+",\"usServerType\":"+serverType+",\"uiServerID\":"+serverID+"}";
 		Message authMsg=new Message(header, "", jsonStr);
-		authMsg.writeBytesToSock(sock);
+		authMsg.writeBytesToSock2(sock);
 		System.out.println("Send Auth "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()+":"+authMsg.msgToString());		
 	}
     

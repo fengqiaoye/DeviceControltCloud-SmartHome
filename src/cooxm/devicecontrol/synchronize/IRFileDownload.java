@@ -16,24 +16,25 @@ import cooxm.devicecontrol.encode.SQLiteUtil;
 
 public class IRFileDownload {
 	private static final String DOWNLOAD_FTP_IP="172.16.35.173";
-	int format_ID;
-	public int getFormat_ID() {
+	String format_ID;
+	public String getFormat_ID() {
 		return format_ID;
 	}
-	public void setFormat_ID(int format_ID) {
+	public void setFormat_ID(String format_ID) {
 		this.format_ID = format_ID;
 	}
-	public IRFileDownload(int format_ID) {
+	public IRFileDownload(String format_ID) {
 		this.format_ID = format_ID;
 	}	
 	
 	
 	/** 获取要下载文件的路径 */
 	public String getFilename(){
-		SQLiteUtil sqlite=new SQLiteUtil("ird.db");
+		/*SQLiteUtil sqlite=new SQLiteUtil("ird.db");
 		String sql="select format_name from formats where fid='"+this.format_ID+"';";
 		String rs=sqlite.select(sql);
-		return ChineseToSpell.converterToSpell(rs);
+		return ChineseToSpell.converterToSpell(rs);*/
+		return this.format_ID;
 	}
 	public String getURL(){	
 		String url=DOWNLOAD_FTP_IP+"/keyfiles/AC/codes/"+this.getFilename()+".txt"; 		
@@ -74,7 +75,7 @@ public class IRFileDownload {
 	
 	public static void main(String[] args) {
 		
-		IRFileDownload ir=new IRFileDownload(14);
+		IRFileDownload ir=new IRFileDownload("aokema2");
 		String name=ir.getFilename();
 		System.out.println(name);
 		//ir.downlaod();

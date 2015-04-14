@@ -207,7 +207,7 @@ public class TimeOutTread extends Thread {
         //waitForReply.msgMap.put(getKey(msg), msg)	;
 
     	Configure conf =new Configure();
-    	CtrolSocketServer cServer=new CtrolSocketServer(conf);
+    	//CtrolSocketServer cServer=new CtrolSocketServer(conf);
     	Callable<Boolean> task= new waitForReply(msg);
     	
     	TimeOutTread to=new TimeOutTread(5,msg);

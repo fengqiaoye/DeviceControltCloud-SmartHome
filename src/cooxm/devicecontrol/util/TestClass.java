@@ -128,7 +128,7 @@ public class TestClass {
     Message msg=new Message().getOneMsg();    	
     	try {
 			Socket sock= new Socket("172.16.35.210", 10290);
-		 	msg.writeBytesToSock(sock);
+		 	msg.writeBytesToSock2(sock);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}    	

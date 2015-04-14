@@ -13,12 +13,13 @@ import cooxm.devicecontrol.control.Configure;
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.socket.Message;
+import cooxm.devicecontrol.socket.ProcessThread;
 
 
 public class MainEntry {
 	
 	static Logger log =Logger.getLogger(MainEntry.class);	
-	private static Configure cf ;
+	private static Configure cf =new Configure();
 	/*** 
 	 * 整个程序包的入口
 	 * @param  Configure 配置文件
@@ -27,28 +28,20 @@ public class MainEntry {
 	 * */
 	public static void main(String[] args)  {
 		log.info("Starting from main entry...");		
-		cf = new Configure();	
+		//cf = new Configure();	
 		LogicControl lcontrol=new LogicControl(cf);
 
 			try {
-				new CtrolSocketServer(cf).listen();
+				new CtrolSocketServer(cf,lcontrol).listen();
 			} catch (IOException e) {
 				log.error(e);				
 			} catch (Exception e) {
 				log.error(e);	
 			}
+			
+//      		ProcessThread pt= new  ProcessThread(lcontrol);
+//       		pt.start();
 
-		if(!CtrolSocketServer.receiveCommandQueue.isEmpty()){
-			Message msg;
-			try {
-				msg = CtrolSocketServer.receiveCommandQueue.poll(200, TimeUnit.MICROSECONDS);
-				if(msg!=null){
-					lcontrol.decodeCommand(msg);					
-				}
-			} catch (InterruptedException e) {
-				log.error(e);
-			}
-		}
 	}
 	
 	public static Configure getConfig() {

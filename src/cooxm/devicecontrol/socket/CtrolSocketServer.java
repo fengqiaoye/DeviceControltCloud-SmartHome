@@ -28,6 +28,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import cooxm.devicecontrol.control.Configure;
+import cooxm.devicecontrol.control.LogicControl;
+import cooxm.devicecontrol.control.MainEntry;
 import cooxm.devicecontrol.util.BytesUtil;
 import cooxm.devicecontrol.util.MySqlClass;
 
@@ -53,16 +55,18 @@ public class CtrolSocketServer {
 	
 	public static ReceiveCommandQueue receiveCommandQueue;
 	public static SendCommandQueue sendCommandQueue;
+	public LogicControl lcontrol;
     
 	static Logger log =Logger.getLogger(CtrolSocketServer.class);	
 	
 	/***@param serverPort: 从配置文件中读取: ./conf/control.conf */
-	public CtrolSocketServer(Configure configure) {
+	public CtrolSocketServer(Configure configure, LogicControl lcontrol ) {
 		log.info("starting device control socket server...");		
 
 		sendCommandQueue=SendCommandQueue.getInstance();
 		receiveCommandQueue=ReceiveCommandQueue.getInstance();
         this.configure=configure;
+        this.lcontrol=lcontrol;
 	}
 	
 	/** 做服务器时使用*/
@@ -91,6 +95,9 @@ public class CtrolSocketServer {
        		rt.start(); 
        		WriteThread wr=new  WriteThread(sock);
        		wr.start();
+       		
+       		ProcessThread pt= new  ProcessThread();
+       		pt.start();
         }
 	}
 	
@@ -108,10 +115,11 @@ public class CtrolSocketServer {
 		if(sock!=null){	
             ReadThread rt = new ReadThread(sock);    
        		rt.start(); 
-       		WriteThread wr=new  WriteThread(sock);
+       		WriteThread wr= new  WriteThread(sock);
        		wr.start();
        		sendAuth(sock,clusterID,serverID,serverType);
-       		rt.serverID=serverID;
+       		rt.serverID=serverID;   		
+
 		}		
 	}
 	
@@ -163,6 +171,7 @@ public class CtrolSocketServer {
 			            try {
 			            	if(msg.isValid()){
 			            		CtrolSocketServer.receiveCommandQueue.offer(msg,500, TimeUnit.MICROSECONDS);
+			            		System.out.println("size of receiveCommandQueue ="+CtrolSocketServer.receiveCommandQueue.size());
 			            	}else{
 			            		return;
 			            	}
@@ -190,14 +199,14 @@ public class CtrolSocketServer {
 	
 	public class WriteThread extends Thread
 	{
-		private Socket socket;
+		private Socket sock;
 		
 		public WriteThread(Socket client)
-		{socket = client;}
+		{sock = client;}
 	
 		public void run()
 		{
-	    	while(!this.socket.isClosed())
+	    	while(!this.sock.isClosed())
 	    	{
 	    		try {
 					Thread.sleep(10);
@@ -210,9 +219,11 @@ public class CtrolSocketServer {
 						outMsg=CtrolSocketServer.sendCommandQueue.peek();
 						if(null!=outMsg){
 							int serverID=outMsg.getServerID();	
-							 if(serverID>0 && this.socket.equals(sockMap.get(serverID)) ){	
+							 if(serverID>0 && this.sock.equals(sockMap.get(serverID)) ){	
 								outMsg = CtrolSocketServer.sendCommandQueue.take();//poll(100, TimeUnit.MICROSECONDS);
-								outMsg.writeBytesToSock2(this.socket);
+								outMsg.writeBytesToSock2(this.sock);
+								log.info("Send to  "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()+":"+outMsg.msgToString());	
+								System.out.println("size of sendCommandQueue ="+CtrolSocketServer.sendCommandQueue.size());
 							}
 						}
 					} catch (InterruptedException e) {
@@ -223,6 +234,26 @@ public class CtrolSocketServer {
 		}
 	} 
 	
+	public class ProcessThread extends Thread
+	{
+		
+		public void run()
+		{
+			while(true){
+				Message msg;
+				try {
+					Thread.sleep(10);
+					msg = CtrolSocketServer.receiveCommandQueue.poll(200, TimeUnit.MICROSECONDS);
+					if(msg!=null){
+						lcontrol.decodeCommand(msg);					
+					}
+				} catch (InterruptedException e) {
+					log.error(e);
+				}
+			}
+		}
+	}
+	
 	public void sendAuth(Socket sock,int clusterID,int  serverID ,int serverType){
 		try {
 			BufferedReader input = new BufferedReader(new InputStreamReader(sock.getInputStream()));
@@ -232,7 +263,7 @@ public class CtrolSocketServer {
 		Header header=Message.getOneHeaer((short)CMD__Identity_REQ);
 		String jsonStr="{\"uiClusterID\":"+clusterID+",\"usServerType\":"+serverType+",\"uiServerID\":"+serverID+"}";
 		Message authMsg=new Message(header, "", jsonStr);
-		authMsg.writeBytesToSock(sock);
+		authMsg.writeBytesToSock2(sock);
 		log.info("Send Auth "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()+":"+authMsg.msgToString());		
 	}
 	
@@ -270,10 +301,10 @@ public class CtrolSocketServer {
 			replyMsg.setJson(json);
 			Server server=getServerInfo(heartBeatMsg.serverID);
 			Socket sock=sockMap.get(heartBeatMsg.serverID);
+
+			CtrolSocketServer.sendCommandQueue.offer(replyMsg,100, TimeUnit.MICROSECONDS);
 			System.out.println("HeartBeat "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()
 					+",serverID: "+heartBeatMsg.serverID+",serverType: "+server.getServerType()+":"+replyMsg.msgToString());
-			CtrolSocketServer.sendCommandQueue.offer(replyMsg,100, TimeUnit.MICROSECONDS);
-			
 			
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -429,7 +460,7 @@ public class CtrolSocketServer {
     public static void main(String [] args) throws IOException, Exception      
     {  
     	Configure cf = new Configure();
-    	new CtrolSocketServer(cf).listen();
+    	//new CtrolSocketServer(cf).listen();
 		//new CtrolSocketServer(cf).connectTo("172.16.35.173", 20190,1,5,200);
     	//initseverMap(cf);    	
     }    
