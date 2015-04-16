@@ -461,30 +461,33 @@ public class LogicControl {
 		default:
 			int sender=0;
 			if(msg.getJson().has("sender")){
-				   try {
-					sender=msg.getJson().getInt("sender");
-	    			msg.getJson().put("sender",2);
-	    			msg.getJson().put("receiver",sender); 
-				} catch (JSONException e) {
-					e.printStackTrace();
-				}
+				   sender=msg.getJson().optInt("sender");
 			}
+			JSONObject json=msg.getJson();
+			try {
+				json.put("sender",2);
+				json.put("receiver",sender); 
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+
 			if(msg.isValid()){
-				log.info("Valid command receive,but commandID not encoded.SequeeceID:"+msg.getCookie()+" command ID :"+msg.getCommandID());
+				log.info("Valid command receive,but commandID can't be recognized. SequeeceID:"+msg.getCookie()+" command ID :"+msg.getCommandID());
 				try {
-					msg.getJson().put("errorCode", LogicControl.COMMAND_NOT_ENCODED);
+					json.put("errorCode", LogicControl.COMMAND_NOT_ENCODED);
 				} catch (JSONException e) {
 					e.printStackTrace();
 				}
             }else{
             	log.info("Invalid command receive. SequeeceID:"+msg.getCookie()+" command ID :"+msg.getCommandID());
             	try {
-					msg.getJson().put("errorCode", LogicControl.WRONG_COMMAND);
+					json.put("errorCode", LogicControl.WRONG_COMMAND);
 				} catch (JSONException  e) {
 					e.printStackTrace();
 				}            
             }
 			msg.setCommandID((short) (msg.getCommandID()+ LogicControl.COMMAND_ACK_OFFSET));
+			msg.setJson(json);
 			try {
 				CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MICROSECONDS);
 			} catch (InterruptedException e) {
@@ -523,21 +526,23 @@ public class LogicControl {
     	Profile profile=null;
     	int ctrolID=msg.getJson().getInt("ctrolID");
     	int profileID=msg.getJson().getInt("profileID");
+		JSONObject json= new JSONObject();
     	int sender=0;
+		if(msg.getJson().has("sender")){
+			   sender=msg.getJson().getInt("sender");
+		}
     	String key=ctrolID+"_"+profileID;
     	if( (profile= profileMap.get(key))!=null  || (profile=Profile.getFromDB(mysql, ctrolID, profileID))!=null){
-    		msg.getJson().put("profile", profile.toJsonObj());
-    		msg.getJson().put("errorCode",SUCCESS);
+    		json.put("profile", profile.toJsonObj());
+    		json.put("errorCode",SUCCESS);
     	}else {
 			log.warn("Can't get_room_profile ctrolID:"+ctrolID+" profileID:"+profileID+" from profileMap or Mysql.");
-			msg.getJson().put("errorCode",PROFILE_NOT_EXIST);
+			json.put("errorCode",PROFILE_NOT_EXIST);
     	}
     	msg.setCommandID(GET_ROOM_PROFILE_ACK);
-		msg.getJson().put("sender",2);
-		if(msg.getJson().has("sender")){
-		   sender=msg.getJson().getInt("sender");
-		}
-		msg.getJson().put("receiver",sender);  
+		json.put("sender",2);
+
+		json.put("receiver",sender);  
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -582,7 +587,7 @@ public class LogicControl {
      * @throws ParseException 
 	*/
     public void set_room_profile( Message msg) throws JSONException, SQLException, ParseException{
-    	//JSONObject json=msg.json;
+    	JSONObject json=new JSONObject();
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	Profile msgProfile=new Profile(msg.getJson().getJSONObject("profile"));
     	Profile dbProfile;
@@ -591,20 +596,20 @@ public class LogicControl {
     	Date msgModifyTime=sdf.parse(msg.getJson().getString("modifyTime"));
     	String key=ctrolID+"_"+profileID;
     	int sender=0;
-    	msg.setJson(new JSONObject());
+		if(msg.getJson().has("sender")){
+			   sender=msg.getJson().getInt("sender");
+		}
     	if( (dbProfile=this.profileMap.get(key))!=null && dbProfile.getModifyTime().after(msgModifyTime)){	//云端较新  
-			msg.getJson().put("errorCode",PROFILE_OBSOLETE);    		
+			json.put("errorCode",PROFILE_OBSOLETE);    		
     	}else { //云端较旧  或者 不存在，则保存
     		this.profileMap.put(key, msgProfile);
 			
-			msg.getJson().put("errorCode",SUCCESS);   
+			json.put("errorCode",SUCCESS);   
 		}    	
   		msg.setCommandID(SET_ROOM_PROFILE_ACK);
-		msg.getJson().put("sender",2);
-		if(msg.getJson().has("sender")){
-		   sender=msg.getJson().getInt("sender");
-		}
-		msg.getJson().put("receiver",sender); 
+		json.put("sender",2);
+		json.put("receiver",sender); 
+    	msg.setJson(json);
     	try {
 			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -626,6 +631,7 @@ public class LogicControl {
            
      */
     public void delete_room_profile(Message msg) throws JSONException, SQLException{
+    	JSONObject json=new JSONObject();
     	int ctrolID=msg.getJson().getInt("ctrolID");
     	int profileID=msg.getJson().getInt("profileID");
     	String key=ctrolID+"_"+profileID;
@@ -636,20 +642,20 @@ public class LogicControl {
     	if(profileMap.containsKey(key)){
     		profileMap.remove(key);
     		msg.setJson(new JSONObject());
-    		msg.getJson().put("errorCode", SUCCESS);    		
+    		json.put("errorCode", SUCCESS);    		
     	}else if((Profile.getFromDB(mysql, ctrolID, profileID))!=null){
     		Profile.deleteFromDB(mysql, ctrolID, profileID);
-    		msg.setJson(new JSONObject());
-    		msg.getJson().put("errorCode", SUCCESS);
+    		json.put("errorCode", SUCCESS);
     	}else {
 			log.warn("room_profile not exist ctrolID:"+ctrolID+" profileID:"+profileID+" from profileMap or Mysql.");
 			//msg.setJson()new JSONObject();
-			msg.getJson().put("errorCode",PROFILE_NOT_EXIST);
+			json.put("errorCode",PROFILE_NOT_EXIST);
     	}
     	msg.setCommandID(DELETE_ROOM_PROFILE_ACK);
 
-		msg.getJson().put("sender",2);
-		msg.getJson().put("receiver",sender); 
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -670,6 +676,7 @@ public class LogicControl {
      * @throws InterruptedException 
  	* */
     public void switch_room_profile(final Message msg)throws JSONException, SQLException, InterruptedException{
+    	JSONObject json=new JSONObject();
     	Message replyMsg=new Message(msg);
     	Profile profile=null;
     	int ctrolID=msg.getJson().getInt("ctrolID");
@@ -683,19 +690,19 @@ public class LogicControl {
     		jedis.publish(commandQueue, profile.toJsonObj().toString());
     		jedis.hset(currentProfile, key, profile.toJsonObj().toString());
     		if(sender==0){
-    			replyMsg.setJson(new JSONObject());
-    			replyMsg.getJson().put("errorCode",SUCCESS);
+    			json.put("errorCode",SUCCESS);
     		}else {
     			TimeOutTread to=new TimeOutTread(10,msg);
     			to.start();   			
     		}
     	}else {
-			log.warn("Can't switch room profile,profile doesn't exit. ctrolID:"+ctrolID+" profileID:"+profileID+" from profileMap or Mysql.");
-			replyMsg.getJson().put("errorCode",PROFILE_NOT_EXIST);
+			log.warn("Can't switch room profile,profile doesn't exist. ctrolID:"+ctrolID+" profileID:"+profileID+" from profileMap or Mysql.");
+			json.put("errorCode",PROFILE_NOT_EXIST);
     	}
     	msg.setCommandID(SWITCH_ROOM_PROFILE_ACK);
-    	replyMsg.getJson().put("sender",2);
-    	replyMsg.getJson().put("receiver",0);
+    	json.put("sender",2);
+    	json.put("receiver",0);
+		replyMsg.setJson(new JSONObject());
     	CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
     }
     
@@ -738,7 +745,7 @@ public class LogicControl {
      * }              
      */
     public void get_profile_set(Message msg) throws JSONException, SQLException{
-    	//JSONObject json=msg.json;
+    	JSONObject json=new JSONObject();
     	ProfileSet profileSet=null;
     	int ctrolID=msg.getJson().getInt("ctrolID");
     	int profileSetID=msg.getJson().getInt("profileSetID");
@@ -748,15 +755,16 @@ public class LogicControl {
     		sender=msg.getJson().getInt("sender"); 
     	}
     	if((profileSet=profileSetMap.get(key))!=null || (profileSet=ProfileSet.getProfileSetFromDB(mysql, ctrolID, profileSetID))!=null){
-    		msg.getJson().put("profileSet", profileSet.toJsonObj());
-    		msg.getJson().put("errorCode",SUCCESS);   
+    		json.put("profileSet", profileSet.toJsonObj());
+    		json.put("errorCode",SUCCESS);   
     	}else {
 			log.warn("Can't get_profile_set, ctrolID:"+ctrolID+" profileSetID:"+profileSetID+" from profileMap or Mysql.");
-			msg.getJson().put("errorCode",PROFILE_SET_NOT_EXIST);
+			json.put("errorCode",PROFILE_SET_NOT_EXIST);
     	}
     	msg.setCommandID( GET_RROFILE_SET_ACK);
-		msg.getJson().put("sender",2);
-		msg.getJson().put("receiver",sender);
+		json.put("sender",2);
+		json.put("receiver",sender);
+		msg.setJson(json);
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -780,7 +788,7 @@ public class LogicControl {
      * }
 	 * */
 	public void set_profile_set(Message msg) throws JSONException, SQLException, ParseException{
-    	//JSONObject json=msg.json;
+    	JSONObject json=new JSONObject();
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	ProfileSet msgProfileSet=new ProfileSet(msg.getJson().getJSONObject("profileSet"));
     	ProfileSet dbProfileSet;
@@ -795,18 +803,17 @@ public class LogicControl {
     	
     	if((dbProfileSet=profileSetMap.get(key))==null && (dbProfileSet=ProfileSet.getProfileSetFromDB(mysql, ctrolID, profileSetID))==null ){
     		profileSetMap.put(key, msgProfileSet);
-			msg.setJson(new JSONObject());
-			msg.getJson().put("errorCode",SUCCESS);     		
+			json.put("errorCode",SUCCESS);     		
     	}else if( dbProfileSet.modifyTime.after(msgModifyTime)){	//云端较新  
-			msg.getJson().put("errorCode",PROFILE_SET_OBSOLETE);    		
+			json.put("errorCode",PROFILE_SET_OBSOLETE);    		
     	}else if( dbProfileSet.modifyTime.before(msgModifyTime)){
     		profileSetMap.put(key, msgProfileSet);
-			msg.setJson(new JSONObject());
-			msg.getJson().put("errorCode",SUCCESS);   		
+			json.put("errorCode",SUCCESS);   		
     	}    	
   		msg.setCommandID(SET_RROFILE_SET_ACK);
-		msg.getJson().put("sender",2);
-		msg.getJson().put("receiver",sender); 
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -826,7 +833,7 @@ public class LogicControl {
      *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
      */
     public void delete_profile_set(Message msg) throws JSONException, SQLException{
-    	//JSONObject json=msg.json;
+    	JSONObject json=new JSONObject();
     	//Profile profile=null;
     	int ctrolID=msg.getJson().getInt("ctrolID");
     	int profileSetID=msg.getJson().getInt("profileSetID");
@@ -837,19 +844,18 @@ public class LogicControl {
     	}
     	if(profileSetMap.containsKey(key)){
     		profileSetMap.remove(key);
-    		msg.setJson(new JSONObject());
-    		msg.getJson().put("errorCode", SUCCESS);    		
+    		json.put("errorCode", SUCCESS);    		
     	}else if((ProfileSet.getProfileSetFromDB(mysql, ctrolID, profileSetID))!=null){
     		ProfileSet.deleteProfileSetFromDB(mysql, ctrolID, profileSetID);
-    		msg.setJson(new JSONObject());
-    		msg.getJson().put("errorCode", SUCCESS);
+    		json.put("errorCode", SUCCESS);
     	}else {
 			log.warn("room_profileSet not exist ctrolID:"+ctrolID+" profileSetID:"+profileSetID+" from profileSetMap or Mysql.");
-			msg.getJson().put("errorCode",PROFILE_SET_NOT_EXIST);
+			json.put("errorCode",PROFILE_SET_NOT_EXIST);
     	}
     	msg.setCommandID( DELETE_RROFILE_SET_ACK);
-		msg.getJson().put("sender",2);
-		msg.getJson().put("receiver",sender); 
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -867,8 +873,7 @@ public class LogicControl {
 	 *     profileSetID:7654321
      *   }*/
 	public void switch_profile_set(Message msg)throws JSONException, SQLException, InterruptedException{
-    	Message replymsg=new Message(msg);
-    	JSONObject json=msg.getJson();
+    	JSONObject json=new JSONObject();
     	ProfileSet profileSet=null;
     	int ctrolID=msg.getJson().getInt("ctrolID");
     	int profileSetID=msg.getJson().getInt("profileSetID"); 
@@ -881,20 +886,19 @@ public class LogicControl {
     		jedis.publish(commandQueue, profileSet.toJsonObj().toString());
     		jedis.hset(currentProfileSet, key, profileSet.toJsonObj().toString());
     		if(sender==0){
-	    		replymsg.setJson(new JSONObject());
-	    		replymsg.getJson().put("errorCode",SUCCESS);
-  	    		
+	    		json.put("errorCode",SUCCESS);  	    		
     		}else {
     			TimeOutTread to=new TimeOutTread(10,msg);
     			to.start();  				
     		}
     	}else {
 			log.warn("Can't switch room profileSet,profileSet doesn't exit. ctrolID:"+ctrolID+" profileSetID:"+profileSetID+" from profileSetMap or Mysql.");
-			replymsg.getJson().put("errorCode",PROFILE_NOT_EXIST);
+			json.put("errorCode",PROFILE_NOT_EXIST);
     	}
     	msg.setCommandID( SWITCH_RROFILE_SET_ACK);
-		replymsg.getJson().put("sender",2);
-		replymsg.getJson().put("receiver",sender);
+		json.put("sender",2);
+		json.put("receiver",sender);
+		msg.setJson(json);
 		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		
 	}
@@ -939,22 +943,24 @@ public class LogicControl {
      *                      
      */
     public void get_profile_template(Message msg) throws JSONException, SQLException{
+    	JSONObject json=new JSONObject();
     	ProfileTemplate profileTemplat=null;
     	int profileTemplatID=msg.getJson().getInt("profileTemplateID");
     	int sender=0;
+		if(msg.getJson().has("sender")){
+			   sender=msg.getJson().getInt("sender");
+		}
     	if(  (profileTemplat=ProfileTemplate.getFromDB(mysql,  profileTemplatID))!=null){
-    		msg.getJson().put("profileTemplate", profileTemplat.toJsonObj());
-    		msg.getJson().put("errorCode",SUCCESS);
+    		json.put("profileTemplate", profileTemplat.toJsonObj());
+    		json.put("errorCode",SUCCESS);
     	}else {
 			log.warn("Can't get_profile_template, profileTemplatID:"+profileTemplatID+" from Mysql.");
-			msg.getJson().put("errorCode",PROFILE_TEMPLATE_NOT_EXIST);
+			json.put("errorCode",PROFILE_TEMPLATE_NOT_EXIST);
     	}
     	msg.setCommandID( GET_RROFILE_TEMPLATE_ACK);
-		msg.getJson().put("sender",2);
-		if(msg.getJson().has("sender")){
-		   sender=msg.getJson().getInt("sender");
-		}
-		msg.getJson().put("receiver",sender);  
+		json.put("sender",2);
+		json.put("receiver",sender);  
+		msg.setJson(json);
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -1013,28 +1019,27 @@ public class LogicControl {
      * @throws ParseException 
 	*/
     public void set_profile_template( Message msg) throws JSONException, SQLException, ParseException{
+    	JSONObject json=new JSONObject();
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	//ProfileTemplate msgProfile=new ProfileTemplate(msg.getJson().getJSONObject("profileTemplate"));
     	ProfileTemplate dbProfile;
     	int profileTemplatID=msg.getJson().getInt("profileTemplatID");
     	Date msgModifyTime=sdf.parse(msg.getJson().getString("modifyTime"));
     	int sender=0;
-    	
-    	if((dbProfile=ProfileTemplate.getFromDB(mysql, profileTemplatID))==null){
-			msg.setJson(new JSONObject());
-			msg.getJson().put("errorCode",SUCCESS);     		
-    	}else if(  dbProfile.getModifyTime().after(msgModifyTime)){	//云端较新  
-			msg.getJson().put("errorCode",PROFILE_TEMPLATE_OBSOLETE);    		
-    	}else if(  dbProfile.getModifyTime().before(msgModifyTime)){ //云端较旧，则保存
-			msg.setJson(new JSONObject());
-			msg.getJson().put("errorCode",SUCCESS);   
-			}    	
-  		msg.setCommandID(SET_RROFILE_TEMPLATE_ACK);
-		msg.getJson().put("sender",2);
 		if(msg.getJson().has("sender")){
-		   sender=msg.getJson().getInt("sender");
-		}
-		msg.getJson().put("receiver",sender); 
+			   sender=msg.getJson().getInt("sender");
+		}    	
+    	if((dbProfile=ProfileTemplate.getFromDB(mysql, profileTemplatID))==null){
+			json.put("errorCode",SUCCESS);     		
+    	}else if(  dbProfile.getModifyTime().after(msgModifyTime)){	//云端较新  
+			json.put("errorCode",PROFILE_TEMPLATE_OBSOLETE);    		
+    	}else if(  dbProfile.getModifyTime().before(msgModifyTime)){ //云端较旧，则保存
+			json.put("errorCode",SUCCESS);   
+		}    	
+  		msg.setCommandID(SET_RROFILE_TEMPLATE_ACK);
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
     	try {
 			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -1067,7 +1072,7 @@ public class LogicControl {
 	 * @throws JSONException 
      *   */
 	public void get_one_device(Message msg) throws JSONException{
-    	//JSONObject json=msg.json;
+    	JSONObject json=new JSONObject();
     	Device device=new Device();
     	int ctrolID=msg.getJson().getInt("ctrolID");
     	int deviceID=msg.getJson().getInt("deviceID");
@@ -1077,15 +1082,16 @@ public class LogicControl {
     		sender=msg.getJson().getInt("sender"); 
     	}
     	if( (device=deviceMap.get(key))!=null || (device=Device.getOneDeviceFromDB(mysql, ctrolID, deviceID))!=null){
-    		msg.getJson().put("device", device.toJsonObj());
-    		msg.getJson().put("errorCode",SUCCESS);   
+    		json.put("device", device.toJsonObj());
+    		json.put("errorCode",SUCCESS);   
     	}else {
 			log.warn("Can't get_one_device, ctrolID:"+ctrolID+"deviceID: "+ deviceID+" from deviceMap or Mysql.");
-			msg.getJson().put("errorCode",DEVICE_NOT_EXIST);
+			json.put("errorCode",DEVICE_NOT_EXIST);
     	}
     	msg.setCommandID( GET_ONE_DEVICE_ACK);
-		msg.getJson().put("sender",2);
-		msg.getJson().put("receiver",sender); 
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -1102,6 +1108,7 @@ public class LogicControl {
 	 * @throws JSONException 
 	 * @throws ParseException */
 	public void set_one_device(Message msg,MySqlClass mysql) throws JSONException, ParseException{
+		JSONObject json= new JSONObject();
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	Device msgDevice=new Device(msg.getJson());
     	Device dbDevice;
@@ -1116,18 +1123,17 @@ public class LogicControl {
     	
     	if((dbDevice=this.deviceMap.get(key))==null  && (dbDevice=Device.getOneDeviceFromDB(mysql, ctrolID, deviceID))==null ){	
     		this.deviceMap.put(key, msgDevice);
-    		msg.setJson(new JSONObject());
-			msg.getJson().put("errorCode",SUCCESS);   		
+			json.put("errorCode",SUCCESS);   		
     	}else if(dbDevice.modifyTime.after(msgModifyTime)){ ////云端较新  
-			msg.getJson().put("errorCode",DEVICE_OBSOLETE);   
+			json.put("errorCode",DEVICE_OBSOLETE);   
 		}else if (dbDevice.modifyTime.before(msgModifyTime)){ //云端较旧
     		this.deviceMap.put(key, msgDevice);
-    		msg.setJson(new JSONObject());
-			msg.getJson().put("errorCode",SUCCESS); 
+			json.put("errorCode",SUCCESS); 
 		}
   		msg.setCommandID(SET_ONE_DEVICE_ACK);
-		msg.getJson().put("sender",2);
-		msg.getJson().put("receiver",sender); 
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -1147,7 +1153,7 @@ public class LogicControl {
      *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
      */
     public void delete_one_device(Message msg) throws JSONException, SQLException{
-    	//JSONObject json=msg.json;
+    	JSONObject json=new JSONObject();
     	int ctrolID=msg.getJson().getInt("ctrolID");
     	int deviceID=msg.getJson().getInt("deviceID");
     	String key=ctrolID+"_"+deviceID;
@@ -1158,15 +1164,15 @@ public class LogicControl {
     	}
 		if((device=deviceMap.get(key))!=null || (device=Device.getOneDeviceFromDB(mysql, ctrolID, deviceID))!=null){
     		deviceMap.remove(key);
-    		msg.setJson(new JSONObject());
-    		msg.getJson().put("errorCode", SUCCESS);    		
+    		json.put("errorCode", SUCCESS);    		
     	}else {
 			log.warn("room_device not exist ctrolID:"+ctrolID+" deviceID:"+deviceID+" from deviceMap or Mysql.");
-			msg.getJson().put("errorCode",DEVICE_NOT_EXIST);
+			json.put("errorCode",DEVICE_NOT_EXIST);
     	}
     	msg.setCommandID( DELETE_ONE_DEVICE_ACK);
-		msg.getJson().put("sender",2);
-		msg.getJson().put("receiver",sender); 
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
     	try {
 			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -1186,6 +1192,7 @@ public class LogicControl {
 	 * @throws JSONException 
 	 * @throws SQLException */
 	public void switch_app_state(Message msg) throws JSONException, SQLException{
+		JSONObject json=new JSONObject();
 	   	Message replymsg=new Message(msg);
     	Device device=null;
     	int ctrolID=msg.getJson().getInt("ctrolID");
@@ -1199,19 +1206,19 @@ public class LogicControl {
     		jedis.publish(commandQueue, device.toJsonObj().toString());
     		jedis.hset(currentDeviceState, key, device.toJsonObj().toString());
     		if(sender==0){
-	    		replymsg.setJson(new JSONObject());
-	    		replymsg.getJson().put("errorCode",SUCCESS); 	    		
+	    		json.put("errorCode",SUCCESS); 	    		
     		}else {
     			TimeOutTread to=new TimeOutTread(10,msg);
     			to.start();   			
     		}
     	}else {
 			log.warn("Can't switch room device,device doesn't exit. ctrolID:"+ctrolID+" deviceID:"+deviceID+" from deviceMap or Mysql.");
-			replymsg.getJson().put("errorCode",PROFILE_NOT_EXIST);
+			json.put("errorCode",PROFILE_NOT_EXIST);
     	}
     	msg.setCommandID(SWITCH_DEVICE_STATE_ACK);
-    	replymsg.getJson().put("sender",2);
-    	replymsg.getJson().put("receiver",sender); 
+    	json.put("sender",2);
+    	json.put("receiver",sender); 
+		msg.setJson(json);
 		try {
 			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -1274,24 +1281,26 @@ public class LogicControl {
      *                      
      */
     public void get_trigger_template(Message msg) throws JSONException, SQLException{
+    	JSONObject json=new JSONObject();
     	Trigger trigger=null;
     	int ctrolID=msg.getJson().getInt("ctrolID");
     	int triggerID=msg.getJson().getInt("triggerID");
     	int sender=0;
+		if(msg.getJson().has("sender")){
+			   sender=msg.getJson().getInt("sender");
+		}
     	String key=ctrolID+"_"+triggerID;
     	if( (trigger= triggerMap.get(key))!=null  || (trigger=Trigger.getFromDB(mysql, ctrolID, triggerID))!=null){
-    		msg.getJson().put("triggerTemplate", trigger.toJson());
-    		msg.getJson().put("errorCode",SUCCESS);
+    		json.put("triggerTemplate", trigger.toJson());
+    		json.put("errorCode",SUCCESS);
     	}else {
 			log.warn("Can't get_room_trigger ctrolID:"+ctrolID+" triggerID:"+triggerID+" from triggerMap or Mysql.");
-			msg.getJson().put("errorCode",PROFILE_NOT_EXIST);
+			json.put("errorCode",PROFILE_NOT_EXIST);
     	}
     	msg.setCommandID(GET_ROOM_PROFILE_ACK);
-		msg.getJson().put("sender",2);
-		if(msg.getJson().has("sender")){
-		   sender=msg.getJson().getInt("sender");
-		}
-		msg.getJson().put("receiver",sender);  
+		json.put("sender",2);
+		json.put("receiver",sender);  
+		msg.setJson(json);
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -1336,7 +1345,7 @@ public class LogicControl {
      * @throws ParseException 
 	*/
     public void set_trigger_template( Message msg) throws JSONException, SQLException, ParseException{
-    	//JSONObject json=msg.json;
+    	JSONObject json=new JSONObject();
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	Trigger msgTrigger=new Trigger(msg.getJson().getJSONObject("triggerTemplate"));
     	Trigger dbTrigger;
@@ -1345,24 +1354,22 @@ public class LogicControl {
     	Date msgModifyTime=sdf.parse(msg.getJson().getString("modifyTime"));
     	String key=ctrolID+"_"+triggerID;
     	int sender=0;
-    	
+		if(msg.getJson().has("sender")){
+			   sender=msg.getJson().getInt("sender");
+		}    	
     	if((dbTrigger=this.triggerMap.get(key))==null && (dbTrigger=Trigger.getFromDB(mysql, ctrolID, triggerID))==null){
     		this.triggerMap.put(key, msgTrigger);
-			msg.setJson(new JSONObject());
-			msg.getJson().put("errorCode",SUCCESS);    		
+			json.put("errorCode",SUCCESS);    		
     	}else if(  dbTrigger.getModifyTime().after(msgModifyTime)){	//云端较新  
-			msg.getJson().put("errorCode",PROFILE_OBSOLETE);    		
+			json.put("errorCode",PROFILE_OBSOLETE);    		
     	}else if(  dbTrigger.getModifyTime().before(msgModifyTime)){ //云端较旧，则保存
     		this.triggerMap.put(key, msgTrigger);
-			msg.setJson(new JSONObject());
-			msg.getJson().put("errorCode",SUCCESS);   
+			json.put("errorCode",SUCCESS);   
 			}    	
   		msg.setCommandID(SET_ROOM_PROFILE_ACK);
-		msg.getJson().put("sender",2);
-		if(msg.getJson().has("sender")){
-		   sender=msg.getJson().getInt("sender");
-		}
-		msg.getJson().put("receiver",sender); 
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
     	try {
 			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -1396,24 +1403,27 @@ public class LogicControl {
      *                      
      */
     public void get_trigger(Message msg) throws JSONException, SQLException{
+    	JSONObject json=new JSONObject();
     	Trigger trigger=null;
     	int ctrolID=msg.getJson().getInt("ctrolID");
     	int triggerID=msg.getJson().getInt("triggerID");
     	int sender=0;
+		if(msg.getJson().has("sender")){
+			   sender=msg.getJson().getInt("sender");
+		}
     	String key=ctrolID+"_"+triggerID;
     	if( (trigger= triggerMap.get(key))!=null  || (trigger=Trigger.getFromDB(mysql, ctrolID, triggerID))!=null){
-    		msg.getJson().put("trigger", trigger.toJson());
-    		msg.getJson().put("errorCode",SUCCESS);
+    		json.put("trigger", trigger.toJson());
+    		json.put("errorCode",SUCCESS);
     	}else {
 			log.warn("Can't get_room_trigger ctrolID:"+ctrolID+" triggerID:"+triggerID+" from triggerMap or Mysql.");
-			msg.getJson().put("errorCode",PROFILE_NOT_EXIST);
+			json.put("errorCode",PROFILE_NOT_EXIST);
     	}
     	msg.setCommandID(GET_ROOM_PROFILE_ACK);
-		msg.getJson().put("sender",2);
-		if(msg.getJson().has("sender")){
-		   sender=msg.getJson().getInt("sender");
-		}
-		msg.getJson().put("receiver",sender);  
+		json.put("sender",2);
+
+		json.put("receiver",sender);  
+		msg.setJson(json);
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -1458,7 +1468,7 @@ public class LogicControl {
      * @throws ParseException 
 	*/
     public void set_trigger( Message msg) throws JSONException, SQLException, ParseException{
-    	//JSONObject json=msg.json;
+    	JSONObject json=new JSONObject();
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	Trigger msgTrigger=new Trigger(msg.getJson().getJSONObject("trigger"));
     	Trigger dbTrigger;
@@ -1470,21 +1480,20 @@ public class LogicControl {
     	
     	if((dbTrigger=this.triggerMap.get(key))==null && (dbTrigger=Trigger.getFromDB(mysql, ctrolID, triggerID))==null){
     		this.triggerMap.put(key, msgTrigger);
-			msg.setJson(new JSONObject());
-			msg.getJson().put("errorCode",SUCCESS);    		
+			json.put("errorCode",SUCCESS);    		
     	}else if(  dbTrigger.getModifyTime().after(msgModifyTime)){	//云端较新  
-			msg.getJson().put("errorCode",PROFILE_OBSOLETE);    		
+			json.put("errorCode",PROFILE_OBSOLETE);    		
     	}else if(  dbTrigger.getModifyTime().before(msgModifyTime)){ //云端较旧，则保存
     		this.triggerMap.put(key, msgTrigger);
-			msg.setJson(new JSONObject());
-			msg.getJson().put("errorCode",SUCCESS);   
+			json.put("errorCode",SUCCESS);   
 			}    	
   		msg.setCommandID(SET_ROOM_PROFILE_ACK);
-		msg.getJson().put("sender",2);
+		json.put("sender",2);
 		if(msg.getJson().has("sender")){
 		   sender=msg.getJson().getInt("sender");
 		}
-		msg.getJson().put("receiver",sender); 
+		json.put("receiver",sender); 
+		msg.setJson(json);
     	try {
 			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -1505,6 +1514,7 @@ public class LogicControl {
      *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50002}           
      */
     public void delete_trigger(Message msg) throws JSONException, SQLException{
+    	JSONObject json=new JSONObject();
     	int ctrolID=msg.getJson().getInt("ctrolID");
     	int triggerID=msg.getJson().getInt("triggerID");
     	String key=ctrolID+"_"+triggerID;
@@ -1514,20 +1524,18 @@ public class LogicControl {
 		}
     	if(triggerMap.containsKey(key)){
     		triggerMap.remove(key);
-    		msg.setJson(new JSONObject());
-    		msg.getJson().put("errorCode", SUCCESS);    		
+    		json.put("errorCode", SUCCESS);    		
     	}else if((Trigger.getFromDB(mysql, ctrolID, triggerID))!=null){
     		Trigger.deleteFromDB(mysql, ctrolID, triggerID);
-    		msg.setJson(new JSONObject());
-    		msg.getJson().put("errorCode", SUCCESS);
+    		json.put("errorCode", SUCCESS);
     	}else {
 			log.warn("room_trigger not exist ctrolID:"+ctrolID+" triggerID:"+triggerID+" from triggerMap or Mysql.");
-			msg.getJson().put("errorCode",PROFILE_NOT_EXIST);
+			json.put("errorCode",PROFILE_NOT_EXIST);
     	}
     	msg.setCommandID(DELETE_ROOM_PROFILE_ACK);
-
-		msg.getJson().put("sender",2);
-		msg.getJson().put("receiver",sender); 
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -1557,6 +1565,7 @@ public class LogicControl {
      *   （1） 同步成功返回0，否则返回           -1
      */
     public void syn_updatetime(Message msg) throws JSONException {
+    	JSONObject json=new JSONObject();
     	String tableName=msg.getJson().optString("recordType");
     	JSONArray ja=null;
     	int sender=0;
@@ -1604,8 +1613,9 @@ public class LogicControl {
 			break;
 		}
     	msg.setCommandID(SYN_UPDATETIME_ACK);
-		msg.getJson().put("sender",2);
-		msg.getJson().put("receiver",sender); 
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -1629,6 +1639,7 @@ public class LogicControl {
      *   （2）若 这一型号的家电的 红外库不存在，则返回  NOT_EXIST 
      */
     public void    download_infrared_file(Message msg) throws JSONException{
+		JSONObject json= new JSONObject();
     	int sender=0;
 		if(msg.getJson().has("sender")){
 			   sender=msg.getJson().getInt("sender");
@@ -1636,7 +1647,7 @@ public class LogicControl {
 		String fileID=msg.getJson().optString("fileID");
 		IRFileDownload irDownload=new IRFileDownload(fileID);
 		String url=irDownload.getURL();		
-		JSONObject json= new JSONObject();
+
     	msg.setCommandID(DOWNLOAD_INFRARED_FILE_ACK);
 		if(url.equals("") || url==null){
 			json.put("errorCode", INFRARED_FILE_NOT_EXIST);
