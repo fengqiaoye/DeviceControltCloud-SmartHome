@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
 
 public class IRMatch2 {
 	static Logger log= Logger.getLogger(IRMatch.class);
-	private static File file=new File("D:\\documents\\小秘智能家居后台设计\\红外码库\\ird2\\keyfiles2\\AC\\codes");
+	private static File file=new File("D:\\documents\\小秘智能家居后台设计\\红外码库\\ird2\\keyfiles3\\AC\\codes");
 	/** < 疑或后1的个数，文件名> */
 	Map<Integer, String> fileScoreMap;//=new TreeMap<Integer, String>() ;
 	IRMatch2(){
@@ -61,6 +61,7 @@ public class IRMatch2 {
 							}
 						}	
 						fileScoreMap.put(score, file.getName()+"|"+lineScoreMap.get(score));
+						br.close();
 					} catch (FileNotFoundException e) {
 						e.printStackTrace();
 					} catch (IOException e) {
@@ -93,7 +94,9 @@ public class IRMatch2 {
 		try {
 			BufferedReader br=new BufferedReader(new FileReader(file));
 			String firstLine=br.readLine();
-			return firstLine.split(",").length;
+			int count= firstLine.split(",").length;
+			br.close();
+			return count;
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
@@ -134,7 +137,7 @@ public class IRMatch2 {
 		//System.out.println(im2.differceBitCount("23,CB,26,01,00,20,08,07,09,00,00,00,00,4D,","23,CB,26,01,00,20,08,07,08,00,00,00,00,4C"));
 
 		
-		String[] raw=new String[30];
+		String[] raw=new String[21];
 		raw[0]="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
 		raw[1]="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
 		raw[2]="1e,04,00,00,24,00,26,82,a0,02,a0,82,a0,06,86,c1,23,4d,c2,00,11,85,c3,00,23,04,0c,00,50,02,00";
@@ -151,9 +154,15 @@ public class IRMatch2 {
 	    raw[13]="27,04,00,00,24,00,26,82,16,02,16,82,16,04,70,c1,0e,34,c2,00,04,70,c3,00,70,23,cb,26,01,00,20,08,07,09,00,00,00,00,4d,00";
 	    raw[14]="47,04,00,00,24,00,26,82,6b,02,6b,82,6b,06,93,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,50,02,c2,00,4e,3d,c3,00,20,00,20,00,e0,c2,00,9c,6f,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,70,02,c2,00,4e,3d,c3,00,20,00,00,18,c0,00";
 	    raw[15]="47,04,00,00,24,00,26,82,6b,02,6b,82,6b,06,93,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,50,02,c2,00,4e,3a,c3,00,20,00,20,00,d0,c2,00,9c,6c,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,70,02,c2,00,4e,3a,c3,00,20,00,00,18,c0,00";
-//System.out.println(im.getC3(raw16));
+	       raw[16]="47,04,00,00,24,00,26,82,A0,02,A0,82,A0,06,61,C1,23,66,C2,00,11,70,C3,00,23,18,09,20,50,02,C2,00,4E,06,C3,00,20,00,20,00,E0,C2,00,9C,3A,C1,23,66,C2,00,11,70,C3,00,23,18,09,20,70,02,C2,00,4E,06,C3,00,20,00,00,18,C0,00";
+	        raw[17]="2E,04,00,00,24,00,26,82,40,02,40,82,40,06,3C,C1,0B,FC,C2,00,0B,FC,C1,0B,FC,C2,00,11,1C,C3,00,70,65,01,00,00,02,35,00,00,00,00,00,00,A0,E8,00";
+	        raw[18]="2A,04,00,00,24,00,26,81,8E,01,8E,81,8E,06,8F,C1,D,6F,C2,00,06,8F,C3,00,88,40,00,14,80,43,02,A8,EE,23,00,68,00,00,2,00,00,55,00";
+	        raw[19]="33,04,00,00,24,00,26,82,35,02,35,82,35,06,58,C1,11,5E,C2,00,11,5E,C3,00,30,4D,B2,F8,07,1B,E4,C2,00,11,5E,C1,11,5E,C2,00,11,5E,C3,00,30,4D,B2,F8,07,1B,E4,00";
+	        raw[20]="27,04,00,00,24,00,26,81,FC,01,FC,81,FC,05,F8,C1,0E,1B,C2,00,05,F8,C3,00,70,23,CB,26,01,00,24,8,07,09,00,00,00,00,51,00";
+		    
+	    //System.out.println(im.getC3(raw16));
 
-	    for (int i = 0; i < 16; i++) {
+	    for (int i = 16; i < 21; i++) {
 	    	System.out.println(i);
 	    	IRMatch2 im=new IRMatch2();
 			im.match(file, im.getC3(raw[i]));

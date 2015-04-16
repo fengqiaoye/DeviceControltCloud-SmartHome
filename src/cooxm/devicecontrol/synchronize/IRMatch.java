@@ -1,9 +1,15 @@
 package cooxm.devicecontrol.synchronize;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeSet;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 
@@ -181,8 +187,8 @@ public class IRMatch {
 		        kcnt += 2;
 		    }while(lens > kcnt);
 		    
-		    t_score[i][0] = String.valueOf(score);
-		    t_score[i][1] = rds[i][0];
+		    t_score[i][0] = String.valueOf(score);  //分数
+		    t_score[i][1] = rds[i][0];               
 		    t_score[i][2] = rds[i][2];
 	
 		}
@@ -211,7 +217,7 @@ public class IRMatch {
 				 	+ t_score[3][1] + "-" + t_score[3][0] + " - "+ t_score[3][2]+"\r\n"
 				 	+ t_score[4][1] + "-" + t_score[4][0] + " - "+ t_score[4][2]+"\r\n";
 				 	//+ t_score[5][1] + "-" + t_score[5][0] + " - "+ t_score[5][2] ;
-		log.info("\ngetid rets = \n" + rets);
+		//log.info("\ngetid rets = \n" + rets);
 //		return rets;
 		List<String[]> format= new ArrayList<String[]>();
 		format.add( t_score[0]);
@@ -379,19 +385,70 @@ public class IRMatch {
 			for (int j = 0; j < line.length; j++) {
 				modelSet.add(line[j]);
 			}			
-			models.add(modelSet);
-			
-//			for (int j = 0; j < models.get(i).length; j++) {
-//				System.out.println("\t\t"+fids.get(i)[j]);	
-//			}
+			models.add(modelSet);	
+
 		}
 		
 		return models;		
 	}
 	
+	/** 返回值：<  model_name,品牌 > */
+	public static TreeMap<String, String> getModels2(List<String[]> fids){
+		//TreeMap<String, String> models=new TreeMap<String, String> () ;	
+		TreeMap<String, String> models = new TreeMap<String, String>(new Comparator<String>() {  
+            public int compare(String d1, String d2) {  
+                return d2.compareTo(d1);  
+            }  
+        }); 
+		
+		SQLiteUtil sqlite=new SQLiteUtil("ird2.db");
+		for(int i=0;i<fids.size();i++){
+			String sql="select m_search_string,m_label from model where m_format_id='"+fids.get(i)[1]+"';";
+			//System.out.println(sql);
+			String rs=sqlite.select(sql);
+			//System.out.println(rs);
+			String[] line=rs.split("\n");
+			for (int j = 0; j < line.length; j++) {
+				String cell[]=line[j].split(";");
+				String brand=cell[0].split(" ")[0];
+				boolean flag=false;
+				for (Entry<String, String> entry:models.entrySet()) {
+					if(((String)entry.getKey()).endsWith(cell[0])){
+						flag=true;
+					}					
+				}
+				if(flag==false){
+					if(cell.length<=1){	
+						models.put(fids.get(i)[0]+","+cell[0], brand);
+					}else{
+						models.put(fids.get(i)[0]+","+cell[0], brand+" "+cell[1]);
+					}
+				}
+			}			
+		}		
+		return models;		
+	}
+	
+	public TreeMap<Object,Object> compositorMap(TreeMap<String ,String> sortWordMap) throws Exception  
+    {  
+        //@SuppressWarnings("unchecked")
+		TreeMap<Object,Object> tm = new TreeMap<Object,Object>(new Comparator<Object>()  
+        {  
+            public int compare(Object o1, Object o2)             
+            {  
+            	 //return o2.compareTo(o1);  
+                return o1.hashCode() - o2.hashCode();  
+            }  
+        });  
+          
+        tm.putAll(sortWordMap);  
+          
+        return tm;  
+    }
+	
 	public static void main(String[] args) {
 		
-		String[] raw=new String[30];
+		String[] raw=new String[21];
 		raw[0]="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
 		raw[1]="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
 		raw[2]="1e,04,00,00,24,00,26,82,a0,02,a0,82,a0,06,86,c1,23,4d,c2,00,11,85,c3,00,23,04,0c,00,50,02,00";
@@ -408,17 +465,31 @@ public class IRMatch {
 	    raw[13]="27,04,00,00,24,00,26,82,16,02,16,82,16,04,70,c1,0e,34,c2,00,04,70,c3,00,70,23,cb,26,01,00,20,08,07,09,00,00,00,00,4d,00";
 	    raw[14]="47,04,00,00,24,00,26,82,6b,02,6b,82,6b,06,93,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,50,02,c2,00,4e,3d,c3,00,20,00,20,00,e0,c2,00,9c,6f,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,70,02,c2,00,4e,3d,c3,00,20,00,00,18,c0,00";
 	    raw[15]="47,04,00,00,24,00,26,82,6b,02,6b,82,6b,06,93,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,50,02,c2,00,4e,3a,c3,00,20,00,20,00,d0,c2,00,9c,6c,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,70,02,c2,00,4e,3a,c3,00,20,00,00,18,c0,00";
-        String wave=getIRString(raw[0].toUpperCase());
-		String encode=encode(wave.substring(0, wave.length()-1));
-		//System.out.println("encode = "+encode);
-		List<String[]> fids =getID(encode);
-		List<Set<String>> models=getModels(fids); 
-		for (int i = 0; i < fids.size(); i++) {
-			System.out.println(fids.get(i)[2]+":");
-			for (int j = 0; j < models.get(i).size(); j++) {
-				System.out.println("\t"+models.get(i).toArray()[j]);	
-			}			
+        raw[16]="47,04,00,00,24,00,26,82,A0,02,A0,82,A0,06,61,C1,23,66,C2,00,11,70,C3,00,23,18,09,20,50,02,C2,00,4E,06,C3,00,20,00,20,00,E0,C2,00,9C,3A,C1,23,66,C2,00,11,70,C3,00,23,18,09,20,70,02,C2,00,4E,06,C3,00,20,00,00,18,C0,00";
+        raw[17]="2E,04,00,00,24,00,26,82,40,02,40,82,40,06,3C,C1,0B,FC,C2,00,0B,FC,C1,0B,FC,C2,00,11,1C,C3,00,70,65,01,00,00,02,35,00,00,00,00,00,00,A0,E8,00";
+        raw[18]="2A,04,00,00,24,00,26,81,8E,01,8E,81,8E,06,8F,C1,D,6F,C2,00,06,8F,C3,00,88,40,00,14,80,43,02,A8,EE,23,00,68,00,00,2,00,00,55,00";
+        raw[19]="33,04,00,00,24,00,26,82,35,02,35,82,35,06,58,C1,11,5E,C2,00,11,5E,C3,00,30,4D,B2,F8,07,1B,E4,C2,00,11,5E,C1,11,5E,C2,00,11,5E,C3,00,30,4D,B2,F8,07,1B,E4,00";
+        raw[20]="27,04,00,00,24,00,26,81,FC,01,FC,81,FC,05,F8,C1,0E,1B,C2,00,05,F8,C3,00,70,23,CB,26,01,00,24,8,07,09,00,00,00,00,51,00";
+	    for (int k = 16; k < raw.length; k++) {
+    	    String wave=getIRString(raw[k].toUpperCase());
+    		String encode=encode(wave.substring(0, wave.length()-1));
+    		//System.out.println("encode = "+encode);
+    		List<String[]> fids =getID(encode);
+    		Map<String, String> models=getModels2(fids);
+    		/*List<Set<String>> models=getModels(fids); 
+    		for (int i = 0; i < fids.size(); i++) {
+    			System.out.println(fids.get(i)[2]+":");
+    			for (int j = 0; j < models.get(i).size(); j++) {
+    				System.out.println("\t"+models.get(i).toArray()[j]);	
+    			}			
+    		}*/
+    		System.out.println(k);
+    		for (Map.Entry<String, String> entry:models.entrySet()) {
+    			System.out.println(entry.getValue()+" : "+entry.getKey());				
+			}
+    		System.out.println("\n");
 		}
+
 	}
 
 }

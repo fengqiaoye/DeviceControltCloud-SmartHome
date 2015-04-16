@@ -23,7 +23,7 @@ public class Message extends Header {
 	 //public Header header;
 	 private String cookie=null;
 	 private JSONObject json;
-	 int serverID=-1;
+	 int serverID;
 
 
 	 
@@ -61,6 +61,7 @@ public class Message extends Header {
 		this.reserve=msg.reserve;
 		this.cookie=msg.cookie;
 		this.json=msg.json;
+		this.serverID=msg.serverID;
 	}
 	
 	Message(Header header,String cookie,  byte[] command) {

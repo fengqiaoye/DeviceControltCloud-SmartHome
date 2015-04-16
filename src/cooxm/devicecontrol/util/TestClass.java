@@ -361,6 +361,22 @@ public class TestClass {
 	    return (byte) "0123456789ABCDEF".indexOf(c);  
 	}
 	
+	
+	public static void TimeTest(){
+		for(int i=0;i<100;i++)
+		{
+			long time=System.currentTimeMillis();
+			long second=time/1000;
+			int  milsecond=(int) (time%1000);
+			System.out.println(time+", "+second+", "+ milsecond);
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
 
 	public static void main(String[] args) throws UnknownHostException, IOException {
 //		String str1="{\"student\":[{\"name\":\"leilei\",\"age\":23},{\"name\":\"leilei02\",\"age\":23}]}";
@@ -384,19 +400,10 @@ public class TestClass {
 		
 //		btye2str();
 		
-		for(int i=0;i<100;i++)
-		{
-			long time=System.currentTimeMillis();
-			long second=time/1000;
-			int  milsecond=(int) (time%1000);
-			System.out.println(time+", "+second+", "+ milsecond);
-			try {
-				Thread.sleep(1);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
 
+String test="kjgd,";
+String[] line=test.split(",");
+System.out.println(line[0]);
 		
 
 

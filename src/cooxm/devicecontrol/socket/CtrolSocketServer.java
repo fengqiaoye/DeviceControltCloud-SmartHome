@@ -138,7 +138,7 @@ public class CtrolSocketServer {
 	          Message  msg= readFromClient(socket);	          
 	            if(msg!=null){
 	            	short commandID=msg.getCommandID();
-	            	msg.setServerID(serverID);
+	            	msg.setServerID(this.serverID);
 	            	switch (commandID) {
 					case 0x1101:
 						int serverID=authenrize(msg,this.socket);
@@ -170,7 +170,7 @@ public class CtrolSocketServer {
 					default:
 			            try {
 			            	if(msg.isValid()){
-			            		CtrolSocketServer.receiveCommandQueue.offer(msg,500, TimeUnit.MICROSECONDS);
+			            		boolean falg=CtrolSocketServer.receiveCommandQueue.offer(msg,500, TimeUnit.MICROSECONDS);
 			            		System.out.println("size of receiveCommandQueue ="+CtrolSocketServer.receiveCommandQueue.size());
 			            	}else{
 			            		return;
@@ -181,6 +181,8 @@ public class CtrolSocketServer {
 						break;
 					}
 	            }else{   //socket关闭
+	            	
+	            	
 	            	try {
 	            		if(serverID>0){
 							sockMap.remove(this.serverID);
@@ -299,10 +301,13 @@ public class CtrolSocketServer {
 		try {
 			json.put("uiTime", sdf.format(new Date()));
 			replyMsg.setJson(json);
-			Server server=getServerInfo(heartBeatMsg.serverID);
-			Socket sock=sockMap.get(heartBeatMsg.serverID);
+			Server server=getServerInfo(replyMsg.serverID);
+			Socket sock=sockMap.get(replyMsg.serverID);
+			if(server==null || sock==null){
+				log.error("can't find server/sock from serverMap/sockMap by serverID:"+replyMsg.serverID);
+			}
 
-			CtrolSocketServer.sendCommandQueue.offer(replyMsg,100, TimeUnit.MICROSECONDS);
+			boolean flag=CtrolSocketServer.sendCommandQueue.offer(replyMsg,100, TimeUnit.MICROSECONDS);
 			System.out.println("HeartBeat "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()
 					+",serverID: "+heartBeatMsg.serverID+",serverType: "+server.getServerType()+":"+replyMsg.msgToString());
 			
@@ -346,7 +351,7 @@ public class CtrolSocketServer {
 				replyMsg.setCommandID((short) (msg.getCommandID()+Message.COMMAND_ACK_OFFSET));
 				replyMsg.setJson(json);
 				replyMsg.setServerID(serverID);
-				CtrolSocketServer.sendCommandQueue.offer(replyMsg,100, TimeUnit.MICROSECONDS);
+				boolean flag=CtrolSocketServer.sendCommandQueue.offer(replyMsg,100, TimeUnit.MICROSECONDS);
 				System.out.println("Send AuRs "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()
 						+",serverID: "+replyMsg.serverID+",serverType: "+getServerInfo(replyMsg.serverID).getServerType()+":"+replyMsg.msgToString());
 				return serverID;
