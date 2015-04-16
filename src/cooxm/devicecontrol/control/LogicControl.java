@@ -184,6 +184,9 @@ public class LogicControl {
 	/** 红外码库文件不存在*/
 	public static final int INFRARED_FILE_NOT_EXIST	  = -50031;
 	
+	/** 服务器没有通过认证*/
+	public static final int SERVER_NOT_AUTHORIZED	  = -50041;
+	
 
 	
 

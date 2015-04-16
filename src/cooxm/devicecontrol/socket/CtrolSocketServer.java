@@ -41,7 +41,9 @@ public class CtrolSocketServer {
 	private static final short CMD__Identity_ACK 		= CMD__Identity_REQ  + ACK_OFFSET;  //身份标识请求
 	private static final short CMD__HEARTBEAT_REQ 		= CMDCODE_RESERVED_FOR_COMMON_BEGIN + 2;  //心跳请求
 	private static final short CMD__HEARTBEAT_ACK 		= CMD__HEARTBEAT_REQ  + ACK_OFFSET;  //心跳请求
-	
+	/** 服务器没有通过认证*/
+	public static final int SERVER_NOT_AUTHORIZED	  = -50041;
+
 	Configure configure=null;
     ServerSocket severSock = null;
     //Socket sock =null;
@@ -140,13 +142,13 @@ public class CtrolSocketServer {
 	            	short commandID=msg.getCommandID();
 	            	msg.setServerID(this.serverID);
 	            	switch (commandID) {
-					case 0x1101:
+					case CMD__Identity_REQ: //0x1101:
 						int serverID=authenrize(msg,this.socket);
 						if(serverID>0){
 							this.serverID=serverID;
 						}
 						break;
-					case 0x1102:
+					case CMD__HEARTBEAT_REQ:  //0x1102
 						replyHeartBeat(msg);
 						break;
 					case CMD__Identity_ACK:	
@@ -185,10 +187,10 @@ public class CtrolSocketServer {
 	            	
 	            	try {
 	            		if(serverID>0){
-							sockMap.remove(this.serverID);
-							severMap.remove(this.serverID);							
 							log.info("socket hase been closed :"+this.socket.getInetAddress().getHostAddress()+":"+this.socket.getPort()
-									+",serverID: "+serverID+",serverType: "+getServerInfo(serverID).getServerType());
+									+",serverID: "+serverID+",serverType: "+severMap.get(serverID).getServerType());
+							sockMap.remove(this.serverID);
+							severMap.remove(this.serverID);	
 	            		}
 						this.socket.close();
 					} catch (IOException e) {
@@ -301,10 +303,11 @@ public class CtrolSocketServer {
 		try {
 			json.put("uiTime", sdf.format(new Date()));
 			replyMsg.setJson(json);
-			Server server=getServerInfo(replyMsg.serverID);
+			Server server=severMap.get(replyMsg.serverID);
 			Socket sock=sockMap.get(replyMsg.serverID);
-			if(server==null || sock==null){
-				log.error("can't find server/sock from serverMap/sockMap by serverID:"+replyMsg.serverID);
+			if(sock==null ||  server==null){
+				log.error("can't find sock from sockMap by serverID:"+replyMsg.serverID+",this message will be disposed.");
+				return;
 			}
 
 			boolean flag=CtrolSocketServer.sendCommandQueue.offer(replyMsg,100, TimeUnit.MICROSECONDS);
@@ -353,7 +356,7 @@ public class CtrolSocketServer {
 				replyMsg.setServerID(serverID);
 				boolean flag=CtrolSocketServer.sendCommandQueue.offer(replyMsg,100, TimeUnit.MICROSECONDS);
 				System.out.println("Send AuRs "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()
-						+",serverID: "+replyMsg.serverID+",serverType: "+getServerInfo(replyMsg.serverID).getServerType()+":"+replyMsg.msgToString());
+						+",serverID: "+replyMsg.serverID+",serverType: "+server.getServerType()+":"+replyMsg.msgToString());
 				return serverID;
 			}else{                                //鉴权失败
 
@@ -368,7 +371,7 @@ public class CtrolSocketServer {
 		return serverID; 	
 	}      
 		
-	public synchronized  Server getServerInfo(int serverID){
+	public /*synchronized*/  Server getServerInfo(int serverID){
 		severMap=new HashMap<Integer, Server>();
 		String mysql_ip			=this.configure.getValue("mysql_ip");
 		String mysql_port		=this.configure.getValue("mysql_port");
@@ -399,10 +402,11 @@ public class CtrolSocketServer {
 			return null;
 		}
 		//System.err.println(res);System.err.println(res);
-			String[]  cells=res.split(",");
-			Server server=new Server(cells[1], Integer.parseInt(cells[2]), Integer.parseInt(cells[3]), Integer.parseInt(cells[4]));
-			//server.setLastHeartBeatTime(new Date());
-			return server;
+		String[]  cells=res.split(",");
+		Server server=new Server(cells[1], Integer.parseInt(cells[2]), Integer.parseInt(cells[3]), Integer.parseInt(cells[4]));
+		server.setLastHeartBeatTime(new Date());
+		mysql.close();	
+		return server;
 
 	}	
 	
@@ -455,7 +459,7 @@ public class CtrolSocketServer {
     		msg=new Message(head, cookieStr, comString);
     	}
     	if(msg.isAuth() && msg.commandID!=4354){
-    		log.info("Recv from "+clientRequest.getInetAddress().getHostAddress()+":"+clientRequest.getPort()+":"+msg.msgToString());
+    		log.info(" Recv frm "+clientRequest.getInetAddress().getHostAddress()+":"+clientRequest.getPort()+":"+msg.msgToString());
     	}
         return msg; 
     } 
