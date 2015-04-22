@@ -67,12 +67,6 @@ public class Profile  {
 	public void setProfileName(String profileName) {
 		this.profileName = profileName;
 	}
-	public int getctrolID() {
-		return ctrolID;
-	}
-	public void setctrolID(int ctrolID) {
-		this.ctrolID = ctrolID;
-	}
 	public int getProfileSetID() {
 		return profileSetID;
 	}
@@ -111,7 +105,7 @@ public class Profile  {
 			for(int i=0;i<factorListJSON.length();i++){
 				JSONObject factorJson=factorListJSON.getJSONObject(i);
 				Factor factor= new Factor();
-				/*factor.factorID=factorJson.getInt("factorID");
+			  /*factor.factorID=factorJson.getInt("factorID");
 				factor.minValue=factorJson.getInt("minValue");
 				factor.maxValue=factorJson.getInt("maxValue");
 				factor.operator=factorJson.getInt("operator");
@@ -155,8 +149,8 @@ public class Profile  {
 		    profileJson.put("profileID",this.profileID);
 		    profileJson.put("profileName",this.profileName);
 		    profileJson.put("ctrolID",this.ctrolID); 
-		    //profileJson.put("roomID",this.roomID);
-		    //profileJson.put("roomType",this.roomType);
+		    profileJson.put("roomID",this.getRoomID());
+		    profileJson.put("roomType",this.getRoomType());
 		    profileJson.put("profileTemplateID",getProfileTemplateID());
 		    profileJson.put("profileSetID",this.profileSetID);
 		    for(Factor factor: getFactorList()){
@@ -168,7 +162,7 @@ public class Profile  {
 		    	factorJson.put("validFlag", factor.validFlag);
 		    	factorJson.put("createTime", sdf.format(factor.getCreateTime()));
 		    	factorJson.put("modifyTime", sdf.format(factor.getModifyTime()));*/
-		    	factor.toProfileJson();		    	
+		    	factorJson=factor.toProfileJson();		    	
 		    	profileJson.accumulate("factorList",factorJson); 
 		    }
 		    
@@ -572,20 +566,27 @@ public class Profile  {
 			return profile;		
 		}
 	
+	public int getRoomID(){
+		return this.factorList.get(0).getRoomID();		
+	}
 	
-
-
-	
-	
+	public int getRoomType(){
+		return this.factorList.get(0).getRoomType()	;
+	}
+		
+	public int getProfileType(){
+		return this.profileTemplateID;
+	}
 	
 	public static void main(String[] args) throws SQLException, JSONException {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		Profile p =new Profile();
 		p=Profile.getFromDB(mysql, 12345677, 123456789);
+		System.out.println(p.toJsonObj().toString());
 	    //JSONObject jo=p.toJsonObj();		
 
-		p.profileID+=2;		
-		p.saveToDB(mysql);
+		//p.profileID+=2;		
+		//p.saveToDB(mysql);
 		
 	}
 

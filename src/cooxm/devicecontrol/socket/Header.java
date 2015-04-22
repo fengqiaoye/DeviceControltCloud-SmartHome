@@ -3,6 +3,7 @@
 import java.io.UnsupportedEncodingException;
 import java.security.KeyStore.ProtectionParameter;
 
+import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.BytesUtil;
 
 
@@ -176,7 +177,10 @@ public class Header{
   
   public boolean isValid() {   
   	int commandID=this.commandID;
-  	if(commandID>=commandMin && commandID<=commandMax )  {	
+  	if(commandID>=commandMin && commandID<=commandMax 
+  		|| commandID>=commandMin +LogicControl.COMMAND_ACK_OFFSET && commandID<=commandMax +LogicControl.COMMAND_ACK_OFFSET
+  		|| commandID>=LogicControl.WARNING_START && commandID<=LogicControl.WARNING_END
+  		|| commandID>=LogicControl.WARNING_START +LogicControl.COMMAND_ACK_OFFSET && commandID<=LogicControl.WARNING_END +LogicControl.COMMAND_ACK_OFFSET)  {	
 		return true;
 	}
     return false;
@@ -185,7 +189,7 @@ public class Header{
   public boolean isAuth() { 
   	int commandID=this.commandID;
   	if(commandID==SocketClient.CMD__Identity_REQ || commandID==SocketClient.CMD__Identity_ACK
-  			|| commandID==SocketClient.CMD__HEARTBEAT_REQ || commandID<= SocketClient.CMD__HEARTBEAT_ACK)  {	
+  	   || commandID==SocketClient.CMD__HEARTBEAT_REQ || commandID== SocketClient.CMD__HEARTBEAT_ACK)  {	
 		return true;
 	}
     return false;

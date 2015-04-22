@@ -23,33 +23,63 @@ public class Device {
 	int deviceID;
 	int ctrolID;
 	String deviceSN;
+	int roomType;
 	int roomID;
 	/***deviceType
-	0-10：保留
-	10：灯
-	20：电视
-	40: 空调
-	60：窗户
-	80：窗帘
-	90：暖器
-
-	1010:声感器
-	1020:光感器
-	1030：温感器
-	1040：湿感器
-	1050：声光温湿四合一传感器
-	1051:四合一声感
-	1052：四合一光感
-	1053：四合一温感
-	1054：四合一湿感
-	1060:PM2.5检测器
-	1070:有害气体检测器
-	1080:智能插座
-
-	2040:射频发射器
-	2050:红外发射器
-	
-	3000以上：用户自己添加的未知设备
+	101	图灵猫中控
+	111	图灵猫旋钮
+	121	图灵猫CO探测
+	131	图灵猫插座
+	141	图灵猫插座棒
+	201	烟雾探测器
+	211	漏水探测器
+	221	门磁
+	231	其他探测器
+	241	中继器
+	251	门铃
+	301	主机遥控器
+	311	智能门锁
+	321	报警器
+	331	漏水机械手
+	341	天然气机械手
+	401	无线遥控灯
+	411	遥控窗
+	421	遥控窗帘
+	501	电视
+	511	机顶盒
+	521	视频盒子
+	531	音响
+	541	空调
+	551	冰箱
+	561	热水器
+	571	灯
+	581	取暖器
+	591	空气净化器
+	601	电风扇
+	611	饮水机
+	801	电饭煲
+	811	豆浆机
+	821	电烤箱
+	831	电水壶
+	841	微波炉
+	1001	扫地机器人
+	1011	擦窗机
+	1021	拖地机
+	1031	镜面加热
+	1041	智能马桶
+	1051	加香机
+	1061	投影仪
+	1071	投影幕
+	1081	自动演奏钢琴
+	1091	除湿机
+	1101	加湿器
+	1111	洗衣机
+	1121	美发器
+	1131	遥控车门
+	1141	其他家电
+	2201	五合一传感器
+	2211	红外发射器
+	2221	射频发射器
 	*/
 	int deviceType;
 	
@@ -74,7 +104,77 @@ public class Device {
 	Date createTime;
 	public Date modifyTime;
 	
-	static final String deviceBindTable="info_user_room_bind";
+	public static final String deviceBindTable="info_user_room_bind";
+	
+	
+	public int getDeviceID() {
+		return deviceID;
+	}
+	public void setDeviceID(int deviceID) {
+		this.deviceID = deviceID;
+	}
+	public int getCtrolID() {
+		return ctrolID;
+	}
+	public void setCtrolID(int ctrolID) {
+		this.ctrolID = ctrolID;
+	}
+	public String getDeviceSN() {
+		return deviceSN;
+	}
+	public void setDeviceSN(String deviceSN) {
+		this.deviceSN = deviceSN;
+	}
+	public int getRoomID() {
+		return roomID;
+	}
+	public void setRoomID(int roomID) {
+		this.roomID = roomID;
+	}
+	
+	public int getRoomType() {
+		return roomType;
+	}
+	public void setRoomType(int roomType) {
+		this.roomType = roomType;
+	}
+	public int getDeviceType() {
+		return deviceType;
+	}
+	public void setDeviceType(int deviceType) {
+		this.deviceType = deviceType;
+	}
+	public int getType() {
+		return type;
+	}
+	public void setType(int type) {
+		this.type = type;
+	}
+	public int getWall() {
+		return wall;
+	}
+	public void setWall(int wall) {
+		this.wall = wall;
+	}
+	public int getRelatedDevType() {
+		return relatedDevType;
+	}
+	public void setRelatedDevType(int relatedDevType) {
+		this.relatedDevType = relatedDevType;
+	}
+	public Date getCreateTime() {
+		return createTime;
+	}
+	public void setCreateTime(Date createTime) {
+		this.createTime = createTime;
+	}
+	public Date getModifyTime() {
+		return modifyTime;
+	}
+	public void setModifyTime(Date modifyTime) {
+		this.modifyTime = modifyTime;
+	}
+
 	
 	public Device(){}
 	public Device(
@@ -83,7 +183,8 @@ public class Device {
 			String deviceSN,
 			int deviceType,
 			int type,
-			int roomID,  
+			int roomID, 
+			int roomType,
 			int wall,
 			int relatedDevType, 
 			Date createTime,
@@ -93,6 +194,7 @@ public class Device {
 		this.deviceSN              = deviceSN    ;
 		this.ctrolID              =    ctrolID       ;
 		this.roomID              =     roomID        ;
+		this.roomType			 = roomType;
 		this.deviceType              = deviceType    ;
 		this.type              =       type          ;
 		this.wall              =       wall          ;
@@ -101,18 +203,7 @@ public class Device {
 		this.modifyTime              = modifyTime    ;
 	}
 	
-	public Device(Device dev) {		
-		this.deviceID              =   dev.deviceID      ;    
-		this.deviceSN              = dev.deviceSN    ;
-		this.ctrolID              =    dev.ctrolID       ;
-		this.roomID              =     dev.roomID        ;
-		this.deviceType              = dev.deviceType    ;
-		this.type              =       dev.type          ;
-		this.wall              =       dev.wall          ;
-		this.relatedDevType          = dev.relatedDevType;
-		this.createTime              = dev.createTime    ;
-		this.modifyTime              = dev.modifyTime    ;
-	}
+
 	
 	public Device (JSONObject deviceJson){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -120,7 +211,8 @@ public class Device {
 			this.deviceID=deviceJson.getInt("deviceID");
 			this.deviceSN=deviceJson.getString("deviceSN");
 			this.ctrolID=deviceJson.getInt("ctrolID");	
-			this.roomID=deviceJson.getInt("roomID");	
+			this.roomID=deviceJson.getInt("roomID");
+			this.roomType=deviceJson.getInt("roomType");
 			this.deviceType=deviceJson.getInt("deviceType");
 			this.type=deviceJson.getInt("type");
 			this.wall=deviceJson.getInt("wall");
@@ -140,9 +232,10 @@ public class Device {
 			deviceJson.put("ctrolID",         this.deviceID      );
 		    deviceJson.put("deviceID",        this.deviceSN      );
 		    deviceJson.put("deviceSN",        this.ctrolID       );
-		    deviceJson.put("deviceType",      this.roomID        );
-		    deviceJson.put("type",            this.deviceType    );
-		    deviceJson.put("roomID",          this.type          );
+		    deviceJson.put("roomID",          this.roomID        );
+		    deviceJson.put("roomType",        this.roomType        );
+		    deviceJson.put("deviceType",      this.deviceType    );
+		    deviceJson.put("type",            this.type          );
 		    deviceJson.put("wall",            this.wall          );
 		    deviceJson.put("relatedDevType",  this.relatedDevType);
 		    deviceJson.put("createTime",      sdf.format(this.createTime    ));
@@ -243,6 +336,7 @@ public class Device {
 				+"devsn        ,"
 				+"devtype      ,"
 				+"type         ,"
+				+"roomtype       ,"
 				+"roomid       ,"
 				+"wall         ,"
 				+"relateddevid ,"
@@ -256,6 +350,7 @@ public class Device {
 				+deviceSN+"',"
 				+deviceType+","
 				+type+","
+				+roomType+","
 				+roomID+","
 				+wall+","
 				+relatedDevType+",'"
@@ -280,6 +375,7 @@ public class Device {
 				+"devsn        ,"
 				+"devtype      ,"
 				+"type         ,"
+				+"roomtype       ,"
 				+"roomid       ,"
 				+"wall         ,"
 				+"relateddevid ,"
@@ -306,12 +402,13 @@ public class Device {
 			device.deviceSN=index[2];
 			device.deviceType=Integer.parseInt(index[3]);
 			device.type=Integer.parseInt(index[4]);
-			device.roomID=Integer.parseInt(index[5]);
-			device.wall=Integer.parseInt(index[6]);
-			device.relatedDevType=Integer.parseInt(index[7]);
+			device.roomType=Integer.parseInt(index[5]);
+			device.roomID=Integer.parseInt(index[6]);
+			device.wall=Integer.parseInt(index[7]);
+			device.relatedDevType=Integer.parseInt(index[8]);
 			try {
-				device.createTime=sdf.parse(index[8]);
-				device.modifyTime=sdf.parse(index[9]);
+				device.createTime=sdf.parse(index[9]);
+				device.modifyTime=sdf.parse(index[10]);
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -336,6 +433,7 @@ public class Device {
 				+"devsn        ,"
 				+"devtype      ,"
 				+"type         ,"
+				+"roomtype       ,"
 				+"roomid       ,"
 				+"wall         ,"
 				+"relateddevid ,"
@@ -363,12 +461,13 @@ public class Device {
 				device.deviceSN=index[2];
 				device.deviceType=Integer.parseInt(index[3]);
 				device.type=Integer.parseInt(index[4]);
-				device.roomID=Integer.parseInt(index[5]);
-				device.wall=Integer.parseInt(index[6]);
-				device.relatedDevType=Integer.parseInt(index[7]);
+				device.roomType=Integer.parseInt(index[5]);
+				device.roomID=Integer.parseInt(index[6]);
+				device.wall=Integer.parseInt(index[7]);
+				device.relatedDevType=Integer.parseInt(index[8]);
 				try {
-					device.createTime=sdf.parse(index[8]);
-					device.modifyTime=sdf.parse(index[9]);
+					device.createTime=sdf.parse(index[9]);
+					device.modifyTime=sdf.parse(index[10]);
 				} catch (ParseException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -439,12 +538,13 @@ public class Device {
 			device.deviceSN=index[2];
 			device.deviceType=Integer.parseInt(index[3]);
 			device.type=Integer.parseInt(index[4]);
-			device.roomID=Integer.parseInt(index[5]);
-			device.wall=Integer.parseInt(index[6]);
-			device.relatedDevType=Integer.parseInt(index[7]);
+			device.roomType=Integer.parseInt(index[5]);
+			device.roomID=Integer.parseInt(index[6]);
+			device.wall=Integer.parseInt(index[7]);
+			device.relatedDevType=Integer.parseInt(index[8]);
 			try {
-				device.createTime=sdf.parse(index[8]);
-				device.modifyTime=sdf.parse(index[9]);
+				device.createTime=sdf.parse(index[9]);
+				device.modifyTime=sdf.parse(index[10]);
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -462,7 +562,7 @@ public class Device {
 	  public static void main(String[] args) throws SQLException{
 		  MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		  Date date=new Date();
-		  Device dev=new Device(123456789 , 1234567891 , "XJFGOD847X" ,      40 ,    0 ,    203 ,    5 , 0,date,date);
+		  Device dev=new Device(123456789 , 1234567891 , "XJFGOD847X" ,      40 ,    0 ,  2,  203 ,    5 , 0,date,date);
 		  
 		  int count=dev.saveToDB(mysql);		
 		  System.out.println("Query OK,  "+count+" row affected.");

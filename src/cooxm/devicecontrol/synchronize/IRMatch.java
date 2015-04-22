@@ -367,7 +367,7 @@ public class IRMatch {
 			 }
 			 rets += machd[i] + ",";
 		 }
-		// log.info("rets = " + rets);
+		 log.info("rets = " + rets);
        String ret= rets.replaceAll("null,", "");
 		return ret;
 	}
@@ -470,8 +470,9 @@ public class IRMatch {
         raw[18]="2A,04,00,00,24,00,26,81,8E,01,8E,81,8E,06,8F,C1,D,6F,C2,00,06,8F,C3,00,88,40,00,14,80,43,02,A8,EE,23,00,68,00,00,2,00,00,55,00";
         raw[19]="33,04,00,00,24,00,26,82,35,02,35,82,35,06,58,C1,11,5E,C2,00,11,5E,C3,00,30,4D,B2,F8,07,1B,E4,C2,00,11,5E,C1,11,5E,C2,00,11,5E,C3,00,30,4D,B2,F8,07,1B,E4,00";
         raw[20]="27,04,00,00,24,00,26,81,FC,01,FC,81,FC,05,F8,C1,0E,1B,C2,00,05,F8,C3,00,70,23,CB,26,01,00,24,8,07,09,00,00,00,00,51,00";
-	    for (int k = 16; k < raw.length; k++) {
+	    for (int k = 0; k < raw.length; k++) {
     	    String wave=getIRString(raw[k].toUpperCase());
+    	  //System.out.println("wave = "+wave);
     		String encode=encode(wave.substring(0, wave.length()-1));
     		//System.out.println("encode = "+encode);
     		List<String[]> fids =getID(encode);

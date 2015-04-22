@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 
+import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.control.MainEntry;
 import cooxm.devicecontrol.device.Factor;
 import cooxm.devicecontrol.device.Profile;
@@ -24,10 +25,11 @@ import cooxm.devicecontrol.util.MySqlClass;
 public class Event {
 	static Logger log =Logger.getLogger(MainEntry.class);
 	private static final String receiveTable ="info_devicecontrol_msg_receive";
-	private static final String replyTable   ="info_devicecontrol_msg_reply";
+	private static final String replyTable   ="info_devicecontrol_msg_send";
 	MySqlClass mysql;
 	
 	private int month;
+	private int date;
 	
 	/*** 填写序列号*/
 	String eventID;
@@ -44,8 +46,14 @@ public class Event {
 	/** Json里的ctrolID*/
 	//String sender;
 	
-	/***"Json里的sender ：control":0  ;"mobile":1;  "cloud":2;  web:3;   other：4 */
+	/***当前这条消息的发送角色 ：control":0  ;"mobile":1;  "cloud":2;  web:3;   other：4 */
 	int senderRole;  
+	
+	/***当前这条消息的接收角色 ：control":0  ;"mobile":1;  "cloud":2;  web:3;   other：4 */
+	int receiveRole; 
+	
+	/***收到的这一条消息的原始发送角色 ：control":0  ;"mobile":1;  "cloud":2;  web:3;   other：4 */
+	int originalSenderRole	;				
 
 	/***<pre>处理结果： 填写errorCode*/
 	int errorCode;
@@ -56,22 +64,26 @@ public class Event {
 	Event() {}	
 	Event(
 			int month,
+			int date,
 			String eventID,
 			int commandID,
 			int ctrolID,
 			int roomID,
 			//String sender,
 			int senderRole,
+			int originalSenderRole,
 			int errorCode,
 			Date receiveTime,
 			Date replyTime,
 			String json
 			) {	
 		this.month=month;
+		this.date=date;
 		this.eventID=eventID;
 		this.commandID=commandID;
 		//this.sender=sender;
 		this.senderRole=senderRole;
+		this.originalSenderRole=originalSenderRole;
 		this.ctrolID=ctrolID;
 		this.roomID=roomID;
 		this.errorCode=errorCode;
@@ -82,10 +94,11 @@ public class Event {
 	
 	Event(Message msg)  {
 		DateFormat monthSDF=new SimpleDateFormat("yyyyMM");
-
+		DateFormat dateSDF=new SimpleDateFormat("yyyyMMdd");
 		this.receiveTime=new Date();
 		this.replyTime=this.receiveTime;
 		this.month=Integer.parseInt(monthSDF.format(this.receiveTime));
+		this.date= Integer.parseInt(dateSDF.format(this.receiveTime));
         this.eventID=msg.getCookie();
         this.commandID=msg.commandID;
 		if(msg.getJson().has("ctrolID")){
@@ -113,6 +126,14 @@ public class Event {
 				e.printStackTrace();
 			}
 		}else this.senderRole=0;
+		
+		if(msg.getJson().has("originalSenderRole")){
+			try {
+				this.originalSenderRole=msg.getJson().getInt("originalSenderRole");
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}else this.originalSenderRole=0;
 
 		if(msg.getJson().has("errorCode")){
 			try {
@@ -137,12 +158,14 @@ public class Event {
 			String sql="insert into "+receiveTable
 					+" ( "
 				    + "month  ,"  
+				    + "date  ,"  
 					+ "cookie  ,"     
 					+"commandid ,"
 					+"ctrolid ,"
 					+"roomid ,"
 					//+"sender ,"
 					+"senderrole ,"
+					+"origin_senderrole,"
 					+"errorcode ,"
 					+"receivetime ,"
 					+"replytime ,"
@@ -150,13 +173,14 @@ public class Event {
 					+ ")"				
 					+"values "
 					+ "("
-					+this.month+",'"					
+					+this.month+","
+					+this.date +",'"
 					+this.eventID+"',"
 					+this.commandID+","
 					+this.ctrolID+","
-					+this.roomID+",'"
-					//+this.sender+"','"
-					+this.senderRole+"',"
+					+this.roomID+","
+					+this.senderRole+","
+					+this.originalSenderRole+","
 					+this.errorCode+",'"
 					+sdf.format(this.receiveTime)+"','"
 					+sdf.format(this.replyTime)+"','"
@@ -177,13 +201,15 @@ public class Event {
 
 			String sql="insert into "+replyTable
 					+" ("
-				    + "month  ,"  				
+				    + "month  ,"  
+					+ "date  ," 
 					+ "cookie  ,"     
 					+"commandid ,"
 					+"ctrolid ,"
 					+"roomid ,"
 					//+"sender ,"
-					+"senderrole ,"
+					+"receiverrole ,"
+					+"origin_senderrole,"
 					+"errorcode ,"
 					+"receivetime ,"
 					+"replytime ,"
@@ -191,13 +217,14 @@ public class Event {
 					+ ")"				
 					+"values "
 					+ "("
-					+this.month+",'"
+					+this.month+","
+					+this.date+",'"
 					+this.eventID+"',"
 					+this.commandID+","
 					+this.ctrolID+","
-					+this.roomID+",'"
-					//+this.sender+"','"
-					+this.senderRole+"',"
+					+this.roomID+","
+					+this.receiveRole+","
+					+this.originalSenderRole+","
 					+this.errorCode+",'"
 					+sdf.format(this.receiveTime)+"','"
 					+sdf.format(this.replyTime)+"','"
@@ -210,7 +237,8 @@ public class Event {
 
 	public static void main(String[] args) throws SQLException {
      MySqlClass msyql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
-    new Event(Message.getOneMsg()).toReceiveDB(msyql);
+     new Event(Message.getOneMsg()).toReceiveDB(msyql);
+
 
 	}
 

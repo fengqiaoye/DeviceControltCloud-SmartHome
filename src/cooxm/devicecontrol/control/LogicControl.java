@@ -22,6 +22,7 @@ import org.json.JSONObject;
 
 import cooxm.devicecontrol.device.Device;
 import cooxm.devicecontrol.device.DeviceMap;
+import cooxm.devicecontrol.device.DeviceState;
 import cooxm.devicecontrol.device.Profile;
 import cooxm.devicecontrol.device.ProfileMap;
 import cooxm.devicecontrol.device.ProfileSet;
@@ -40,8 +41,12 @@ import redis.clients.jedis.Jedis;
 public class LogicControl {	
 	
 	public static final short COMMAND_START            		   =  0x1600;
+	public static final short COMMAND_END            		   =  0x19FF;
+
+	public static final short WARNING_START            		   =  0x2000;
+ 	public static final short WARNING_END					   =  0x21FF;
+	
 	public static final short COMMAND_ACK_OFFSET       		   =  0x4000; 
-	public static final short WARNING_START            		   =  0x2000;	
 	
     /*** 请求 情景模式命令    @see get_room_profile() */
 	private static final short GET_ROOM_PROFILE					=	COMMAND_START+1;	
@@ -173,6 +178,7 @@ public class LogicControl {
 	
 	private static final int DEVICE_OBSOLETE   	  	  = -50011;
 	private static final int DEVICE_NOT_EXIST   	  = -50012;
+	private static final int DEVICE_STATE_EMPTY   	  = -50013;
 	
 	/*** 消息可以识别，但是收件人错误，例如收到自己发送的消息*/
 	private static final int COMMAND_NOT_ENCODED   	  = -50021;
@@ -369,19 +375,17 @@ public class LogicControl {
 			break;	
 		case GET_ONE_DEVICE:	
 			try {
-				get_profile_set(msg);
+				get_one_device(msg);;
 			} catch (JSONException e) {
-				e.printStackTrace();
-			} catch (SQLException e) {
 				e.printStackTrace();
 			}
 			break;
 		case SET_ONE_DEVICE:	
 			try {
-				get_profile_set(msg);
+				set_one_device(msg, mysql);;
 			} catch (JSONException e) {
 				e.printStackTrace();
-			} catch (SQLException e) {
+			} catch (ParseException e) {
 				e.printStackTrace();
 			}
 			break;	
@@ -394,7 +398,7 @@ public class LogicControl {
 			break;			
 		case SWITCH_DEVICE_STATE:	
 			try {
-				get_profile_set(msg);
+				switch_device_state(msg);
 			} catch (JSONException e) {
 				e.printStackTrace();
 			} catch (SQLException e) {
@@ -688,10 +692,12 @@ public class LogicControl {
     	if(msg.getJson().has("sender")){
     		sender=msg.getJson().getInt("sender"); 
     	}
-    	String key=ctrolID+"_"+profileID;
+    	String key=ctrolID+"_currentProfile";
     	if((profile= profileMap.get(key))!=null || (profile=Profile.getFromDB(mysql, ctrolID, profileID))!=null){
-    		jedis.publish(commandQueue, profile.toJsonObj().toString());
-    		jedis.hset(currentProfile, key, profile.toJsonObj().toString());
+    		int roomID=profile.getRoomID();
+    		String command=profile.getCtrolID()+","+msg.getCommandID()+","+profile.getRoomType()+","+profile.getRoomID()+","+profileID;
+    		jedis.publish(commandQueue,command);
+    		jedis.hset(key, roomID+"", profile.toJsonObj().toString());
     		if(sender==0){
     			json.put("errorCode",SUCCESS);
     		}else {
@@ -807,9 +813,9 @@ public class LogicControl {
     	if((dbProfileSet=profileSetMap.get(key))==null && (dbProfileSet=ProfileSet.getProfileSetFromDB(mysql, ctrolID, profileSetID))==null ){
     		profileSetMap.put(key, msgProfileSet);
 			json.put("errorCode",SUCCESS);     		
-    	}else if( dbProfileSet.modifyTime.after(msgModifyTime)){	//云端较新  
+    	}else if( dbProfileSet.getModifyTime().after(msgModifyTime)){	//云端较新  
 			json.put("errorCode",PROFILE_SET_OBSOLETE);    		
-    	}else if( dbProfileSet.modifyTime.before(msgModifyTime)){
+    	}else if( dbProfileSet.getModifyTime().before(msgModifyTime)){
     		profileSetMap.put(key, msgProfileSet);
 			json.put("errorCode",SUCCESS);   		
     	}    	
@@ -884,9 +890,17 @@ public class LogicControl {
     	if(json.has("sender")){
     		sender=msg.getJson().getInt("sender"); 
     	}     	
-    	String key=ctrolID+"_"+profileSetID;
+    	//String key=ctrolID+"_"+profileSetID;
+    	String key=ctrolID+"_currentProfile";
     	if((profileSet= profileSetMap.get(key))!=null || (profileSet=ProfileSet.getProfileSetFromDB(mysql, ctrolID, profileSetID))!=null){
-    		jedis.publish(commandQueue, profileSet.toJsonObj().toString());
+    		String command=profileSet.getCtrolID()+","+msg.getCommandID()+","+254+","+254+","+profileSetID;
+    		jedis.publish(commandQueue, command);
+    		Profile profile=null;
+    		for (int i = 0; i < profileSet.getProfileList().size(); i++) {
+        		profile=profileMap.get(profileSet.getProfileList().get(i));        		
+    			jedis.hset(key, profile.getRoomID()+"", profile.toJsonObj().toString());
+    			//jedis.hset(currentProfileSet, key, profileSet.toJsonObj().toString());
+			}
     		jedis.hset(currentProfileSet, key, profileSet.toJsonObj().toString());
     		if(sender==0){
 	    		json.put("errorCode",SUCCESS);  	    		
@@ -1185,35 +1199,46 @@ public class LogicControl {
 	
 	/*** 切换某个家电状态
 	 * 	 <pre>例如对应json消息体如下格式 ：
-	 *   {
-         sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
-     *   receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
-	 *     senderRole:"control"/"mobile"/"cloud"
-	 *     ctrolID:1234567
-	 *     deviceID:7654321
+	 *   {sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
+     *    receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
+	 *    ctrolID:1234567
+	 *    deviceID:7654321
+	 *    operation: 
+     *    state:{
+     *           设备状态的json格式；
+     *          }
      *   }
 	 * @throws JSONException 
 	 * @throws SQLException */
-	public void switch_app_state(Message msg) throws JSONException, SQLException{
+	public void switch_device_state(Message msg) throws JSONException, SQLException{
 		JSONObject json=new JSONObject();
-	   	Message replymsg=new Message(msg);
     	Device device=null;
     	int ctrolID=msg.getJson().getInt("ctrolID");
     	int deviceID=msg.getJson().getInt("deviceID");
+    	DeviceState state= new DeviceState();
     	int sender=0;
     	if(msg.getJson().has("sender")){
     		sender=msg.getJson().getInt("sender"); 
     	}
-    	String key=ctrolID+"_"+deviceID;
+    	//String key=ctrolID+"_"+deviceID;
+    	String key=ctrolID+"_currentDeviceState";
     	if((device= deviceMap.get(key))!=null || (device=Device.getOneDeviceFromDB(mysql, ctrolID, deviceID))!=null){
-    		jedis.publish(commandQueue, device.toJsonObj().toString());
-    		jedis.hset(currentDeviceState, key, device.toJsonObj().toString());
-    		if(sender==0){
-	    		json.put("errorCode",SUCCESS); 	    		
-    		}else {
-    			TimeOutTread to=new TimeOutTread(10,msg);
-    			to.start();   			
-    		}
+        	if(msg.getJson().has("state")){
+        		state=new DeviceState(msg.getJson().getJSONObject("state"));
+        		String command=device.getCtrolID()+","+msg.getCommandID()+","+device.getRoomType()+","+device.getRoomID()+","+deviceID;
+        		jedis.publish(commandQueue, command);
+        		jedis.hset(key, deviceID+"", state.toJson().toString());
+        		json.put("errorCode",SUCCESS); 	  
+        		if(sender==0){
+    	    		  		
+        		}else {
+        			TimeOutTread to=new TimeOutTread(10,msg);
+        			to.start();   			
+        		}
+        	}else{
+        		json.put("errorCode",DEVICE_STATE_EMPTY); 	
+        	}
+
     	}else {
 			log.warn("Can't switch room device,device doesn't exit. ctrolID:"+ctrolID+" deviceID:"+deviceID+" from deviceMap or Mysql.");
 			json.put("errorCode",PROFILE_NOT_EXIST);
@@ -1280,8 +1305,7 @@ public class LogicControl {
      *         {
      *          触发模板的json格式 
      *         }
-     * }
-     *                      
+     * }            
      */
     public void get_trigger_template(Message msg) throws JSONException, SQLException{
     	JSONObject json=new JSONObject();

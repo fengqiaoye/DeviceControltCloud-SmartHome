@@ -84,7 +84,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 			String[] index=line.split(",");
 			profile.setProfileID(Integer.parseInt(index[0]));
 			profile.setProfileName(index[1]);	
-			profile.setctrolID(Integer.parseInt(index[2]) );	
+			profile.setCtrolID(Integer.parseInt(index[2]) );	
 			//profile.setRoomID(Integer.parseInt(index[3]));	
 			//profile.setRoomType(Integer.parseInt(index[4]));	
 			int roomID=Integer.parseInt(index[3]);
@@ -96,9 +96,9 @@ public class ProfileMap extends HashMap<String, Profile>{
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}			
-			profile.setFactorList(Profile.getProFactorsFromDB(mysql, profile.getctrolID(), profile.getProfileID(),roomID,roomType ));
+			profile.setFactorList(Profile.getProFactorsFromDB(mysql, profile.getCtrolID(), profile.getProfileID(),roomID,roomType ));
 			if(!profile.isEmpty())
-			profileMap.put(profile.getctrolID()+"_"+profile.getProfileID(), profile);		
+			profileMap.put(profile.getCtrolID()+"_"+profile.getProfileID(), profile);		
 		}
 		log.info("Initialize profileMap finished !");
 		return profileMap;		
@@ -125,7 +125,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 	public Profile remove(Object key) {
 		Profile profile = super.get(key);
 		try {
-			Profile.deleteFromDB(mysql, profile.getctrolID(), profile.getProfileID());
+			Profile.deleteFromDB(mysql, profile.getCtrolID(), profile.getProfileID());
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}

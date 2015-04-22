@@ -43,19 +43,23 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
     
     @Override
     public boolean offer(Message msg){
-    	Event event=new Event(msg);
-    	checkMysql();
-     	event.toReceiveDB(mysql);
+    	if(msg.isValid() && !msg.isAuth()){
+	    	Event event=new Event(msg);
+	    	checkMysql();
+    	
+    		event.toReceiveDB(mysql);
+    	}
      	return super.offer(msg);
 
     }
     
     @Override
     public boolean offer(Message msg, long time, TimeUnit unit) throws InterruptedException {
-    	if(msg.isValid() && !msg.isAuth()){
+    	boolean a=msg.isValid();
+    	boolean b=!msg.isAuth();
+    	if(a && b ){
 	    	Event event=new Event(msg);
-	    	checkMysql();
-    	
+	    	checkMysql();    	
     		event.toReceiveDB(mysql);
     	}
 		return super.offer(msg,time,unit);
@@ -65,9 +69,12 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
     
     @Override
     public void put(Message msg) throws InterruptedException{
-    	Event event=new Event(msg);
-    	checkMysql();
-     	event.toReceiveDB(mysql);
+    	if(msg.isValid() && !msg.isAuth()){
+	    	Event event=new Event(msg);
+	    	checkMysql();
+    	
+    		event.toReceiveDB(mysql);
+    	}
      	super.put(msg);   	
     }
 

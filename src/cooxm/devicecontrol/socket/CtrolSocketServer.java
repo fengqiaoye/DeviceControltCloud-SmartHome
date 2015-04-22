@@ -173,7 +173,7 @@ public class CtrolSocketServer {
 			            try {
 			            	if(msg.isValid()){
 			            		boolean falg=CtrolSocketServer.receiveCommandQueue.offer(msg,500, TimeUnit.MICROSECONDS);
-			            		System.out.println("size of receiveCommandQueue ="+CtrolSocketServer.receiveCommandQueue.size());
+			            		//System.out.println("size of receiveCommandQueue ="+CtrolSocketServer.receiveCommandQueue.size());
 			            	}else{
 			            		return;
 			            	}
@@ -226,8 +226,8 @@ public class CtrolSocketServer {
 							 if(serverID>0 && this.sock.equals(sockMap.get(serverID)) ){	
 								outMsg = CtrolSocketServer.sendCommandQueue.take();//poll(100, TimeUnit.MICROSECONDS);
 								outMsg.writeBytesToSock2(this.sock);
-								log.info("Send to  "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()+":"+outMsg.msgToString());	
-								System.out.println("size of sendCommandQueue ="+CtrolSocketServer.sendCommandQueue.size());
+								System.out.println("Send to  "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()+":"+outMsg.msgToString());	
+								//System.out.println("size of sendCommandQueue ="+CtrolSocketServer.sendCommandQueue.size());
 							}
 						}
 					} catch (InterruptedException e) {
@@ -458,8 +458,8 @@ public class CtrolSocketServer {
     	}else{
     		msg=new Message(head, cookieStr, comString);
     	}
-    	if(msg.isAuth() && msg.commandID!=4354){
-    		log.info(" Recv frm "+clientRequest.getInetAddress().getHostAddress()+":"+clientRequest.getPort()+":"+msg.msgToString());
+    	if(msg.isAuth() && msg.commandID!=SocketClient.CMD__HEARTBEAT_REQ){
+    		System.out.println(" Recv frm "+clientRequest.getInetAddress().getHostAddress()+":"+clientRequest.getPort()+":"+msg.msgToString());
     	}
         return msg; 
     } 

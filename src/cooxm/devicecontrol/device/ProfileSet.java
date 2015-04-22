@@ -30,11 +30,69 @@ public class ProfileSet {
 	
 	/*** 所包含的情景模式ID 列表*/
 	List<Integer> profileList;	
-	public Date createTime;
-	public Date modifyTime;
-	ProfileSet currProfileSet;
-	static final String  profileSetTable="info_user_st_set";
+	Date createTime;
+	Date modifyTime;
+	//ProfileSet currProfileSet;
+	static final String  profileSetTable="info_user_st_set";	
 	
+	public int getCtrolID() {
+		return ctrolID;
+	}
+
+	public void setCtrolID(int ctrolID) {
+		this.ctrolID = ctrolID;
+	}
+
+	public int getProfileSetID() {
+		return profileSetID;
+	}
+
+	public void setProfileSetID(int profileSetID) {
+		this.profileSetID = profileSetID;
+	}
+
+	public String getProfileSetName() {
+		return profileSetName;
+	}
+
+	public void setProfileSetName(String profileSetName) {
+		this.profileSetName = profileSetName;
+	}
+
+	public int getProfileSetTemplateID() {
+		return profileSetTemplateID;
+	}
+
+	public void setProfileSetTemplateID(int profileSetTemplateID) {
+		this.profileSetTemplateID = profileSetTemplateID;
+	}
+
+	public List<Integer> getProfileList() {
+		return profileList;
+	}
+
+	public void setProfileList(List<Integer> profileList) {
+		this.profileList = profileList;
+	}
+
+	public Date getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(Date createTime) {
+		this.createTime = createTime;
+	}
+
+	public Date getModifyTime() {
+		return modifyTime;
+	}
+
+	public void setModifyTime(Date modifyTime) {
+		this.modifyTime = modifyTime;
+	}
+
+
+
 	ProfileSet(){}
 	
 	 ProfileSet(ProfileSet pc){
