@@ -1138,14 +1138,18 @@ public class LogicControl {
     		sender=msg.getJson().getInt("sender"); 
     	}
     	
-    	if((dbDevice=this.deviceMap.get(key))==null  && (dbDevice=Device.getOneDeviceFromDB(mysql, ctrolID, deviceID))==null ){	
+    	if((dbDevice=this.deviceMap.get(key))==null  || dbDevice.modifyTime.before(msgModifyTime) ){	 //不存在或者云端较旧
     		this.deviceMap.put(key, msgDevice);
-			json.put("errorCode",SUCCESS);   		
+			json.put("errorCode",SUCCESS);  
+
+			String key2=ctrolID+"_roomBind";
+    		int roomID=msgDevice.getRoomID();
+    		String command=msgDevice.getCtrolID()+","+msg.getCommandID()+","+msgDevice.getRoomType()+","+msgDevice.getRoomID()+","+deviceID;
+    		jedis.publish(commandQueue,command);
+    		jedis.hset(key2, roomID+"", msgDevice.toJsonObj().toString());
+			json.put("errorCode",SUCCESS);
     	}else if(dbDevice.modifyTime.after(msgModifyTime)){ ////云端较新  
 			json.put("errorCode",DEVICE_OBSOLETE);   
-		}else if (dbDevice.modifyTime.before(msgModifyTime)){ //云端较旧
-    		this.deviceMap.put(key, msgDevice);
-			json.put("errorCode",SUCCESS); 
 		}
   		msg.setCommandID(SET_ONE_DEVICE_ACK);
 		json.put("sender",2);

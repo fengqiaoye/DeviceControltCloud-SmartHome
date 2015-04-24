@@ -367,7 +367,7 @@ public class IRMatch {
 			 }
 			 rets += machd[i] + ",";
 		 }
-		 log.info("rets = " + rets);
+		 //log.info("rets = " + rets);
        String ret= rets.replaceAll("null,", "");
 		return ret;
 	}

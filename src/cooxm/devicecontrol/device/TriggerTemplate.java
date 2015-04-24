@@ -23,12 +23,12 @@ public class TriggerTemplate {
 
 	//private int ctrolID;
 	private int triggerTemplateID;
-	
+	private int profileTemplateID;
 	private List<TriggerTemplateFactor>  triggerTemplateFactorList;
 	private List<TriggerTemplateReact>   triggerTemplateReactList;
 	
-	private static String triggerFactorTable="cfg_trigger_template";
-	private static String triggerReactTable="cfg_trigger_template_react";
+	static String triggerFactorTable="cfg_trigger_template";
+	static String triggerReactTable ="cfg_trigger_template_react";
 	
 
 	public int getTriggerTemplateID() {
@@ -36,6 +36,12 @@ public class TriggerTemplate {
 	}
 	public void setTriggerTemplateID(int triggerTemplateID) {
 		this.triggerTemplateID = triggerTemplateID;
+	}
+	public int getProfileTemplateID() {
+		return profileTemplateID;
+	}
+	public void setProfileTemplateID(int profileTemplateID) {
+		this.profileTemplateID = profileTemplateID;
 	}
 	public List<TriggerTemplateFactor> getTriggerTemplateFactorList() {
 		return triggerTemplateFactorList;
@@ -53,10 +59,11 @@ public class TriggerTemplate {
 	}
 	public TriggerTemplate(){}
 	
-	public TriggerTemplate(int triggerTemplateID,
+	public TriggerTemplate(int triggerTemplateID,int profileTemplateID,
 			List<TriggerTemplateFactor> triggerFactorList,
 			List<TriggerTemplateReact> triggerReactList) {
 		this.triggerTemplateID = triggerTemplateID;
+		this.profileTemplateID = profileTemplateID;
 		this.triggerTemplateFactorList = triggerFactorList;
 		this.triggerTemplateReactList = triggerReactList;
 	}
@@ -66,6 +73,7 @@ public class TriggerTemplate {
 		TriggerTemplate trigger= new TriggerTemplate();
 		try {
 			trigger.triggerTemplateID=triggerTemplateJson.getInt("triggerTemplateID");
+			trigger.triggerTemplateID=triggerTemplateJson.getInt("profileTemplateID");
 			JSONArray factorListJSON= triggerTemplateJson.getJSONArray("factorList");
 			List<TriggerTemplateFactor> factorList = new ArrayList<TriggerTemplateFactor>() ;
 			for(int i=0;i<factorListJSON.length();i++){
@@ -97,6 +105,7 @@ public class TriggerTemplate {
     	JSONObject factorJson;
 		try {
     		triggerJson.put("triggerTemplateID", getTriggerTemplateID());  
+    		triggerJson.put("profileTemplateID", getProfileTemplateID()); 
          	for (TriggerTemplateFactor factor:getTriggerTemplateFactorList()) {
 		    	factorJson= new JSONObject(); 
 		    	factor.toJson();		    	
@@ -134,7 +143,8 @@ public class TriggerTemplate {
 		}
 		for (TriggerTemplateFactor ft:this.triggerTemplateFactorList) {
 			String sql="replace into "+triggerFactorTable
-					+" (triggerid  ,"     
+					+" (triggerid  ,"    
+					+"sttemplateid ,"
 					+"logicalrelation,"
 					+"roomtype ,"
 					+"factorid ,"
@@ -148,7 +158,8 @@ public class TriggerTemplate {
 					+ ")"				
 					+"values "
 					+ "("
-					+this.triggerTemplateID+",'"
+					+this.triggerTemplateID+","
+					+this.profileTemplateID+",'"
 					+ft.getLogicalRelation()+"',"
 					+ft.getRoomType()+","
 					+ft.getFactorID()+","
@@ -206,7 +217,8 @@ public class TriggerTemplate {
 				e1.printStackTrace();
 			}
 			String sql="select "
-					+"triggerid  ,"     
+					+"triggerid  ,"  
+					+"sttemplateid ,"
 					+"logicalrelation ,"
 					+"roomtype ,"
 					+"factorid ,"
@@ -237,24 +249,24 @@ public class TriggerTemplate {
 				cells=line.split(",");
 				if(cells.length>0){			
 					ft=new TriggerTemplateFactor();	
-					ft.setLogicalRelation(cells[1]);
-					ft.setRoomType(Integer.parseInt(cells[2]));
-					ft.setFactorID(Integer.parseInt(cells[3]));
-					ft.setOperator(Integer.parseInt(cells[4]));
-					ft.setMinValue(Integer.parseInt(cells[5]));
-					ft.setMaxValue(Integer.parseInt(cells[6]));
-					ft.setAccumilateTime(Integer.parseInt(cells[7]));
-					ft.setValidFlag(Integer.parseInt(cells[8]));
+					ft.setLogicalRelation(cells[2]);
+					ft.setRoomType(Integer.parseInt(cells[3]));
+					ft.setFactorID(Integer.parseInt(cells[4]));
+					ft.setOperator(Integer.parseInt(cells[5]));
+					ft.setMinValue(Integer.parseInt(cells[6]));
+					ft.setMaxValue(Integer.parseInt(cells[7]));
+					ft.setAccumilateTime(Integer.parseInt(cells[8]));
+					ft.setValidFlag(Integer.parseInt(cells[9]));
 					try {
-						ft.setCreateTime(sdf.parse(cells[9]));
-						ft.setModifyTime(sdf.parse(cells[10]));
+						ft.setCreateTime(sdf.parse(cells[10]));
+						ft.setModifyTime(sdf.parse(cells[11]));
 					} catch (ParseException e) {
 						e.printStackTrace();
-					}
-					
+					}					
 					factorList.add(ft);
 					triggert.setTriggerTemplateFactorList(factorList);
 					triggert.setTriggerTemplateID(Integer.parseInt(cells[0]));
+					triggert.setProfileTemplateID(Integer.parseInt(cells[1]));					
 				}else {
 					System.out.println("ERROR:Columns mismatch between class Profile  and table  "+ triggerFactorTable);
 					return null;				
@@ -301,7 +313,8 @@ public class TriggerTemplate {
 	public static void main(String[] args) {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		
-		TriggerTemplate t=getFromDB(mysql, 10005);
+		TriggerTemplate t=getFromDB(mysql, 3);
+		t.triggerTemplateID++;
 		t.saveToDB(mysql);
 
 	}

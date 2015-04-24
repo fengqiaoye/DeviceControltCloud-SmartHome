@@ -37,7 +37,7 @@ public class IRFileDownload {
 		return this.format_ID;
 	}
 	public String getURL(){	
-		String url=DOWNLOAD_FTP_IP+"/keyfiles/AC/codes/"+this.getFilename()+".txt"; 		
+		String url=DOWNLOAD_FTP_IP+"/keyfiles2/AC/codes/"+this.getFilename()+".txt"; 		
 		return url;		
 	}
 	
@@ -49,7 +49,7 @@ public class IRFileDownload {
             ftpClient.connect(DOWNLOAD_FTP_IP); 
             ftpClient.login("anonymous", "12345678"); 
 
-            String remoteFileName = "/keyfiles/AC/codes/"+this.getFilename()+".txt"; 
+            String remoteFileName = "/keyfiles2/AC/codes/"+this.getFilename()+".txt"; 
             fos = new FileOutputStream("d:/"+this.getFilename()+".txt"); 
 
             ftpClient.setBufferSize(1024); 

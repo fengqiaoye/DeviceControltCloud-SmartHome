@@ -17,7 +17,7 @@ import org.apache.log4j.Logger;
 
 public class IRMatch2 {
 	static Logger log= Logger.getLogger(IRMatch.class);
-	private static File file=new File("D:\\documents\\小秘智能家居后台设计\\红外码库\\ird2\\keyfiles3\\AC\\codes");
+	private static File file=new File("D:\\documents\\小秘智能家居后台设计\\红外码库\\ird2\\keyfiles2\\AC\\codes");
 	/** < 疑或后1的个数，文件名> */
 	Map<Integer, String> fileScoreMap;//=new TreeMap<Integer, String>() ;
 	IRMatch2(){

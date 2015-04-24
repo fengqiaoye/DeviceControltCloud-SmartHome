@@ -24,6 +24,9 @@ public class Trigger {
 	private int ctrolID;
 	private int triggerID;
 	
+	/** 情景模式ID，表示这个触发规则只在改情景模式下生效 */
+	private int profileID;
+	
 	private List<TriggerFactor>  triggerFactorList;
 	private List<TriggerTemplateReact>   triggerReactList;
 	/** 在一天之内触发的次数*/

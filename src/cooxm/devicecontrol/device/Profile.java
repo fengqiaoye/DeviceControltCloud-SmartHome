@@ -13,6 +13,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import redis.clients.jedis.Jedis;
 import cooxm.devicecontrol.util.MySqlClass;
 
 
@@ -584,6 +585,11 @@ public class Profile  {
 		p=Profile.getFromDB(mysql, 12345677, 123456789);
 		System.out.println(p.toJsonObj().toString());
 	    //JSONObject jo=p.toJsonObj();		
+		
+		Jedis jedis=new Jedis("172.16.35.170", 6379);
+		jedis.set(p.profileID+"",p.toJsonObj().toString());
+		System.out.println(jedis.get(p.profileID+""));
+		jedis.hgetAll("key");
 
 		//p.profileID+=2;		
 		//p.saveToDB(mysql);
