@@ -97,12 +97,14 @@ public class Device {
 	8：洪荒
 	9：中间,与墙壁无关
 	 */
-	int wall; 
+	int wall; 	
 	
 	/***relatedDevType定义参见deviceType, 代表没有关联*/
 	int relatedDevType; 
 	Date createTime;
 	public Date modifyTime;
+	
+	DeviceState state;
 	
 	public static final String deviceBindTable="info_user_room_bind";
 	
@@ -201,6 +203,7 @@ public class Device {
 		this.relatedDevType          = relatedDevType;
 		this.createTime              = createTime    ;
 		this.modifyTime              = modifyTime    ;
+		this.state=null;
 	}
 	
 

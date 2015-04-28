@@ -14,6 +14,8 @@ import org.json.JSONObject;
  */
 
 public class TriggerTemplateFactor extends FactorTemplate{
+	/** 是否触发，触发则为true*/
+	Boolean state;
 
 	/**<pre> 逻辑关系：
 	 * and：并且；
@@ -50,6 +52,15 @@ public class TriggerTemplateFactor extends FactorTemplate{
 				roomType, operator, minValue, maxValue, validFlag);
 		this.logicalRelation = logicalRelation;
 		this.accumilateTime = accumilateTime;
+	}
+	
+
+	public Boolean getState() {
+		return state;
+	}
+
+	public void setState(Boolean state) {
+		this.state = state;
 	}
 
 	public TriggerTemplateFactor() {

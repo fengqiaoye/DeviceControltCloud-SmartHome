@@ -81,6 +81,18 @@ public class Profile  {
 		this.ctrolID = ctrolID;
 	}
 	
+	public int getRoomID(){
+		return this.factorList.get(0).getRoomID();		
+	}
+	
+	public int getRoomType(){
+		return this.factorList.get(0).getRoomType()	;
+	}
+		
+	public int getProfileType(){
+		return this.profileTemplateID;
+	}
+	
 
 	public List<Factor> getFactorList() {
 		return factorList;
@@ -290,7 +302,7 @@ public class Profile  {
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
-	public	static Profile getFromDB(MySqlClass mysql,int ctrolID,int profileID) throws SQLException
+	public	static Profile getFromDBByProfileID(MySqlClass mysql,int ctrolID,int profileID) throws SQLException
 		{
 			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			Profile profile=new Profile();
@@ -397,6 +409,120 @@ public class Profile  {
 	mysql.conn.commit();			
 	return profile;			
 	}
+	
+	   /*** 
+	   * 从入MYSQL读取profile
+	   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	   * 根据模板ID获取对应的profile 
+	   */
+		public	static Profile getFromDBByTemplateID(MySqlClass mysql,int ctrolID,int roomID,int templateID) throws SQLException
+			{
+				DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+				Profile profile=new Profile();
+				mysql.conn.setAutoCommit(false);
+				
+				//int roomID;
+				int roomType;
+				
+				String sql2="select  "
+				+" userroomstid       ,"
+				+"userroomstname,"
+				+"ctr_id        ,"
+				+"roomid        ,"
+				+"roomtype      ,"
+				+"sttemplateid  ,"
+				+"stsetid  ,"			
+				+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
+				+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
+				+ "  from "				
+				+profileIndexTable
+				+" where ctr_id="+ctrolID
+				+" and sttemplateid="+templateID
+				+" and roomid= "+roomID
+				+ ";";
+				System.out.println("query:"+sql2);
+				String res2=mysql.select(sql2);
+				System.out.println("get from mysql:\n"+res2);
+				if(res2==null|| res2==""){
+					System.err.println("ERROR:empty query by : "+sql2);
+					return null;
+				} else if(res2.split("\n").length!=1){
+					System.err.println("ERROR:Multi profile retrieved from mysql. ");
+					return null;
+				}else{
+					String[] index=res2.split(",");
+					profile.profileName=index[1];	
+					roomID=Integer.parseInt(index[3]);	
+					roomType=Integer.parseInt(index[4]);	
+					profile.setProfileTemplateID(Integer.parseInt(index[5])); 
+					profile.profileSetID=Integer.parseInt(index[6]);
+					try {
+						profile.setCreateTime(sdf.parse(index[7]));
+						profile.setModifyTime(sdf.parse(index[8]));
+					} catch (ParseException e) {
+						e.printStackTrace();
+					}				
+				}
+				
+				String sql="select "
+						+"userroomstid," 
+						+"ctr_id,"
+						+"factorid,"
+						+"lower,"
+						+"upper,"
+						+"cmpalg,"
+						+"valid_flag,"
+						+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
+						+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
+						+ "  from  "				
+						+profileDetailTable
+						+" where ctr_id="+ctrolID
+						+" and sttemplateid="+templateID
+						+ ";";
+				System.out.println("query:"+sql);
+				String res=mysql.select(sql);
+				System.out.println("get from mysql:\n"+res);
+				if(res==null || res=="" ) {
+					System.err.println("ERROR:query result is empty: "+sql);
+					return null;
+				}
+				String[] resArray=res.split("\n");
+
+				List<Factor> factorList=new ArrayList<Factor>();
+				Factor ft=null;
+				String[] cells=null;
+				for(String line:resArray){
+					cells=line.split(",");
+					if(cells.length>0){				
+						ft=new Factor();	
+						ft.setRoomID(roomID);
+						ft.setRoomType(roomType);
+						ft.setFactorID(Integer.parseInt(cells[2]));
+						ft.setMinValue(Integer.parseInt(cells[3]));
+						ft.setMaxValue(Integer.parseInt(cells[4]));
+						ft.setOperator(Integer.parseInt(cells[5]));
+						ft.setValidFlag(Integer.parseInt(cells[6]));
+						try {
+							ft.setCreateTime(sdf.parse(cells[7]));
+							ft.setModifyTime(sdf.parse(cells[8]));
+						} catch (ParseException e) {
+							e.printStackTrace();
+						}
+											
+						factorList.add(ft);
+						profile.setFactorList(factorList);
+						profile.profileID=Integer.parseInt(cells[0]);
+						profile.ctrolID=Integer.parseInt(cells[1]);		
+					}else {
+						System.out.println("ERROR:Columns mismatch between class Profile  and table  "+ profileDetailTable);
+						return null;				
+					}
+				}
+				
+			
+		mysql.conn.commit();			
+		return profile;			
+		}
 	
    /*** 
    * 从入MYSQL读取profile
@@ -567,22 +693,12 @@ public class Profile  {
 			return profile;		
 		}
 	
-	public int getRoomID(){
-		return this.factorList.get(0).getRoomID();		
-	}
-	
-	public int getRoomType(){
-		return this.factorList.get(0).getRoomType()	;
-	}
-		
-	public int getProfileType(){
-		return this.profileTemplateID;
-	}
+
 	
 	public static void main(String[] args) throws SQLException, JSONException {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		Profile p =new Profile();
-		p=Profile.getFromDB(mysql, 12345677, 123456789);
+		p=Profile.getFromDBByProfileID(mysql, 12345677, 123456789);
 		System.out.println(p.toJsonObj().toString());
 	    //JSONObject jo=p.toJsonObj();		
 		
@@ -590,10 +706,8 @@ public class Profile  {
 		jedis.set(p.profileID+"",p.toJsonObj().toString());
 		System.out.println(jedis.get(p.profileID+""));
 		jedis.hgetAll("key");
-
 		//p.profileID+=2;		
-		//p.saveToDB(mysql);
-		
+		//p.saveToDB(mysql);		
 	}
 
 }

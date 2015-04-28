@@ -49,6 +49,20 @@ public class Message extends Header {
 	}
 	public Message(){}
 	
+	public Message(short commandID,String cookie,JSONObject json){
+		this.headTag="#XRPC#";
+		this.mainVersion=1;
+		this.subVersion=1;
+		this.msgLen=(short) (json.toString().length()+cookie.length());
+		this.commandID=commandID;
+		this.sequeeceNo=(int) (System.currentTimeMillis()/1000);
+		this.encType=1; 
+		this.cookieLen=(short) cookie.length();
+		this.reserve=-1;
+		this.cookie=cookie;
+		this.json=json;
+	}
+	
 	public Message(Message msg){
 		this.headTag=msg.headTag;
 		this.mainVersion=msg.mainVersion;

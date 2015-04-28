@@ -51,7 +51,7 @@ public class ProfileMap extends HashMap<String, Profile>{
    * @table  info_user_room_st_factor
    * @throws SQLException 
     */
-	public static HashMap<String, Profile> getProfileMapFromDB(MySqlClass mysql) throws SQLException		
+	private static HashMap<String, Profile> getProfileMapFromDB(MySqlClass mysql) throws SQLException		
 	{   
 		log.info("Start to initialize profileMap....");
 		HashMap<String, Profile> profileMap=new HashMap<String, Profile>();
@@ -153,16 +153,44 @@ public class ProfileMap extends HashMap<String, Profile>{
 	 * @param: roomID
 	 * @param: ctrolID 
 	 * */
-	public List<Profile> getProfilesByRoomID(int roomID){	
+	public List<Profile> getProfilesByRoomID(int ctrolID,int roomID){	
 		List<Profile> profileList=new ArrayList<Profile>();
 		for (Entry<String, Profile> entry : this.entrySet()) {
 			Profile profile=entry.getValue();
-			for (Factor factor : profile.getFactorList()) {
-				if(factor.getRoomID()==roomID){
-					profileList.add(profile);
-					break;
-				}				
-			}		
+			if(profile.getCtrolID()==ctrolID){
+				for (Factor factor : profile.getFactorList()) {
+					if(factor.getRoomID()==roomID){
+						profileList.add(profile);
+						break;
+					}				
+				}
+			}else {
+				continue;
+			}
+		
+		}
+		return profileList;
+	}
+	
+	/*** 获取一个房间一个情景模式
+	 * @param: roomID
+	 * @param: ctrolID 
+	 * */
+	public List<Profile> getProfileByRoomIDTemplateID(int ctrolID,int roomID,int templateID){	
+		List<Profile> profileList=new ArrayList<Profile>();
+		for (Entry<String, Profile> entry : this.entrySet()) {
+			Profile profile=entry.getValue();
+			if(profile.getCtrolID()==ctrolID){
+				for (Factor factor : profile.getFactorList()) {
+					if(factor.getRoomID()==roomID){
+						profileList.add(profile);
+						break;
+					}				
+				}
+			}else {
+				continue;
+			}
+		
 		}
 		return profileList;
 	}

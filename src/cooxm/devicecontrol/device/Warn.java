@@ -30,6 +30,7 @@ public class Warn {
 	int    madeFrom;
 	/**告警类型:1：有害气体过高；2：PM2.5指标严重；3：温度过高 ；4：火警；5：入侵告警；6：防盗大门未关；7：台风告警；8：暴雨告警*/	
 	int  warnType;
+	int  severity;
 	/**告警内容 中文UTF-8*/
 	String msgContent; 
 
@@ -98,8 +99,43 @@ public class Warn {
 		this.msgContent = msgContent;
 	}
 	
+	
+	public int getCtrolID() {
+		return ctrolID;
+	}
+
+	public void setCtrolID(int ctrolID) {
+		this.ctrolID = ctrolID;
+	}
+
+	public int getTimeOut() {
+		return timeOut;
+	}
+
+	public void setTimeOut(int timeOut) {
+		this.timeOut = timeOut;
+	}
+
+	public int getSeverity() {
+		return severity;
+	}
+
+	public void setSeverity(int severity) {
+		this.severity = severity;
+	}
+
+	public String getMsgContent() {
+		return msgContent;
+	}
+
+	public void setMsgContent(String msgContent) {
+		this.msgContent = msgContent;
+	}
+
+	public Warn(){	}
+	
 	public Warn(int ctrolID, int channel, int target, int timeOut,
-			Date createTime, int madeFrom, int warnType, String msgContent) {
+			Date createTime, int madeFrom, int warnType, int severity) {
 		this.ctrolID = ctrolID;
 		this.channel = channel;
 		this.target = target;
@@ -107,7 +143,7 @@ public class Warn {
 		this.createTime = createTime;
 		this.madeFrom = madeFrom;
 		this.warnType = warnType;
-		this.msgContent = msgContent;
+		this.severity=severity;
 	}
 	
 	public Warn(JSONObject warnJson) {
@@ -120,7 +156,7 @@ public class Warn {
 			this.createTime=sdf.parse(warnJson.getString("createTime")); 
 			this.madeFrom=warnJson.getInt("madeFrom");
 			this.warnType=warnJson.getInt("warnType");
-			this.msgContent=warnJson.getString("msgContent");
+			this.severity=warnJson.optInt("severity");
 		} catch (JSONException e) {
 			e.printStackTrace();
 		} catch (ParseException e) {
@@ -139,7 +175,7 @@ public class Warn {
 		    warnJson.put("createTime",     sdf.format(this.createTime  )  );
 		    warnJson.put("madeFrom",       this.madeFrom    );		    
 		    warnJson.put("warnType",       this.warnType        );
-		    warnJson.put("msgContent",    this.msgContent       );
+		    warnJson.put("severity",    this.severity       );
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}	    

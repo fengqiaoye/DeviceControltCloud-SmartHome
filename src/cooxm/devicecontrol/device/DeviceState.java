@@ -14,7 +14,7 @@ import org.json.JSONObject;
 public class DeviceState {
 	/** 开关 0：打开状态；  1：关闭状态 ; -1:未知 */
 	int onOff;
-	/** 开关  0：自动； 1：制冷； 2=除湿， 3=送风， 4=制热; -1:未知 */
+	/** 模式  0：自动； 1：制冷； 2=除湿， 3=送风， 4=制热; -1:未知 */
 	int mode;
 	/** 风速  0=自动，1=风速1，2=风速2，3=风速3*/
 	int windSpeed;
@@ -103,7 +103,15 @@ public class DeviceState {
 		this.volumn = -1;
 		this.brightness = -1;
 	}
+	/** <pre> 开关   0：打开状态；  1：关闭状态 ; -1:未知 
+模式  0=自动； 1=制冷； 2=除湿， 3=送风， 4=制热; -1:未知 
+风速  0=自动，1=风速1，2=风速2，3=风速3
+风向  0=自动，1=风向1，2=风向2，3=风向3，4=风向4
+温度 16-30度分别是：  0=16 ,1=17。。。。 14=30
 
+频道的值 
+音量的值 
+ 屏幕亮度值 */
 	public DeviceState(int onOff, int mode, int windSpeed, int windDirection,
 			int tempreature, int channel, int volumn, int brightness) {
 		this.onOff = onOff;

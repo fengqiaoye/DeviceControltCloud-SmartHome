@@ -25,7 +25,7 @@ public class ProfileSet {
 	int ctrolID;
 	int profileSetID;
 	String profileSetName;
-	/***<br>0：完全用户全新创建；<br>1：系统模版ID；*/
+	/***<br> 全家模式的模板ID */
 	int profileSetTemplateID;
 	
 	/*** 所包含的情景模式ID 列表*/
@@ -270,6 +270,63 @@ public class ProfileSet {
 			mysql.conn.commit();
 			return profileSet;
 		}
+	
+	   /*** 
+	   * 根据 模板ID 来查找 情景集
+	   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	   * @table  info_user_room_st_factor
+	   * @throws SQLException 
+	   */
+	public	static ProfileSet getProfileSetByTemplateID(MySqlClass mysql,int ctrolID,int templateID) throws SQLException
+	{
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		mysql.conn.setAutoCommit(false);
+		String sql="select "
+				+" ctr_id       ," 
+				+" userstsetid       ," 
+				+"stsetname        ,"
+				+"settemplateid        ,"
+				+"userstid      ,"
+				+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
+				+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
+				+ "  from  "				
+				+profileSetTable
+				+" where ctr_id="+ctrolID
+				+" and settemplateid="+templateID
+				+ ";";
+		System.out.println("query:"+sql);
+		String res=mysql.select(sql);
+		System.out.println("get from mysql:\n"+res);
+		if(res==""||res.length()==0) {
+			System.err.println("ERROR:query result is empty: "+sql);
+			return null;
+		}
+		String[] resArray=res.split("\n");
+		ProfileSet profileSet=new ProfileSet();
+		List<Integer> profileIDList=new ArrayList<Integer>();
+		Integer profileID=null;
+		String[] cells=null;
+		for(String line:resArray){
+			cells=line.split(",");
+			profileID=new Integer(Integer.parseInt(cells[4]));				
+			profileIDList.add(profileID);
+		}
+		profileSet.profileList=profileIDList;
+		
+		profileSet.ctrolID=Integer.parseInt(cells[0]);
+		profileSet.profileSetID=Integer.parseInt(cells[1]);
+		profileSet.profileSetName=cells[2];
+		profileSet.profileSetTemplateID=Integer.parseInt(cells[3]);
+		try {
+			profileSet.createTime=sdf.parse(cells[5]);
+			profileSet.modifyTime=sdf.parse(cells[6]);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		mysql.conn.commit();
+		return profileSet;
+	}
 	
   /*** 
    * 从入MYSQL删除一个profile

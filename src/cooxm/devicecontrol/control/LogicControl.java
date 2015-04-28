@@ -64,7 +64,7 @@ public class LogicControl {
 	private static final short DELETE_ROOM_PROFILE_ACK	    	=	COMMAND_START+3+COMMAND_ACK_OFFSET;
 	
 	/*** 中控切换情景模式命令 */
-	private static final short SWITCH_ROOM_PROFILE				=	COMMAND_START+4;
+	public static final short SWITCH_ROOM_PROFILE				=	COMMAND_START+4;
 	/*** 中控切换情景模式命令 的回复 */
 	private static final short SWITCH_ROOM_PROFILE_ACK			=	COMMAND_START+4+COMMAND_ACK_OFFSET;
 	
@@ -84,7 +84,7 @@ public class LogicControl {
 	private static final short DELETE_RROFILE_SET_ACK			=	COMMAND_START+23+COMMAND_ACK_OFFSET;
 	
 	/*** 情景模式集切换 */
-	private static final short SWITCH_RROFILE_SET				=	COMMAND_START+24;	
+	public  static final short SWITCH_RROFILE_SET				=	COMMAND_START+24;	
 	/*** 情景模式集切换 的回复*/
 	private static final short SWITCH_RROFILE_SET_ACK			=	COMMAND_START+24+COMMAND_ACK_OFFSET;
 
@@ -114,7 +114,7 @@ public class LogicControl {
 	private static final short DELETE_ONE_DEVICE_ACK		=	COMMAND_START+43+COMMAND_ACK_OFFSET;
 	
 	/*** 切换某个家电状态*/
-	private static final short SWITCH_DEVICE_STATE		    =	COMMAND_START+44;
+	public static final short SWITCH_DEVICE_STATE		    =	COMMAND_START+44;
 	/*** 切换某个家电状态 的回复*/
 	private static final short SWITCH_DEVICE_STATE_ACK		=	COMMAND_START+44+COMMAND_ACK_OFFSET;
 	
@@ -507,8 +507,8 @@ public class LogicControl {
     /*** 请求查询情景模式
      * <pre>传入的json格式为：
      * { 
-     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
      *   ctrolID:1234567
      *   profileID:7654321
      * }
@@ -518,8 +518,8 @@ public class LogicControl {
      *   （2）如果查询的情景模式存在，则返回:
      *  { 
      *  errorCode:SUCCESS,
-     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
      *   ctrolID:1234567,
      *   profileID:7654321,
      *   profile: 
@@ -539,7 +539,7 @@ public class LogicControl {
 			   sender=msg.getJson().getInt("sender");
 		}
     	String key=ctrolID+"_"+profileID;
-    	if( (profile= profileMap.get(key))!=null  || (profile=Profile.getFromDB(mysql, ctrolID, profileID))!=null){
+    	if( (profile= profileMap.get(key))!=null  || (profile=Profile.getFromDBByProfileID(mysql, ctrolID, profileID))!=null){
     		json.put("profile", profile.toJsonObj());
     		json.put("errorCode",SUCCESS);
     	}else {
@@ -566,8 +566,8 @@ public class LogicControl {
      *  (2)如果上传的profile的修改时间早于云端，则需要将云端的情景模式下发到 终端（手机、中控）,返回{"errorCode":OBSOLTE_PROFILE}  ；     *         
      *@param message 传入的json格式为： （要上传或者保存的prifile的json格式）
      * {
-     *  "senderRole":    中控:0 ; 手机:1 ; 云:2;
-     *  "receiverRole":  中控:0 ; 手机:1 ; 云:2;
+     *  "senderRole":    中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *  "receiverRole":  中控:0 ; 手机:1 ; 设备控制服务器:2;
      *  profile:
      *   {
 			"profileID":123456789,
@@ -627,8 +627,8 @@ public class LogicControl {
     /*** 删除情景模式
      * <pre>传入的json格式为：
      * { 
-     *   senderRole:    中控:0 ; 手机:1 ; 云:2;
-     *   receiverRole:  中控:0 ; 手机:1 ; 云:2;
+     *   senderRole:    中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *   receiverRole:  中控:0 ; 手机:1 ; 设备控制服务器:2;
      *   ctrolID:1234567
      *   profileID:7654321
      * }
@@ -650,7 +650,7 @@ public class LogicControl {
     		profileMap.remove(key);
     		msg.setJson(new JSONObject());
     		json.put("errorCode", SUCCESS);    		
-    	}else if((Profile.getFromDB(mysql, ctrolID, profileID))!=null){
+    	}else if((Profile.getFromDBByProfileID(mysql, ctrolID, profileID))!=null){
     		Profile.deleteFromDB(mysql, ctrolID, profileID);
     		json.put("errorCode", SUCCESS);
     	}else {
@@ -674,8 +674,8 @@ public class LogicControl {
     /*** 请求切换情景模式,根据命令的发送方有不同的响应方式
      * <pre>传入的json格式为：
     * { 
-     *   sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:4; ...
-     *   receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
+     *   sender:    中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:4; ...
+     *   receiver:  中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:5; ...
     *   ctrolID:1234567
     *   roomID: 203
     *   profileID:7654321
@@ -693,7 +693,7 @@ public class LogicControl {
     		sender=msg.getJson().getInt("sender"); 
     	}
     	String key=ctrolID+"_currentProfile";
-    	if((profile= profileMap.get(key))!=null || (profile=Profile.getFromDB(mysql, ctrolID, profileID))!=null){
+    	if((profile= profileMap.get(key))!=null || (profile=Profile.getFromDBByProfileID(mysql, ctrolID, profileID))!=null){
     		int roomID=profile.getRoomID();
     		String command=profile.getCtrolID()+","+msg.getCommandID()+","+profile.getRoomType()+","+profile.getRoomID()+","+profileID;
     		jedis.publish(commandQueue,command);
@@ -718,8 +718,8 @@ public class LogicControl {
     /*** 请求切换情景模式,返回值
      * <pre>传入的json格式为：
     * { 
-     *   sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:4; ...
-     *   receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
+     *   sender:    中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:4; ...
+     *   receiver:  中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:5; ...
          errorCode: SUCCESS/ PROFILE_NOT_EXIST /TIME_OUT /WRONG_RECEIVER  /WRONG_COMMAND
     * }
      * @throws InterruptedException 
@@ -732,8 +732,8 @@ public class LogicControl {
     /*** 查询情景模式集
      * <pre>传入的json格式为：
      * { 
-     *   sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:4; ...
-     *   receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
+     *   sender:    中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:4; ...
+     *   receiver:  中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:5; ...
      *   ctrolID:1234567
      *   profileSetID:7654321
      * }
@@ -743,8 +743,8 @@ public class LogicControl {
      *   （2）如果查询的情景模式集存在，则返回:
      *  { 
      *   errorCode:SUCCESS,
-     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
      *   ctrolID:1234567,
      *   profileSetID:7654321,
      *   profile: 
@@ -788,8 +788,8 @@ public class LogicControl {
 	 * <pre>Json格式和 设置情景模式 和 {@link cooxm.devicecontrol.control.LogicControl#SET_ROOM_RROFILE SET_ROOM_RROFILE} 类似：
 
      * { 
-     *  "senderRole":    中控:0 ; 手机:1 ; 云:2;
-     *  "receiverRole":  中控:0 ; 手机:1 ; 云:2; 
+     *  "senderRole":    中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *  "receiverRole":  中控:0 ; 手机:1 ; 设备控制服务器:2; 
      *   profileSet:
      *     {  
      *      情景模式集 的json格式 ：即多个情景模式组成的json数组    
@@ -923,8 +923,8 @@ public class LogicControl {
     /*** 请求切换情景模式集,返回值
      * <pre>传入的json格式为：
     * { 
-     *   sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:4; ...
-     *   receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
+     *   sender:    中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:4; ...
+     *   receiver:  中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:5; ...
          errorCode: SUCCESS/ PROFILE_SET_NOT_EXIST /TIME_OUT /WRONG_RECEIVER  /WRONG_COMMAND
     * }
      * @throws InterruptedException 
@@ -937,8 +937,8 @@ public class LogicControl {
     /*** 请求查询情景模板
      * <pre>传入的json格式为：
      * { 
-     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
      *   ctrolID:1234567
      *   profileTemplateID:7654321
      * }
@@ -948,8 +948,8 @@ public class LogicControl {
      *   （2）如果查询的情景模式存在，则返回:
      *  { 
      *  errorCode:SUCCESS,
-     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
      *   ctrolID:1234567,
      *   profileTemplateID:7654321,
      *   profileTemplate: 
@@ -988,8 +988,8 @@ public class LogicControl {
     /*** 请求情景模板,返回值
      * <pre>传入的json格式为：
     * { 
-     *   sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:4; ...
-     *   receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
+     *   sender:    中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:4; ...
+     *   receiver:  中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:5; ...
          errorCode: SUCCESS/ PROFILE_SET_NOT_EXIST /TIME_OUT /WRONG_RECEIVER  /WRONG_COMMAND
     * }
      * @throws InterruptedException 
@@ -1008,8 +1008,8 @@ public class LogicControl {
      *  (2)如果上传的profile的修改时间早于云端，则需要将云端的情景模式下发到 终端（手机、中控）,返回{"errorCode":OBSOLTE_PROFILE}  ；     *         
      *@param message 传入的json格式为： （要上传或者保存的prifile的json格式）
      * {
-     *  "senderRole":    中控:0 ; 手机:1 ; 云:2;
-     *  "receiverRole":  中控:0 ; 手机:1 ; 云:2;
+     *  "senderRole":    中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *  "receiverRole":  中控:0 ; 手机:1 ; 设备控制服务器:2;
      *  profileTemplat:
      *   {
 			"profileTemplatID":123456789,
@@ -1067,8 +1067,8 @@ public class LogicControl {
     /*** 上传或者下发情景模板,返回值
      * <pre>传入的json格式为：
     * { 
-     *   sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:4; ...
-     *   receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
+     *   sender:    中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:5;  分析服务器：6...
+     *   receiver:  中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:5;  分析服务器：6...
          errorCode: SUCCESS/ PROFILE_SET_NOT_EXIST /TIME_OUT /WRONG_RECEIVER  /WRONG_COMMAND
     * }
      * @throws InterruptedException 
@@ -1146,9 +1146,9 @@ public class LogicControl {
     		int roomID=msgDevice.getRoomID();
     		String command=msgDevice.getCtrolID()+","+msg.getCommandID()+","+msgDevice.getRoomType()+","+msgDevice.getRoomID()+","+deviceID;
     		jedis.publish(commandQueue,command);
-    		jedis.hset(key2, roomID+"", msgDevice.toJsonObj().toString());
+    		jedis.hset(key2, deviceID+"", msgDevice.toJsonObj().toString());
 			json.put("errorCode",SUCCESS);
-    	}else if(dbDevice.modifyTime.after(msgModifyTime)){ ////云端较新  
+    	}else if(dbDevice.modifyTime.after(msgModifyTime)){ //云端较新  
 			json.put("errorCode",DEVICE_OBSOLETE);   
 		}
   		msg.setCommandID(SET_ONE_DEVICE_ACK);
@@ -1203,11 +1203,12 @@ public class LogicControl {
 	
 	/*** 切换某个家电状态
 	 * 	 <pre>例如对应json消息体如下格式 ：
-	 *   {sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
-     *    receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
+	 *   {sender:    中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:5; ...
+     *    receiver:  中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:5; ...
 	 *    ctrolID:1234567
-	 *    deviceID:7654321
-	 *    operation: 
+	 *    roomID: 203
+	 *    deviceID:201456135
+	 *    deviceType: 填写factorID, 例如501	电视
      *    state:{
      *           设备状态的json格式；
      *          }
@@ -1219,6 +1220,7 @@ public class LogicControl {
     	Device device=null;
     	int ctrolID=msg.getJson().getInt("ctrolID");
     	int deviceID=msg.getJson().getInt("deviceID");
+    	int deviceType=msg.getJson().getInt("deviceType");
     	DeviceState state= new DeviceState();
     	int sender=0;
     	if(msg.getJson().has("sender")){
@@ -1229,7 +1231,7 @@ public class LogicControl {
     	if((device= deviceMap.get(key))!=null || (device=Device.getOneDeviceFromDB(mysql, ctrolID, deviceID))!=null){
         	if(msg.getJson().has("state")){
         		state=new DeviceState(msg.getJson().getJSONObject("state"));
-        		String command=device.getCtrolID()+","+msg.getCommandID()+","+device.getRoomType()+","+device.getRoomID()+","+deviceID;
+        		String command=device.getCtrolID()+","+msg.getCommandID()+","+device.getRoomType()+","+device.getRoomID()+","+deviceID+","+deviceType;
         		jedis.publish(commandQueue, command);
         		jedis.hset(key, deviceID+"", state.toJson().toString());
         		json.put("errorCode",SUCCESS); 	  
@@ -1261,8 +1263,8 @@ public class LogicControl {
     /*** 请求切换某个家电状态,返回值
      * <pre>传入的json格式为：
     * { 
-     *   sender:    中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:4; ...
-     *   receiver:  中控:0;  手机:1;  云:2;  web:3;  主服务:4;  消息服务:5; ...
+     *   sender:    中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:4; ...
+     *   receiver:  中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:5; ...
          errorCode: SUCCESS/ PROFILE_SET_NOT_EXIST /TIME_OUT /WRONG_COMMAND
     * }
      * @throws InterruptedException 
@@ -1290,8 +1292,8 @@ public class LogicControl {
     /*** 请求触发模板
      * <pre>传入的json格式为：
      * { 
-     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
      *   ctrolID:1234567
      *   triggerTemplateID:7654321
      * }
@@ -1301,8 +1303,8 @@ public class LogicControl {
      *   （2）如果查询的触发模板存在，则返回:
      *  { 
      *   errorCode:SUCCESS,
-     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
      *   ctrolID:1234567,
      *   triggerTemplateID:7654321,
      *   triggerTemplate: 
@@ -1348,8 +1350,8 @@ public class LogicControl {
      *  (2)如果上传的trigger的修改时间早于云端，则需要将云端的触发模板下发到 终端（手机、中控）,返回{"errorCode":OBSOLTE_PROFILE}  ；     *         
      *@param message 传入的json格式为： （要上传或者保存的prifile的json格式）
      * {
-     *  "senderRole":    中控:0 ; 手机:1 ; 云:2;
-     *  "receiverRole":  中控:0 ; 手机:1 ; 云:2;
+     *  "senderRole":    中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *  "receiverRole":  中控:0 ; 手机:1 ; 设备控制服务器:2;
      *  trigger:
      *   {
 			"triggerID":123456789,
@@ -1411,8 +1413,8 @@ public class LogicControl {
     /*** 请求触发规则
      * <pre>传入的json格式为：
      * { 
-     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
      *   ctrolID:1234567
      *   triggerTemplateID:7654321
      * }
@@ -1422,8 +1424,8 @@ public class LogicControl {
      *   （2）如果查询的触发规则存在，则返回:
      *  { 
      *   errorCode:SUCCESS,
-     *   sender:    中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 云:2; 3:主服务; 4 消息服务; ...
+     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
      *   ctrolID:1234567,
      *   triggerTemplateID:7654321,
      *   triggerTemplate: 
@@ -1471,8 +1473,8 @@ public class LogicControl {
      *  (2)如果上传的触发规则的修改时间早于云端，则需要将云端的触发模板下发到 终端（手机、中控）,返回{"errorCode":OBSOLTE_PROFILE}  ；     *         
      *@param message 传入的json格式为： （要上传或者保存的触发规则的json格式）
      * {
-     *  "senderRole":    中控:0 ; 手机:1 ; 云:2;
-     *  "receiverRole":  中控:0 ; 手机:1 ; 云:2;
+     *  "senderRole":    中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *  "receiverRole":  中控:0 ; 手机:1 ; 设备控制服务器:2;
      *  trigger:
      *   {
 			"triggerID":123456789,
@@ -1535,8 +1537,8 @@ public class LogicControl {
     /*** 删除触发模板
      * <pre>传入的json格式为：
      * { 
-     *   senderRole:    中控:0 ; 手机:1 ; 云:2;
-     *   receiverRole:  中控:0 ; 手机:1 ; 云:2;
+     *   senderRole:    中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *   receiverRole:  中控:0 ; 手机:1 ; 设备控制服务器:2;
      *   ctrolID:1234567
      *   triggerID:7654321
      * }
@@ -1582,8 +1584,8 @@ public class LogicControl {
      *             在断网时，不能刷新最后同步时间 ；        
      * 请求的json格式为：
      * { 
-     *   senderRole:    中控:0 ; 手机:1 ; 云:2;
-     *   receiverRole:  中控:0 ; 手机:1 ; 云:2;
+     *   senderRole:    中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *   receiverRole:  中控:0 ; 手机:1 ; 设备控制服务器:2;
      *   ctrolID:1234567
      *   recordType: 记录对象的类型，例如 profile,device,trigger ...
      *   record：[
@@ -1659,8 +1661,8 @@ public class LogicControl {
      * <pre> ；        
      * 请求的json格式为：
      * { 
-     *   senderRole:    中控:0 ; 手机:1 ; 云:2;
-     *   receiverRole:  中控:0 ; 手机:1 ; 云:2;
+     *   senderRole:    中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *   receiverRole:  中控:0 ; 手机:1 ; 设备控制服务器:2;
      *   ctrolID:1234567
      *   applianceType: 填写家电的factorID,
      *   fileID:这一型号的 家电对应的文件名ID

@@ -59,6 +59,13 @@ public class TriggerTemplate {
 	}
 	public TriggerTemplate(){}
 	
+	public TriggerTemplate(TriggerTemplate trigger) {
+		this.triggerTemplateID = trigger.triggerTemplateID;
+		this.profileTemplateID = trigger.profileTemplateID;
+		this.triggerTemplateFactorList = trigger.getTriggerTemplateFactorList();
+		this.triggerTemplateReactList = trigger.getTriggerTemplateReactList();
+	}
+	
 	public TriggerTemplate(int triggerTemplateID,int profileTemplateID,
 			List<TriggerTemplateFactor> triggerFactorList,
 			List<TriggerTemplateReact> triggerReactList) {
