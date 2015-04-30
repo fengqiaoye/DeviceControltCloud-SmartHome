@@ -90,16 +90,27 @@ public class Factor  extends FactorDict  {
 
 	public Factor() {	}
 
-	public Factor(int factorid, int roomType,int operator, int minValue, int maxValue,
+	public Factor(int factorid, int roomType,int roomID,int operator, int minValue, int maxValue,
 			int validFlag) {
 		super(factorid);
 		this.roomType = roomType;
+		this.roomID=roomID;
 		this.operator = operator;
 		this.minValue = minValue;
 		this.maxValue = maxValue;
 		this.validFlag = validFlag;
 	}	
 	
+	public Factor(int roomID,FactorTemplate ft) {
+		this.roomType = ft.getRoomType();
+		this.roomID=roomID;
+		this.operator = ft.getOperator();
+		this.minValue = ft.getMinValue();
+		this.maxValue = ft.getMaxValue();
+		this.validFlag = 1;
+		this.setCreateTime(ft.getCreateTime());
+		this.setModifyTime(ft.getModifyTime());
+	}
 	
     /**情景的factor初始化 */
 	public Factor(int factorID, int createOperator, int modifyOperator,

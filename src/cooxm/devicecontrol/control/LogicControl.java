@@ -901,7 +901,6 @@ public class LogicControl {
     			jedis.hset(key, profile.getRoomID()+"", profile.toJsonObj().toString());
     			//jedis.hset(currentProfileSet, key, profileSet.toJsonObj().toString());
 			}
-    		jedis.hset(currentProfileSet, key, profileSet.toJsonObj().toString());
     		if(sender==0){
 	    		json.put("errorCode",SUCCESS);  	    		
     		}else {

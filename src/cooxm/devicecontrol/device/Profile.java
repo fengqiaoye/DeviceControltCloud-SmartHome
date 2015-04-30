@@ -136,6 +136,23 @@ public class Profile  {
 		}
 	}
 	
+	public Profile(ProfileTemplate ptemp,int ctrolID){
+		this.profileID = ptemp.getProfileTemplateID()+100;
+		this.profileName = ptemp.getProfileTemplateName();
+		this.ctrolID = ctrolID;
+		this.profileTemplateID = ptemp.getProfileTemplateID();
+		this.profileSetID = -1;
+		this.factorList=new ArrayList<Factor>();
+		List<FactorTemplate> a = ptemp.getFactorTemplateTempList();
+		for (int i = 0; i < a.size(); i++) {
+			Factor factor1=new Factor(101, a.get(i));
+			this.factorList.add(factor1);
+		}
+		this.createTime = ptemp.getCreateTime();
+		this.modifyTime = ptemp.getModifyTime();
+
+	}
+	
 
 	
 	public Profile(int profileID, String profileName, int ctrolID,
@@ -168,13 +185,6 @@ public class Profile  {
 		    profileJson.put("profileSetID",this.profileSetID);
 		    for(Factor factor: getFactorList()){
 		    	factorJson= new JSONObject(); 
-		    	/*factorJson.put("factorID", factor.factorID);
-		    	factorJson.put("minValue", factor.minValue);
-		    	factorJson.put("maxValue", factor.maxValue);
-		    	factorJson.put("operator", factor.operator);
-		    	factorJson.put("validFlag", factor.validFlag);
-		    	factorJson.put("createTime", sdf.format(factor.getCreateTime()));
-		    	factorJson.put("modifyTime", sdf.format(factor.getModifyTime()));*/
 		    	factorJson=factor.toProfileJson();		    	
 		    	profileJson.accumulate("factorList",factorJson); 
 		    }
@@ -692,6 +702,16 @@ public class Profile  {
 		
 			return profile;		
 		}
+	
+	public Factor getFactorByID(int factorID){
+		for (Factor f:this.factorList) {
+			if (f.getFactorID()==factorID) {
+				return f;
+			}
+		}
+		return null;
+		
+	}
 	
 
 	

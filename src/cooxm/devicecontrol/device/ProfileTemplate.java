@@ -48,11 +48,11 @@ public class ProfileTemplate {
 	}
 
 
-	private String getProfileTemplateName() {
+	public String getProfileTemplateName() {
 		return profileTemplateName;
 	}
 
-	private void setProfileTemplateName(String profileTemplateName) {
+	public void setProfileTemplateName(String profileTemplateName) {
 		this.profileTemplateName = profileTemplateName;
 	}
 
@@ -172,7 +172,7 @@ public class ProfileTemplate {
 				+" ("
 				+ "sttemplateid ," 
 				+" factorid     ," 
-				+"spacerange   ,"
+				+"roomType   ,"
 				+"lower  ,"
 				+"upper  ,"
 				+"cmpalg ,"
@@ -190,7 +190,7 @@ public class ProfileTemplate {
 				+factor.getMinValue()+","
 				+factor.getMaxValue()+","
 				+factor.getOperator()+","
-				+factor.getValidFlag()+",'"
+				+factor.getIsAbstract()+",'"
 			    +factor.getCreateOperator()+"','"
 			    +factor.getModifyOperator()+"','"												
 				+sdf.format(factor.getCreateTime())+"','"
@@ -236,11 +236,10 @@ public class ProfileTemplate {
 			String sql="select "
 					+" sttemplateid ," 
 					+" factorid     ," 
-					+"spacerange   ,"
-					+"lower  ,"
-					+"upper  ,"
-					+"cmpalg ,"
-					+"valid_flag ,"
+					+"roomType   ,"
+					+"min  ,"
+					+"max  ,"
+					+"operator ,"
 					+"createoperator ,"
 					+"modifyoperator ,"					
 					+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
@@ -269,12 +268,12 @@ public class ProfileTemplate {
 				factor.setMinValue(Integer.parseInt(cells[3]));
 				factor.setMaxValue(Integer.parseInt(cells[4]));
 				factor.setOperator(Integer.parseInt(cells[5]));
-				factor.setValidFlag(Integer.parseInt(cells[6]));
-				factor.setCreateOperator(Integer.parseInt(cells[7]));;
-				factor.setModifyOperator(Integer.parseInt(cells[8]));
+				//factor.setValidFlag(Integer.parseInt(cells[6]));
+				factor.setCreateOperator(Integer.parseInt(cells[6]));;
+				factor.setModifyOperator(Integer.parseInt(cells[7]));
 				try {
-					factor.setCreateTime(sdf.parse(cells[9]));
-					factor.setModifyTime(sdf.parse(cells[10]));
+					factor.setCreateTime(sdf.parse(cells[8]));
+					factor.setModifyTime(sdf.parse(cells[9]));
 				} catch (ParseException e) {
 					e.printStackTrace();
 				}
@@ -283,29 +282,127 @@ public class ProfileTemplate {
 				//profileTemp.roomType=Integer.parseInt(cells[2]);
 				
 				
-				String sql2="select  "
-						+" templateid       ,"
-						+"name,"
-						+"createoperator  ,"
-						+"modifyoperator  ,"			
-						+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
-						+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
-						+ "  from "				
-						+profileTemplatIndexTable
-						+" where templateid="+profileTemplateID
-						+ ";";
-				System.out.println("query:"+sql2);
-				String res2=mysql.select(sql2);
-				System.out.println("get from mysql:\n"+res2);
-				String[] cells2=res2.split("\n");
+						
+			}
+			String sql2="select  "
+					+" templateid       ,"
+					+"name,"
+					+"createoperator  ,"
+					+"modifyoperator  ,"			
+					+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
+					+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
+					+ "  from "				
+					+profileTemplatIndexTable
+					+" where templateid="+profileTemplateID
+					+ ";";
+			System.out.println("query:"+sql2);
+			String res2=mysql.select(sql2);
+			System.out.println("get from mysql:\n"+res2);
+			String[] cells2=res2.split(",");
+			profileTemp.setProfileTemplateName(cells2[1]);
+			profileTemp.setCreateOperator(Integer.parseInt(cells2[2]));
+			profileTemp.setModifyOperator(Integer.parseInt(cells2[3]));
+			profileTemp.setProfileTemplateName(cells2[4]);
+			profileTemp.setProfileTemplateName(cells2[5]);
+			mysql.conn.commit();
+			return profileTemp;
+		}
+	
+	   /*** 
+	   * 从入MYSQL读取profile模板列表
+	   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	   * @table  info_user_room_st_factor
+	   * @throws SQLException 
+	   */
+		public	static List<ProfileTemplate> getAllFromDB(MySqlClass mysql) throws SQLException
+		{
+		 List<ProfileTemplate> pList=new ArrayList<ProfileTemplate>();				 
+			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			ProfileTemplate profileTemp=new ProfileTemplate();
+			mysql.conn.setAutoCommit(false);
+			String sql2="select  "
+					+" templateid       ,"
+					+"name,"
+					+"createoperator  ,"
+					+"modifyoperator  ,"			
+					+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
+					+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
+					+ "  from "				
+					+profileTemplatIndexTable
+					//+" where templateid="+profileTemplateID
+					+ ";";
+			System.out.println("query:"+sql2);
+			String res2=mysql.select(sql2);
+			System.out.println("get from mysql:\n"+res2);
+			String[] line2=res2.split("\n");
+			for (int i = 0; i < line2.length; i++) {	
+	
+				String[] cells2=line2[i].split(",");
+				profileTemp.profileTemplateID=Integer.parseInt(cells2[0]);
 				profileTemp.setProfileTemplateName(cells2[1]);
 				profileTemp.setCreateOperator(Integer.parseInt(cells2[2]));
 				profileTemp.setModifyOperator(Integer.parseInt(cells2[3]));
-				profileTemp.setProfileTemplateName(cells2[4]);
-				profileTemp.setProfileTemplateName(cells2[5]);						
+				try {
+					profileTemp.setCreateTime(sdf.parse(cells2[4]));
+					profileTemp.setModifyTime(sdf.parse(cells2[5]));
+				} catch (ParseException e1) {
+					e1.printStackTrace();
+				}
+
+
+	
+				String sql="select "
+						+" sttemplateid ," 
+						+" factorid     ," 
+						+"roomType   ,"
+						+"min  ,"
+						+"max  ,"
+						+"operator ,"
+						+"createoperator ,"
+						+"modifyoperator ,"					
+						+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
+						+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
+						+ "  from  "				
+						+profileTemplatDetailTable
+						+" where sttemplateid="+profileTemp.profileTemplateID
+						+ ";";
+				System.out.println("query:"+sql);
+				String res=mysql.select(sql);
+				System.out.println("get from mysql:\n"+res);
+				if(res==""||res.length()==0) {
+					System.err.println("ERROR:query result is empty: "+sql);
+					return null;
+				}
+				String[] resArray=res.split("\n");
+	
+				List<FactorTemplate> factorList=new ArrayList<FactorTemplate>();
+				FactorTemplate factor=null;
+				String[] cells=null;
+				
+				for(String line:resArray){
+					cells=line.split(",");
+					factor=new FactorTemplate();				
+					factor.setFactorID(Integer.parseInt(cells[1]));
+					factor.setRoomType(Integer.parseInt(cells[2]));
+					factor.setMinValue(Integer.parseInt(cells[3]));
+					factor.setMaxValue(Integer.parseInt(cells[4]));
+					factor.setOperator(Integer.parseInt(cells[5]));
+					//factor.setValidFlag(Integer.parseInt(cells[6]));
+					factor.setCreateOperator(Integer.parseInt(cells[6]));;
+					factor.setModifyOperator(Integer.parseInt(cells[7]));
+					try {
+						factor.setCreateTime(sdf.parse(cells[8]));
+						factor.setModifyTime(sdf.parse(cells[9]));
+					} catch (ParseException e) {
+						e.printStackTrace();
+					}
+					factorList.add(factor);
+				}	
+				profileTemp.setFactorTemplateTempList(factorList);
+				pList.add(profileTemp);
 			}
 			mysql.conn.commit();
-			return profileTemp;
+			return pList;
 		}
 	
 
@@ -324,7 +421,7 @@ public class ProfileTemplate {
 		    	factorJson.put("minValue", factor.getMinValue());
 		    	factorJson.put("maxValue", factor.getMaxValue());
 		    	factorJson.put("operator", factor.getOperator());
-		    	factorJson.put("validFlag", factor.getValidFlag());
+		    	factorJson.put("validFlag", factor.getIsAbstract());
 		    	factorJson.put("createOperator", factor.getCreateOperator());
 		    	factorJson.put("modifyOperator", factor.getModifyOperator());
 		    	factorJson.put("createTime", sdf.format(factor.getCreateTime()));
@@ -341,8 +438,9 @@ public class ProfileTemplate {
 	
 	public static void main(String[] args) throws SQLException, JSONException {
 		MySqlClass mysql=new  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
-		getFromDB(mysql, 1);
+		List<ProfileTemplate> a = getAllFromDB(mysql);
 		//new ProfileTemplat().saveToDB(mysql);
+		System.out.println("xx");
 		
 	}
 

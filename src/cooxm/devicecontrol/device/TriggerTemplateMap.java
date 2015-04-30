@@ -60,7 +60,7 @@ public class TriggerTemplateMap  extends HashMap<Integer, TriggerTemplate>{
 				+"min ,"
 				+"max ,"
 				+"accumilatetime   ,"
-				+"validflag, "
+				+"isabstract, "
 				+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
 				+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 				+ "  from  "				
@@ -94,13 +94,13 @@ public class TriggerTemplateMap  extends HashMap<Integer, TriggerTemplate>{
 				TriggerTemplateFactor ft=new TriggerTemplateFactor();					
 				ft.setLogicalRelation(cells[2]);					
 				ft.setRoomType(Integer.parseInt(cells[3]));
-				ft.setRoomType(Integer.parseInt(cells[4]));
-				ft.setFactorID(Integer.parseInt(cells[5]));
-				ft.setOperator(Integer.parseInt(cells[6]));
-				ft.setMinValue(Integer.parseInt(cells[7]));
-				ft.setMaxValue(Integer.parseInt(cells[8]));
-				ft.setAccumilateTime(Integer.parseInt(cells[9]));
+				ft.setFactorID(Integer.parseInt(cells[4]));
+				ft.setOperator(Integer.parseInt(cells[5]));
+				ft.setMinValue(Integer.parseInt(cells[6]));
+				ft.setMaxValue(Integer.parseInt(cells[7]));
+				ft.setAccumilateTime(Integer.parseInt(cells[8]));
 				//ft.setValidFlag(Integer.parseInt(cells[10]));
+				ft.setIsAbstract(Integer.parseInt(cells[9]));
 				try {
 					ft.setCreateTime(sdf.parse(cells[10]));
 					ft.setModifyTime(sdf.parse(cells[11]));

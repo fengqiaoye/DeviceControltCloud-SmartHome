@@ -40,7 +40,7 @@ public class FactorTemplate  extends FactorDict  {
 
 	/**0：无效； 
 	   1：有效 */
-	private int validFlag;
+	private int isAbstract;
 	
 
 	public int getRoomType() {
@@ -74,13 +74,12 @@ public class FactorTemplate  extends FactorDict  {
 	public void setMaxValue(int maxValue) {
 		this.maxValue = maxValue;
 	}
-
-	public int getValidFlag() {
-		return validFlag;
+	public int getIsAbstract() {
+		return isAbstract;
 	}
 
-	public void setValidFlag(int validFlag) {
-		this.validFlag = validFlag;
+	public void setIsAbstract(int isAbstract) {
+		this.isAbstract = isAbstract;
 	}
 
 	public FactorTemplate() {	}
@@ -91,7 +90,7 @@ public class FactorTemplate  extends FactorDict  {
 		this.operator = operator;
 		this.minValue = minValue;
 		this.maxValue = maxValue;
-		this.validFlag = validFlag;
+		this.isAbstract=validFlag;
 	}	
 	
 	
@@ -104,7 +103,6 @@ public class FactorTemplate  extends FactorDict  {
 		this.operator = operator;
 		this.minValue = minValue;
 		this.maxValue = maxValue;
-		this.validFlag = validFlag;
 	}
 	
 	
@@ -119,7 +117,7 @@ public class FactorTemplate  extends FactorDict  {
         	factorJson.put("minValue", getMinValue());
         	factorJson.put("maxValue", getMaxValue());
         	factorJson.put("operator", getOperator());
-        	factorJson.put("validFlag", getValidFlag());
+        	factorJson.put("validFlag", getIsAbstract());
         	factorJson.put("createTime", sdf.format(getCreateTime()));
 			factorJson.put("modifyTime", sdf.format(getModifyTime()));
 		} catch (JSONException e) {
@@ -140,7 +138,7 @@ public class FactorTemplate  extends FactorDict  {
 			factor.setMinValue(factorJson.getInt("minValue"));
 			factor.setMaxValue(factorJson.getInt("maxValue"));
 			factor.operator=factorJson.getInt("operator");
-			factor.validFlag=factorJson.getInt("validFlag");
+			factor.isAbstract=factorJson.getInt("validFlag");
 			factor.setCreateTime(sdf.parse(factorJson.getString("createTime")) );
 			factor.setModifyTime(sdf.parse(factorJson.getString("modifyTime")) );
 		} catch (ParseException e) {

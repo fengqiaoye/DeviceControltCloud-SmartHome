@@ -5,6 +5,7 @@ package cooxm.devicecontrol.device;
  * @version Created：28 Jan 2015 14:24:17 
  */
 
+import java.awt.print.Printable;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -159,7 +160,7 @@ public class TriggerTemplate {
 					+"min ,"
 					+"max ,"
 					+"accumilatetime   ,"
-					+"validflag, "
+					+"isabstract, "
 					+"createtime, "
 					+"modifytime "
 					+ ")"				
@@ -174,7 +175,7 @@ public class TriggerTemplate {
 					+ft.getMinValue()+","
 					+ft.getMaxValue()+","
 					+ft.getAccumilateTime()+","
-					+ft.getValidFlag()+",'"
+					+ft.getIsAbstract()+",'"
 					+sdf.format(ft.getCreateTime())+"','"
 					+sdf.format(ft.getModifyTime())
 					+"');";
@@ -233,7 +234,7 @@ public class TriggerTemplate {
 					+"min ,"
 					+"max ,"
 					+"accumilatetime   ,"
-					+"validflag, "
+					+"isabstract, "
 					+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
 					+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 					+ "  from  "				
@@ -263,7 +264,7 @@ public class TriggerTemplate {
 					ft.setMinValue(Integer.parseInt(cells[6]));
 					ft.setMaxValue(Integer.parseInt(cells[7]));
 					ft.setAccumilateTime(Integer.parseInt(cells[8]));
-					ft.setValidFlag(Integer.parseInt(cells[9]));
+					ft.setIsAbstract(Integer.parseInt(cells[9]));
 					try {
 						ft.setCreateTime(sdf.parse(cells[10]));
 						ft.setModifyTime(sdf.parse(cells[11]));
@@ -316,10 +317,17 @@ public class TriggerTemplate {
 		 return triggert;			
 	}
 	
+	public void print(){
+		System.out.println("TriggerID:"+triggerTemplateID+",profileTemplateID="+profileTemplateID);
+		for ( TriggerTemplateFactor a: this.triggerTemplateFactorList) {
+			System.out.println("    factorID="+a.getFactorID()+",logical="+a.getLogicalRelation()+",roomType="+a.getRoomType()
+					+",operator="+a.getOperator()+",min="+a.getMinValue()+",max="+a.getMaxValue());
+		}		
+	}
+	
 	
 	public static void main(String[] args) {
-		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
-		
+		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");		
 		TriggerTemplate t=getFromDB(mysql, 3);
 		t.triggerTemplateID++;
 		t.saveToDB(mysql);

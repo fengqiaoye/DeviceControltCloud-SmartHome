@@ -12,6 +12,8 @@ import java.util.Properties;
 
 import org.apache.log4j.Logger;
 
+import cooxm.devicecontrol.util.MySqlClass;
+
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
  * @version Created：24 Dec 2014 14:22:48 
@@ -55,6 +57,11 @@ public class Configure extends Properties {
 	        log.info("configure file ./conf/control.conf doesn't exist! A new configure file ./conf/control.conf have been generate by system.");
 	    }	
 	    log.info("System config finished. ");
+	}
+	
+	
+	public MySqlClass getMysql(){
+		return new MySqlClass(pps.getProperty("mysql_database", "cooxm_device_control"));
 	}
 	
 	public void checkExist(String fileName) {
