@@ -33,9 +33,6 @@ public class TwoSocketServer
 			while((socket = server.accept())!=null)
 			{
 					clientList.add(socket);
-					//clientName = socket.getInetAddress().toString();
-					//output = new DataOutputStream(socket.getOutputStream());
-					//input = new DataInputStream(socket.getInputStream());
 					new readClient(socket).start();
 					new writeClient(socket).start();
 			}
@@ -55,7 +52,7 @@ public class TwoSocketServer
 			String msg;
 			try
 			{
-				String clientName = socket.getInetAddress().toString();
+				String clientName = socket.getRemoteSocketAddress().toString();
 				DataOutputStream output = new DataOutputStream(socket.getOutputStream());
 				DataInputStream input = new DataInputStream(socket.getInputStream());
 				while((msg = input.readUTF())!=null)
@@ -80,7 +77,7 @@ public class TwoSocketServer
 				
 				BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
 				String userInput;
-				String clientName = socket.getInetAddress().toString();
+				String clientName = socket.getRemoteSocketAddress().toString();
 				DataOutputStream output = new DataOutputStream(socket.getOutputStream());
 				DataInputStream input = new DataInputStream(socket.getInputStream());
 				while(true)

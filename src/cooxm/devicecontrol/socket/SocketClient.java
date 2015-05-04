@@ -69,9 +69,10 @@ public class SocketClient extends Socket implements Runnable {
 		}					
 		Header header=Message.getOneHeaer((short)CMD__Identity_REQ);
 		String jsonStr="{\"uiClusterID\":"+clusterID+",\"usServerType\":"+serverType+",\"uiServerID\":"+serverID+"}";
-		Message authMsg=new Message(header, "", jsonStr);
+		String cookie=System.currentTimeMillis()/1000+"_"+serverID;
+		Message authMsg=new Message(header, cookie, jsonStr);
 		authMsg.writeBytesToSock2(sock);
-		System.out.println("Send Auth "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()+":"+authMsg.msgToString());		
+		System.out.println("Send Auth "+this.IP+":"+this.port+":"+authMsg.msgToString());		
 	}
     
 
@@ -147,7 +148,7 @@ public class SocketClient extends Socket implements Runnable {
 			if(ack_res==0){
 				//System.out.println("Recv from "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()+":"+msg.msgToString());
 			}else{
-				log.error("Get authenrize failed: myIP:"+sock.getLocalAddress().getHostAddress()+",myPort:"+sock.getLocalPort()
+				log.error("Get authenrize failed: myIP:"+sock.getLocalSocketAddress().toString()
 						+",remoteIP:"+this.IP+",remotePort:"+this.port
 						+"Auth:"
 						+"{\"uiClusterID\":"+this.clusterID+",\"usServerType\":"+serverType+",\"uiServerID\":"+serverID+"}");
@@ -164,7 +165,7 @@ public class SocketClient extends Socket implements Runnable {
 			}
 			msg.commandID=CMD__HEARTBEAT_ACK;
 			msg.writeBytesToSock2(this.sock);
-			System.out.println("HeartBeat "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()+":"+msg.msgToString());
+			System.out.println("HeartBeat "+sock.getRemoteSocketAddress()+":"+msg.msgToString());
 			break;
 		default:
 			break;
@@ -217,10 +218,9 @@ public class SocketClient extends Socket implements Runnable {
 		SocketClient msgSock= new SocketClient("172.16.35.173", 20190,1,5,200);
 		if(msgSock!=null){
 	    	msgSock.sendAuth(1,5,200);
-	
 			new Thread(msgSock).start();
-
 		}
+       
 
    	
     }

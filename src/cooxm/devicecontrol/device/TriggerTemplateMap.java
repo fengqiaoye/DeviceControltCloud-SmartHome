@@ -120,8 +120,6 @@ public class TriggerTemplateMap  extends HashMap<Integer, TriggerTemplate>{
 			
 		}			
 		
-//new ArrayList<TriggerTemplateReact>();
-		
 		String sql2="select  "
 				//+"ctrolid  ,"    			
  				+" triggerid ," 
@@ -148,11 +146,13 @@ public class TriggerTemplateMap  extends HashMap<Integer, TriggerTemplate>{
 				triggerReactList=trigger.getTriggerTemplateReactList();	
 				if(null==triggerReactList){
 					triggerReactList=new ArrayList<TriggerTemplateReact>();
+					trigger.setTriggerTemplateReactList(triggerReactList);
 				}
+				
 			}else{
 				trigger=new TriggerTemplate();
 				triggerReactList=new ArrayList<TriggerTemplateReact>();
-				//factorList=new ArrayList<TriggerTemplateFactor>();
+				trigger.setTriggerTemplateReactList(triggerReactList);
 			}
 			TriggerTemplateReact react=new TriggerTemplateReact();
 			react.setReactType(Integer.parseInt(array[1]));

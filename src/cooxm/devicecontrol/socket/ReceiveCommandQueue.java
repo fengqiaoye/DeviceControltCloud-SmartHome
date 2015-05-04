@@ -37,7 +37,7 @@ public class ReceiveCommandQueue  extends ArrayBlockingQueue<Message>{
         return instance;
     }
     private static int getCapacity(){
-    	Configure conf=new Configure();//
+    	Configure conf=MainEntry.getConfig();//new Configure();//
     	return Integer.parseInt(conf.getValue("max_recv_msg_queue"));    	
     }
     
