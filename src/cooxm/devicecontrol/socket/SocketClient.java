@@ -21,7 +21,7 @@ import org.json.JSONException;
 
 
 
-public class SocketClient extends Socket implements Runnable {
+public class SocketClient /*extends Socket*/ implements Runnable {
 
 	private static final short ACK_OFFSET = 0x4000;
 	private static final short CMDCODE_RESERVED_FOR_COMMON_BEGIN 		= 0x1100;
@@ -41,15 +41,10 @@ public class SocketClient extends Socket implements Runnable {
 	int serverID;
 	int serverType;
 	
-    public Socket getSock() {
-		return sock;
-	}
-	public void setSock(Socket sock) {
-		this.sock = sock;
-	}
 
 	public SocketClient(String IP,int port,int clusterID,	int serverID,	int serverType) throws UnknownHostException, IOException  
-    {   this.IP=IP;
+    {   //super(IP,port);
+		this.IP=IP;
         this.port=port;
 		this.clusterID=clusterID;
 		this.serverID=serverID;
@@ -57,22 +52,18 @@ public class SocketClient extends Socket implements Runnable {
         log.info("starting connect to  message server,IP"+IP+" port: "+port);
 
 		this.sock=new Socket(IP,port);
+        
 
 
     } 
 	
-	public void sendAuth(int clusterID,int  serverID ,int serverType){
-		try {
-			input=new BufferedReader(new InputStreamReader(sock.getInputStream()));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}					
+	public void sendAuth(int clusterID,int  serverID ,int serverType){					
 		Header header=Message.getOneHeaer((short)CMD__Identity_REQ);
 		String jsonStr="{\"uiClusterID\":"+clusterID+",\"usServerType\":"+serverType+",\"uiServerID\":"+serverID+"}";
 		String cookie=System.currentTimeMillis()/1000+"_"+serverID;
 		Message authMsg=new Message(header, cookie, jsonStr);
-		authMsg.writeBytesToSock2(sock);
-		System.out.println("Send Auth "+this.IP+":"+this.port+":"+authMsg.msgToString());		
+		authMsg.writeBytesToSock2(this.sock);
+		System.out.println("Send Auth "+this.sock.getInetAddress().getHostAddress()+":"+this.sock.getPort()+":"+authMsg.toString());		
 	}
     
 
@@ -95,9 +86,13 @@ public class SocketClient extends Socket implements Runnable {
 	public void run() {
         while(true){        	
     		try {
-    			if(sock==null ||sock.isClosed()){
-    				log.info("Reconnect to  message server,IP"+IP+" port: "+port);
-    				sock = new Socket(IP, port);
+    			boolean a=(this.sock==null);
+    			boolean b=this.sock.isClosed();
+    			boolean c=!this.sock.isConnected();
+    			if(this.sock==null ||this.sock.isClosed()|| !this.sock.isConnected()){
+    				log.info("Reconnect to  message server,IP"+this.IP+" port: "+this.port);
+    				//new SocketClient(this.IP, this.port,clusterID,	serverID, serverType);
+    				this.sock=new Socket(IP,port);
     				sendAuth(this.clusterID, this.serverID, this.serverType);;
     			}
     		} catch (UnknownHostException e) {
@@ -106,7 +101,7 @@ public class SocketClient extends Socket implements Runnable {
     			e.printStackTrace();
     		}
     		
-     	   Message msg=CtrolSocketServer.readFromClient(sock);
+     	   Message msg=CtrolSocketServer.readFromClient(this.sock);
      	   if(msg!=null){
      		   decodeMsg(msg);
      	   }else{
@@ -148,7 +143,7 @@ public class SocketClient extends Socket implements Runnable {
 			if(ack_res==0){
 				//System.out.println("Recv from "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()+":"+msg.msgToString());
 			}else{
-				log.error("Get authenrize failed: myIP:"+sock.getLocalSocketAddress().toString()
+				log.error("Get authenrize failed: myIP:"+this.sock.getLocalSocketAddress().toString()
 						+",remoteIP:"+this.IP+",remotePort:"+this.port
 						+"Auth:"
 						+"{\"uiClusterID\":"+this.clusterID+",\"usServerType\":"+serverType+",\"uiServerID\":"+serverID+"}");
@@ -165,7 +160,7 @@ public class SocketClient extends Socket implements Runnable {
 			}
 			msg.commandID=CMD__HEARTBEAT_ACK;
 			msg.writeBytesToSock2(this.sock);
-			System.out.println("HeartBeat "+sock.getRemoteSocketAddress()+":"+msg.msgToString());
+			System.out.println("HeartBeat "+this.sock.getRemoteSocketAddress()+":"+msg.toString());
 			break;
 		default:
 			break;
@@ -175,7 +170,7 @@ public class SocketClient extends Socket implements Runnable {
 	
 	public void start(SocketClient msgSock){
 	    while (true) {
-			if(sock==null ||sock.isClosed()){
+			if(this==null ||this.sock.isClosed()){
 				//msgSock= new SocketClient(IP, port);
 			}else{
 				new Thread(msgSock).start();
@@ -183,44 +178,30 @@ public class SocketClient extends Socket implements Runnable {
 		} 
 	}
 	
-	public static boolean isReachable(InetAddress localInetAddr, InetAddress remoteInetAddr,int port, int timeout) { 		
-		boolean isReachable = false; 
-		Socket socket = null; 
-		try{ 
-		 socket = new Socket(); 
-		 /**端口号设置为 0 表示在本地挑选一个可用端口进行连接*/
-		 SocketAddress localSocketAddr = new InetSocketAddress(localInetAddr, 0); 
-		 socket.bind(localSocketAddr); 
-		 InetSocketAddress endpointSocketAddr = new InetSocketAddress(remoteInetAddr, port); 
-		 socket.connect(endpointSocketAddr, timeout);        
-		 log.info("SUCCESS - connected to MsgServer! Local: " + 
-				 			localInetAddr.getHostAddress() + " remote: " + 
-				 			remoteInetAddr.getHostAddress() + " port:" + port); 
-		 isReachable = true; 
-		} catch(IOException e) { 
-			log.error("FAILRE - CAN not connect! Local: " + 
-				 	localInetAddr.getHostAddress() + " remote: " + 
-				 	remoteInetAddr.getHostAddress() + " port:" + port); 
-		} finally{ 
-		 if(socket != null) { 
-		 try{ 
-		 socket.close(); 
-		 } catch(IOException e) { 
-			 log.error("Error occurred while closing socket.."); 
-		   } 
-		 } 
-		} 
-		return isReachable; 
-	}
    
-    public static void main(String [] args) throws UnknownHostException, IOException       
+    public static void main(String [] args) throws UnknownHostException, IOException, InterruptedException       
     {  
 		SocketClient msgSock= new SocketClient("172.16.35.173", 20190,1,5,200);
-		if(msgSock!=null){
-	    	msgSock.sendAuth(1,5,200);
-			new Thread(msgSock).start();
-		}
+//		if(msgSock!=null){
+//	    	msgSock.sendAuth(1,5,200);
+//			new Thread(msgSock).start();
+//		}
+		Thread.sleep(1000);
+		msgSock.sendAuth(1,5,200);
+		Message msg=CtrolSocketServer.readFromClient(msgSock.sock);
+		if(msg!=null)
+		System.out.println(msg.toString());
+       Message msg2=Message.getOneMsg();
+       msg2.writeBytesToSock2(msgSock.sock);
        
+       Thread.sleep(20000);
+    	
+    	Socket sock =new Socket("172.16.35.173", 20190);
+      Message msg3=Message.getOneMsg();
+      msg3.writeBytesToSock2(msgSock.sock);
+      
+      Thread.sleep(20000);
+    	
 
    	
     }

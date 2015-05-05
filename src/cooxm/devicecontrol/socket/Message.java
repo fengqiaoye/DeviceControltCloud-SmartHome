@@ -170,7 +170,7 @@ public class Message extends Header {
 		return this.isValid();
 	}*/
     
-   public String msgToString(){
+   public String toString(){
 	   String out=new String();
 	   DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	   out+=  		this.headTag		+",";
@@ -256,7 +256,9 @@ public class Message extends Header {
     	try {
 			DataOutputStream dataout= new DataOutputStream(sock.getOutputStream());
 			dataout.write(this.toBytes());
-			dataout.flush();			
+			dataout.flush();
+			// 2015-05-04
+			//dataout.close();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}    	
@@ -348,7 +350,7 @@ public class Message extends Header {
         
 		System.out.println("jspn="+new String(y));
 		Message msg2=new Message(msg.toBytesSmallEnd());
-		System.out.println(msg2.msgToString());
+		System.out.println(msg2.toString());
 		
 		
 	}

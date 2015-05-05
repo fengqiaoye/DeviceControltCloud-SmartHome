@@ -20,7 +20,8 @@ import cooxm.devicecontrol.util.MySqlClass;
  */
 
 public class TriggerTemplateReact {
-	//ProfileMap profileMap;	
+	//ProfileMap profileMap;
+	long cookieNo;
 
 	
 	/**<pre>
@@ -90,6 +91,7 @@ public class TriggerTemplateReact {
 		this.reactType = reactType;
 		this.targetID = targetID;
 		this.reactWay = reactWay;
+		this.cookieNo =((System.currentTimeMillis()/1000)%(24*3600))*1000;
 		/*Configure cf=MainEntry.getConfig();
 		String mysql_ip			=cf.getValue("mysql_ip");
 		String mysql_port		=cf.getValue("mysql_port");
@@ -100,6 +102,7 @@ public class TriggerTemplateReact {
 		profileMap = new ProfileMap(mysql);*/
 	}
 	public TriggerTemplateReact() {
+		this.cookieNo =((System.currentTimeMillis()/1000)%(24*3600))*1000;
 	}
 	
 	public  JSONObject toJson(){
@@ -138,7 +141,8 @@ public class TriggerTemplateReact {
 		int channel=-1;
 		int volumn=-1;
 
-		String cookie=System.currentTimeMillis()/1000+"_5";
+		String cookie=this.cookieNo+"_5";
+		this.cookieNo++;
 		Message msg=null;
 		JSONObject json;
 		switch (reactType) {
@@ -303,4 +307,10 @@ public class TriggerTemplateReact {
 		}	
 			return msg;			
 		}
+	
+	 public static void main(String [] args) {
+		 long a=System.currentTimeMillis()/1000;
+		 System.out.println(a);
+		
+	}
 }
