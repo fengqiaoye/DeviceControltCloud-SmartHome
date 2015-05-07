@@ -40,19 +40,21 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 	int clusterID;
 	int serverID;
 	int serverType;
+	boolean actFlag; //除了重连是否还需要做其他事情
 	
 
-	public SocketClient(String IP,int port,int clusterID,	int serverID,	int serverType) throws UnknownHostException, IOException  
+	public SocketClient(String IP,int port,int clusterID,	int serverID,	int serverType,boolean actFlag) throws UnknownHostException, IOException  
     {   //super(IP,port);
 		this.IP=IP;
         this.port=port;
 		this.clusterID=clusterID;
 		this.serverID=serverID;
 		this.serverType=serverType;	
-        log.info("starting connect to  message server,IP"+IP+" port: "+port);
+		this.actFlag=actFlag;
+        log.info("starting connect to  message server,IP:"+IP+" port: "+port);
 
 		this.sock=new Socket(IP,port);
-        
+		sendAuth(clusterID,serverID,serverType);    
 
 
     } 
@@ -86,9 +88,6 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 	public void run() {
         while(true){        	
     		try {
-    			boolean a=(this.sock==null);
-    			boolean b=this.sock.isClosed();
-    			boolean c=!this.sock.isConnected();
     			if(this.sock==null ||this.sock.isClosed()|| !this.sock.isConnected()){
     				log.info("Reconnect to  message server,IP"+this.IP+" port: "+this.port);
     				//new SocketClient(this.IP, this.port,clusterID,	serverID, serverType);
@@ -100,17 +99,19 @@ public class SocketClient /*extends Socket*/ implements Runnable {
     		} catch (IOException e) {
     			e.printStackTrace();
     		}
-    		
-     	   Message msg=CtrolSocketServer.readFromClient(this.sock);
-     	   if(msg!=null){
-     		   decodeMsg(msg);
-     	   }else{
-     		   try {
-				Thread.sleep(20*1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-     	   }
+    	if (actFlag==true) {   //做一些事情
+      	   Message msg=CtrolSocketServer.readFromClient(this.sock);
+      	   if(msg!=null){
+      		   decodeMsg(msg);
+      	   }else{
+      		   try {
+ 				Thread.sleep(20*1000);
+ 			} catch (InterruptedException e) {
+ 				e.printStackTrace();
+ 			}
+      	   }
+		}	
+
         }
    }
 	
@@ -181,7 +182,7 @@ public class SocketClient /*extends Socket*/ implements Runnable {
    
     public static void main(String [] args) throws UnknownHostException, IOException, InterruptedException       
     {  
-		SocketClient msgSock= new SocketClient("172.16.35.173", 20190,1,5,200);
+		SocketClient msgSock= new SocketClient("172.16.35.173", 20190,1,5,200,false);
 //		if(msgSock!=null){
 //	    	msgSock.sendAuth(1,5,200);
 //			new Thread(msgSock).start();

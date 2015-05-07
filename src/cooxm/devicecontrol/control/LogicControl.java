@@ -7,6 +7,8 @@
  */
 
 
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -231,21 +233,19 @@ public class LogicControl {
 		mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
 		this.jedis= new Jedis(redis_ip, redis_port,200);
 		try{
-	    	//ConnectThread th=new ConnectThread(msg_server_IP, msg_server_port, 1, 6, 201);
-	    	//th.start();	
+//	    	ConnectThread th=new ConnectThread(msg_server_IP, msg_server_port, 1, 6, 201);
+//	    	th.start();	
 			
-			/*try {
-				this.msgSock=new SocketClient(msg_server_IP, msg_server_port);
+			try {
+				this.msgSock=new SocketClient(msg_server_IP, msg_server_port, 2, 15, 201, false);
 			} catch (UnknownHostException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
-				e.printStackTrace();
-				
-			}		
-			if(this.msgSock!=null  && this.msgSock.sock.isConnected()){
-				msgSock.sendAuth(201, 6);
-				new Thread((Runnable) this.msgSock).start();
-			}*/			
+				e.printStackTrace();				
+			}	
+			new Thread((Runnable) this.msgSock).start();
+			log.info("Successfull connect to msg Server: "+msg_server_IP+":"+msg_server_port);
+	 	
 			this.profileMap= new ProfileMap(mysql);
 			this.profileSetMap= new ProfileSetMap(mysql);
 			this.deviceMap=new DeviceMap(mysql);
@@ -253,7 +253,7 @@ public class LogicControl {
 			this.roomMap=new RoomMap(mysql);
 		} catch (SQLException  e) {
 			e.printStackTrace();
-		} 
+		}
 		log.info("Initialization of map successful :  profileMap,size="+profileMap.size()
 				+";profileSetMap size="+profileMap.size()
 				+"; deviceMap, size="+deviceMap.size()
@@ -406,7 +406,10 @@ public class LogicControl {
 			}
 			break;
 		case WARNING_MSG:	
-			send_warning_msg(msg);
+			warning_msg(msg);
+			break;
+		case WARNING_MSG_ACK:	
+			warning_msg_ack(msg);
 			break;
 		case GET_TRIGGER_TEMPLATE:	
 			try {
@@ -1283,10 +1286,20 @@ public class LogicControl {
 	    "createTime","2014-12-25 12:13:14"    
 	  }
 	  */
-	public void send_warning_msg(final Message msg){
-		if(this.msgSock!=null &&  !this.msgSock.sock.isOutputShutdown()  && !this.msgSock.sock.isClosed())
-		msg.writeBytesToSock2(this.msgSock.sock);		
-	}   
+	public void warning_msg(final Message msg){
+		//if(this.msgSock!=null &&  !this.msgSock.sock.isOutputShutdown()  && !this.msgSock.sock.isClosed()){
+		//msg.writeBytesToSock2(this.msgSock.sock);	
+			try {
+				CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}			
+		//}
+	} 
+	
+	public void warning_msg_ack(final Message msg){
+		System.out.println("successfull sending warning message");
+	} 	
 	
     /*** 请求触发模板
      * <pre>传入的json格式为：

@@ -186,7 +186,7 @@ public class Event {
 					+sdf.format(this.replyTime)+"','"
 					+this.json
 					+"')";
-			System.out.println(sql);
+			//System.out.println(sql);
 			mysql.query(sql);		
 		try {
 			mysql.conn.commit();

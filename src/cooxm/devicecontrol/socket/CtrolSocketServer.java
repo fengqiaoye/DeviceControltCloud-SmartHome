@@ -30,6 +30,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import cooxm.devicecontrol.control.Configure;
+import cooxm.devicecontrol.control.ConnectThread;
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.control.MainEntry;
 import cooxm.devicecontrol.util.BytesUtil;
@@ -60,13 +61,13 @@ public class CtrolSocketServer {
 	public static ReceiveCommandQueue receiveCommandQueue;
 	public static SendCommandQueue sendCommandQueue;
 	public LogicControl lcontrol;
+	private SocketClient msgSock;
     
 	static Logger log =Logger.getLogger(CtrolSocketServer.class);	
 	
 	/***@param serverPort: 从配置文件中读取: ./conf/control.conf */
 	public CtrolSocketServer(Configure configure, LogicControl lcontrol ) {
-		log.info("starting device control socket server...");		
-
+		log.info("starting device control socket server...");	
 		sendCommandQueue=SendCommandQueue.getInstance();
 		receiveCommandQueue=ReceiveCommandQueue.getInstance();
         this.configure=configure;
@@ -85,13 +86,37 @@ public class CtrolSocketServer {
          	log.error(e);
             System.exit(1);
         }
+        	
+        String msg_server_IP=configure.getProperty("msg_server_IP", "172.16.35.173");
+        int msg_server_port =Integer.parseInt(configure.getValue("msg_server_port")); 
+        log.info("Connecting to msg server,IP:"+msg_server_IP+":"+msg_server_port);
+        try {
+			this.msgSock=new SocketClient(msg_server_IP, msg_server_port, 2, 15, 201,false);
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+			
+		}   
+    	if(this.msgSock!=null){
+        	sockMap.put(4, this.msgSock.sock);
+        	Server server= getServerInfo(4);
+        	severMap.put(4, server);
+    	}
+        //new Thread((Runnable) this.msgSock).start();
+        ReadThread msgRt = new ReadThread(this.msgSock.sock);    
+        msgRt.start(); 
+   		WriteThread msgWr=new  WriteThread(this.msgSock.sock);
+   		msgWr.start();   		
+   		ProcessThread msgPt= new  ProcessThread();
+   		msgPt.start();
+
+    	
         while(true)
         {
         	log.info(" Listening at port:"+severSock.getLocalPort()+"...");
         	Socket sock = severSock.accept(); 	
         	SocketAddress remoteSock = sock.getRemoteSocketAddress();
-        	sock.getInetAddress().getHostAddress();
-        	sock.getPort();
         	int count=sockMap.size()+1;
         	log.info(" Accept the "+ count +"th connection from client:"+remoteSock.toString());
 
@@ -102,6 +127,8 @@ public class CtrolSocketServer {
        		
        		ProcessThread pt= new  ProcessThread();
        		pt.start();
+       		
+       		
         }
 	}
 	
@@ -224,7 +251,13 @@ public class CtrolSocketServer {
 					try {
 						outMsg=CtrolSocketServer.sendCommandQueue.peek();
 						if(null!=outMsg){
-							int serverID=outMsg.getServerID();	
+							int serverID=-1;
+							if(outMsg.commandID>=0x2000 &&  outMsg.commandID<=0x21FF){ //消息服务器
+								serverID=4;
+							}else{
+								 serverID=outMsg.getServerID();	
+							}
+							
 							 if(serverID>0 && this.sock.equals(sockMap.get(serverID)) ){	
 								outMsg = CtrolSocketServer.sendCommandQueue.take();//poll(100, TimeUnit.MICROSECONDS);
 								outMsg.writeBytesToSock2(this.sock);

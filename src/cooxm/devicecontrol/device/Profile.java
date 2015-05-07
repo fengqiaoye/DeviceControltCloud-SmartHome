@@ -35,8 +35,8 @@ public class Profile  {
 	private Date createTime;
 	private Date modifyTime;
 		
-	static final String  profileDetailTable="info_user_room_st_factor";
-	static final String  profileIndexTable="info_user_room_st";	
+	public static final String  profileDetailTable="info_user_room_st_factor";
+	public static final String  profileIndexTable="info_user_room_st";	
 
 	public int getProfileTemplateID() {
 		return profileTemplateID;
@@ -267,7 +267,7 @@ public class Profile  {
 					+sdf.format(ft.getCreateTime())+"','"
 					+sdf.format(ft.getModifyTime())
 					+"')";
-			System.out.println(sql);
+			//System.out.println(sql);
 			int count=mysql.query(sql);
 			if(count>0) System.out.println("insert success"); 	
 		}		

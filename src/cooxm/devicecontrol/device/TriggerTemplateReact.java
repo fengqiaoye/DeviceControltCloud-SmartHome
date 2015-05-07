@@ -22,50 +22,96 @@ import cooxm.devicecontrol.util.MySqlClass;
 public class TriggerTemplateReact {
 	//ProfileMap profileMap;
 	long cookieNo;
-
 	
 	/**<pre>
 	1:告警
 	2:家电
-	3:情景模式	 */
+	3:情景模式
+	4:情景集	 */
 	private int reactType;
 	
 	/**<pre>
-      告警类：
-	1：有害气体过高；
-	2：PM2.5指标超标；
-	3：温度过高 ；
-	4：火警；
-	5：入侵告警；
-	6：防盗大门未关；
-	7：台风告警；
-	8：暴雨告警
-       家电类：
-	(家电类型)
-	10：灯
-	20：电视
-	40: 空调
-	41: 空调开关
-	42：空调温度
-	43：空调风速
-	60：窗户
-	80：窗帘
-	90：暖器
-       情景模式：
-	  （标情景模式类型）
-	 301: 睡眠模式
-	 302: 离家模式
-	 303: 观影模式 */
+	1	有害气体过高；
+	2	PM2.5指标超标；
+	3	温度过高 ；
+	4	火警；
+	5	入侵告警；
+	6	防盗大门未关；
+	7	台风告警；
+	8	暴雨告警
+	9	漏水告警
+	101	图灵猫中控
+	111	图灵猫旋钮
+	121	图灵猫CO探测
+	131	图灵猫插座
+	141	图灵猫插座棒
+	201	烟雾探测器
+	211	漏水探测器
+	221	门磁
+	231	其他探测器
+	241	中继器
+	251	门铃
+	301	主机遥控器
+	311	智能门锁
+	321	报警器
+	331	漏水机械手
+	341	天然气机械手
+	401	无线遥控灯
+	411	遥控窗
+	421	遥控窗帘
+	501	电视
+	511	机顶盒
+	521	视频盒子
+	531	音响
+	541	空调
+	551	冰箱
+	561	热水器
+	571	灯
+	581	取暖器
+	591	空气净化器
+	601	电风扇
+	611	饮水机
+	801	电饭煲
+	811	豆浆机
+	821	电烤箱
+	831	电水壶
+	841	微波炉
+	1001	扫地机器人
+	1011	擦窗机
+	1021	拖地机
+	1031	镜面加热
+	1041	智能马桶
+	1051	加香机
+	1061	投影仪
+	1071	投影幕
+	1081	自动演奏钢琴
+	1091	除湿机
+	1101	加湿器
+	1111	洗衣机
+	1121	美发器
+	1131	遥控车门
+	1141	其他家电
+	2201	五合一传感器
+	2211	红外发射器
+	2221	射频发射器
+	10001	睡眠模式
+	10002	离家模式
+	10003	观影模式
+	10004	居家模式*/
 	private int targetID;
 	
 	/**<pre>
-	1：SMS
-	2：消息推送
-	3：打开
-	4：关闭
-	5：调大
-	6：调小
-	11：情景切换*/
+	11 	SMS
+	12 	消息推送
+	13 	SMS、APP都推送
+	1 	打开
+	0 	关闭
+	1300 	打开且自动模式
+	1301 	打开且制冷模式；
+	1302 	打卡器且除湿模式；
+	1303 	打开且送风模式，
+	1304 	打开且制热模式；
+	21 	情景切换*/
 	private int reactWay;
 	
 	public int getReactType() {
@@ -91,7 +137,7 @@ public class TriggerTemplateReact {
 		this.reactType = reactType;
 		this.targetID = targetID;
 		this.reactWay = reactWay;
-		this.cookieNo =((System.currentTimeMillis()/1000)%(24*3600))*1000;
+		this.cookieNo =((System.currentTimeMillis()/1000)%(24*3600))*10000;
 		/*Configure cf=MainEntry.getConfig();
 		String mysql_ip			=cf.getValue("mysql_ip");
 		String mysql_port		=cf.getValue("mysql_port");
@@ -102,7 +148,7 @@ public class TriggerTemplateReact {
 		profileMap = new ProfileMap(mysql);*/
 	}
 	public TriggerTemplateReact() {
-		this.cookieNo =((System.currentTimeMillis()/1000)%(24*3600))*1000;
+		this.cookieNo =((System.currentTimeMillis()/1000)%(24*3600))*10000;
 	}
 	
 	public  JSONObject toJson(){
@@ -151,7 +197,7 @@ public class TriggerTemplateReact {
 			json=new JSONObject();
 			try {
 				json.put("ctrolID", ctrolID);
-				json.put("sender",6);
+				json.put("sender",5);
 				json.put("receiver",0); 
 				json.put("warn", warn.toJsonObject());
 			} catch (JSONException e2) {
@@ -257,7 +303,7 @@ public class TriggerTemplateReact {
 						json.put("roomID", roomID);
 						json.put("deviceID", device.getDeviceID());
 						json.put("deviceType", device.getDeviceType());
-						json.put("sender",6);
+						json.put("sender",5);
 						json.put("receiver",0); 
 						json.put("state", state.toJson());
 					} catch (JSONException e) {
@@ -276,7 +322,7 @@ public class TriggerTemplateReact {
 				p = Profile.getFromDBByTemplateID(mysql, ctrolID, roomID,targetID); // targertID就是情景模板ID
 				json=new JSONObject();
 				json.put("ctrolID", ctrolID);
-				json.put("sender",6);
+				json.put("sender",5);
 				json.put("receiver",0); 
 				json.put("profileID",p.getProfileID()); 
 				msg=new Message((short) (LogicControl.SWITCH_RROFILE_SET), cookie,json);
@@ -292,7 +338,7 @@ public class TriggerTemplateReact {
 				ps = ProfileSet.getProfileSetByTemplateID(mysql, ctrolID, targetID); // targertID就是情景模板ID
 				json=new JSONObject();
 				json.put("ctrolID", ctrolID);
-				json.put("sender",6);
+				json.put("sender",5);
 				json.put("receiver",0); 
 				json.put("profileSetID",ps.getProfileSetID()); 
 				msg=new Message((short) (LogicControl.SWITCH_RROFILE_SET), cookie,json);
@@ -311,6 +357,9 @@ public class TriggerTemplateReact {
 	 public static void main(String [] args) {
 		 long a=System.currentTimeMillis()/1000;
 		 System.out.println(a);
+		 
+		 Jedis jedis =new Jedis("172.16.35.170", 6379);
+		 String b = jedis.hget("1256791_currentProfile", 203+"");
 		
 	}
 }

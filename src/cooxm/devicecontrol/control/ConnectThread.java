@@ -14,7 +14,7 @@ import cooxm.devicecontrol.socket.SocketClient;
 
 public class ConnectThread extends Thread{
 	static Logger log= Logger.getLogger(ConnectThread.class);
-	SocketClient client;
+	public SocketClient client;
 	String IP ;
 	int port ;
 	int clusterID;
@@ -22,7 +22,7 @@ public class ConnectThread extends Thread{
 	int serverType;
 	
 	
-	ConnectThread(	String IP ,	int port ,	int clusterID,	int serverID,	int serverType){
+	public ConnectThread(	String IP ,	int port ,	int clusterID,	int serverID,	int serverType){
 		this.IP=IP;
 		this.port=port;	
 		this.clusterID=clusterID;
@@ -35,7 +35,7 @@ public class ConnectThread extends Thread{
 		while (true){
 			if(this.client==null){
 				try {
-					this.client=new SocketClient(IP, port,clusterID,serverID,serverType);
+					this.client=new SocketClient(IP, port,clusterID,serverID,serverType,false);
 				} catch (UnknownHostException e) {
 					e.printStackTrace();
 				} catch (IOException e) {

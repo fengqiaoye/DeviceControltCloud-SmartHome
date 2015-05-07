@@ -5,6 +5,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.ObjectOutputStream.PutField;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
@@ -18,7 +19,9 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 import org.json.JSONException;
@@ -377,6 +380,32 @@ public class TestClass {
 		}
 	}
 	
+	static class A{
+		public int a;
+		public String b;
+		public A(int a,String b){
+			this.a=a;
+			this.b=b;
+		}
+	}
+	
+	public static void testRefrence(){
+
+		Map<Integer, A> map=new HashMap<Integer, A>();
+		A a1=new A(1, "a");
+		//A a2=new A(2, "b");
+		map.put(1, a1);
+		A a3=map.get(1);
+		changeA3(a3,map);
+		
+	}
+	
+	public static void changeA3(A sa,Map<Integer, A> map ){
+		sa.b="aaaaaaaaaaaaaaa";
+		System.out.println(map.get(1).b);
+		
+	}
+	
 
 	public static void main(String[] args) throws UnknownHostException, IOException {
 //		String str1="{\"student\":[{\"name\":\"leilei\",\"age\":23},{\"name\":\"leilei02\",\"age\":23}]}";
@@ -401,10 +430,7 @@ public class TestClass {
 //		btye2str();
 		
 
-String test="kjgd,";
-String[] line=test.split(",");
-System.out.println(line[0]);
-		
+		testRefrence();
 
 
 
