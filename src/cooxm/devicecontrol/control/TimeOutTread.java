@@ -164,8 +164,10 @@ public class TimeOutTread extends Thread {
     					//System.out.println("进入 reply线程");
     	    				if(msgMap.containsKey(originKey) && msgMap.get(originKey).getCookie()==msg.getCookie())
 		        	    		try {	
-		        	    			msg.getJson().put("sender",2);
-		        	    			msg.getJson().put("receiver",0);  
+		        	    			JSONObject json=msg.getJson();
+		        	    			json.put("sender",2);
+		        	    			json.put("receiver",0);  
+		        	    			msg.setJson(json);
 									boolean t=CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 									if(t==true){
 										msgMap.remove(originKey);
@@ -179,6 +181,7 @@ public class TimeOutTread extends Thread {
     	    			json.put("errorCode", LogicControl.WRONG_COMMAND);
     	    			json.put("sender",2);
     	    			json.put("receiver",sender);
+    	    			json.put("originalSenderRole", sender);
     	    			msg.setJson(json);
 						CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 

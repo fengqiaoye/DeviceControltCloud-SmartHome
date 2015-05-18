@@ -78,6 +78,8 @@ public class CtrolSocketServer {
 	public void listen() throws IOException, Exception  
 	{
 		int serverPort=Integer.parseInt(configure.getValue("server_port"));
+		int cluster_id          =Integer.parseInt(configure.getValue("cluster_id"));
+		int server_id           =Integer.parseInt(configure.getValue("server_id"));
         try{
         	severSock= new ServerSocket(serverPort);
         }
@@ -87,24 +89,20 @@ public class CtrolSocketServer {
             System.exit(1);
         }
         	
-        String msg_server_IP=configure.getProperty("msg_server_IP", "172.16.35.173");
+        String msg_server_IP=configure.getValue("msg_server_IP"); //configure.getProperty("msg_server_IP", "172.16.35.173");
         int msg_server_port =Integer.parseInt(configure.getValue("msg_server_port")); 
         log.info("Connecting to msg server,IP:"+msg_server_IP+":"+msg_server_port);
-        try {
-			this.msgSock=new SocketClient(msg_server_IP, msg_server_port, 2, 15, 201,false);
-		} catch (UnknownHostException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-			
-		}   
-    	if(this.msgSock!=null){
+        this.msgSock=new SocketClient(msg_server_IP, msg_server_port, cluster_id, server_id, 201,false);  
+        new Thread((Runnable) this.msgSock).start();
+        Thread.sleep(100);
+    	if(this.msgSock.sock!=null){
         	sockMap.put(4, this.msgSock.sock);
         	Server server= getServerInfo(4);
         	severMap.put(4, server);
     	}
         //new Thread((Runnable) this.msgSock).start();
-        ReadThread msgRt = new ReadThread(this.msgSock.sock);    
+        ReadThread msgRt = new ReadThread(this.msgSock.sock);   
+        msgRt.serverID=4;
         msgRt.start(); 
    		WriteThread msgWr=new  WriteThread(this.msgSock.sock);
    		msgWr.start();   		
@@ -164,7 +162,7 @@ public class CtrolSocketServer {
 		
 		public void run()
 		{
-	        while (!this.socket.isClosed())  
+	        while (this.socket!=null && !this.socket.isClosed())  
 	        { 
 	          Message  msg= readFromClient(socket);	          
 	            if(msg!=null){
@@ -239,7 +237,7 @@ public class CtrolSocketServer {
 	
 		public void run()
 		{
-	    	while(!this.sock.isClosed())
+	    	while(this.sock!=null && !this.sock.isClosed())
 	    	{
 	    		try {
 					Thread.sleep(10);
@@ -404,9 +402,9 @@ public class CtrolSocketServer {
 		}
 		return serverID; 	
 	}      
-		
-	public /*synchronized*/  Server getServerInfo(int serverID){
-		severMap=new HashMap<Integer, Server>();
+	
+	public   Server getServerInfo(int serverID){
+		//severMap=new HashMap<Integer, Server>();
 		String mysql_ip			=this.configure.getValue("mysql_ip");
 		String mysql_port		=this.configure.getValue("mysql_port");
 		String mysql_user		=this.configure.getValue("mysql_user");
@@ -423,8 +421,7 @@ public class CtrolSocketServer {
 				+"clusterid "
 				+ "  from "				
 				+"info_server"
-				+" where serverid= "
-				+serverID
+				+" where serverid= "+serverID
 				+ ";";
 		//System.out.println("query:"+sql);
 		String res=mysql.select(sql);
@@ -437,12 +434,12 @@ public class CtrolSocketServer {
 		}
 		//System.err.println(res);System.err.println(res);
 		String[]  cells=res.split(",");
-		Server server=new Server(cells[1], Integer.parseInt(cells[2]), Integer.parseInt(cells[3]), Integer.parseInt(cells[4]));
+		Server server=new Server(cells[1], Integer.parseInt(cells[2]), Integer.parseInt(cells[3]), Integer.parseInt(cells[4]),serverID);
 		server.setLastHeartBeatTime(new Date());
 		mysql.close();	
 		return server;
-
-	}	
+	}
+	
 	
 	public static Message readFromClient(Socket clientRequest) 
     {  
@@ -502,9 +499,9 @@ public class CtrolSocketServer {
     	}else{
     		msg=new Message(head, cookieStr, comString);
     	}
-    	if(msg.isAuth() && msg.commandID!=SocketClient.CMD__HEARTBEAT_REQ){
+    	//if(msg.isAuth() && msg.commandID!=SocketClient.CMD__HEARTBEAT_REQ){
     		System.out.println("Recv  frm "+clientRequest.getRemoteSocketAddress().toString()+":"+msg.toString());
-    	}
+    	//}
         return msg; 
     } 
 	

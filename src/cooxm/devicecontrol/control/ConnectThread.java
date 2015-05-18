@@ -20,33 +20,23 @@ public class ConnectThread extends Thread{
 	int clusterID;
 	int serverID;
 	int serverType;
+	boolean actFlag;
 	
 	
-	public ConnectThread(	String IP ,	int port ,	int clusterID,	int serverID,	int serverType){
+	public ConnectThread(	String IP ,	int port ,	int clusterID,	int serverID,	int serverType,boolean actFlag){
 		this.IP=IP;
 		this.port=port;	
 		this.clusterID=clusterID;
 		this.serverID=serverID;
 		this.serverType=serverType;		
+		this.actFlag=actFlag;
 	}
 	
 	@Override
 	public void run(){
 		while (true){
 			if(this.client==null){
-				try {
-					this.client=new SocketClient(IP, port,clusterID,serverID,serverType,false);
-				} catch (UnknownHostException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-					try {
-						Thread.sleep(60*1000);
-						System.out.println("Failiar:connect to "+IP+":"+port+" failed ,Waiting for 60 seconds to reconnect...");
-					} catch (InterruptedException e1) {
-						e1.printStackTrace();
-					}
-				}
+				this.client=new SocketClient(IP, port,clusterID,serverID,serverType,false);
 			}else{				
 				this.client.sendAuth(this.clusterID,this.serverID,this.serverType);
 				new Thread((Runnable) this.client).start();
@@ -57,8 +47,10 @@ public class ConnectThread extends Thread{
 	}
 	
     public static void main(String [] args)  {
-    	ConnectThread th=new ConnectThread("172.16.35.173",20190,1,5,200);
+    	ConnectThread th=new ConnectThread("172.16.35.16",20190,1,5,200,false);
     	th.start();   	
+    	
+    	System.out.println("11");
     	
     	
     }

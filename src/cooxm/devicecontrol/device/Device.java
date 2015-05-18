@@ -13,6 +13,7 @@ import java.util.*;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import redis.clients.jedis.Jedis;
 import cooxm.devicecontrol.util.*;
 
 
@@ -232,9 +233,9 @@ public class Device {
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	    JSONObject deviceJson = new JSONObject();  
 	    try {
-			deviceJson.put("ctrolID",         this.deviceID      );
-		    deviceJson.put("deviceID",        this.deviceSN      );
-		    deviceJson.put("deviceSN",        this.ctrolID       );
+			deviceJson.put("ctrolID",         this.ctrolID      );
+		    deviceJson.put("deviceID",        this.deviceID      );
+		    deviceJson.put("deviceSN",        this.deviceSN       );
 		    deviceJson.put("roomID",          this.roomID        );
 		    deviceJson.put("roomType",        this.roomType        );
 		    deviceJson.put("deviceType",      this.deviceType    );
@@ -360,7 +361,7 @@ public class Device {
 				+sdf.format(createTime)+"','"
 				+sdf.format(createTime)
 				+"')";
-		System.out.println(sql);
+		//System.out.println(sql);
 		return mysql.query(sql);		
 	}
 
@@ -387,11 +388,11 @@ public class Device {
 				+ " from "				
 				+Device.deviceBindTable
 				+" where ctr_id="+ctrolID
-				+" and deviceid="+deviceID
+				+" and devid="+deviceID
 				+ ";";
-		System.out.println("query:"+sql);
+		//System.out.println("query:"+sql);
 		String res2=mysql.select(sql);
-		System.out.println("get from mysql:\n"+res2);
+		//System.out.println("get from mysql:\n"+res2);
 		if(res2==null|| res2==""){
 			System.err.println("ERROR:empty query by : "+sql);
 			return null;
@@ -563,15 +564,20 @@ public class Device {
 	
 	
 	  public static void main(String[] args) throws SQLException{
-		  MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+		  //MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		  Date date=new Date();
-		  Device dev=new Device(123456789 , 1234567891 , "XJFGOD847X" ,      40 ,    0 ,  2,  203 ,    5 , 0,date,date);
+//		  int count=dev.saveToDB(mysql);		
+//		  System.out.println("Query OK,  "+count+" row affected.");
+		  int ctrolID=1256787;
+		  Jedis jedis= new Jedis("172.16.35.170", 6379);
+		  Device dev=new Device(ctrolID , 1234567891 , "XJFGOD847X" ,      571 ,    0 ,  2,  101 ,    1, 0,date,date);
+		  jedis.hset(ctrolID+"_roomBind", 1234567891+"", dev.toJsonObj().toString());
 		  
-		  int count=dev.saveToDB(mysql);		
-		  System.out.println("Query OK,  "+count+" row affected.");
-//		  Device device=new Device();
-//		  
-//		  List<Device> devicelist=device.getDevicesByctrolID(mysql, 123456789);
+		  
+
+		  
+		
+
 	  }
 	
 

@@ -111,7 +111,7 @@ public class Profile  {
 			this.ctrolID=profileJson.getInt("ctrolID");
 			//this.roomID=profileJson.getInt("roomID");
 			//this.roomType=profileJson.getInt("roomType");
-			//this.profileTemplateID=profileJson.getInt("profileTemplateID");
+			this.profileTemplateID=profileJson.getInt("profileTemplateID");
 			this.profileSetID=profileJson.getInt("profileSetID");
 			JSONArray factorListJSON= profileJson.getJSONArray("factorList");
 			List<Factor> factorList = new ArrayList<Factor>() ;

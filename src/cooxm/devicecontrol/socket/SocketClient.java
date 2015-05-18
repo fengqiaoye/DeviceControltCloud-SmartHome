@@ -41,9 +41,11 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 	int serverID;
 	int serverType;
 	boolean actFlag; //除了重连是否还需要做其他事情
+	boolean initFlag;
 	
-
-	public SocketClient(String IP,int port,int clusterID,	int serverID,	int serverType,boolean actFlag) throws UnknownHostException, IOException  
+	/**@actFlag 用来标记这个socket连接成功后是否需要readFromClient()读取数据等操作； true：需要
+	 *  */
+	public SocketClient(String IP,int port,int clusterID,	int serverID,	int serverType,boolean actFlag) 
     {   //super(IP,port);
 		this.IP=IP;
         this.port=port;
@@ -51,10 +53,15 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 		this.serverID=serverID;
 		this.serverType=serverType;	
 		this.actFlag=actFlag;
-        log.info("starting connect to  message server,IP:"+IP+" port: "+port);
-
-		this.sock=new Socket(IP,port);
-		sendAuth(clusterID,serverID,serverType);    
+		this.initFlag=false;
+		
+//        log.info("starting connect to  message server,IP:"+IP+" port: "+port);
+//		try {
+//			this.sock=new Socket(IP,port);
+//		} catch (IOException e) {
+//			e.printStackTrace();
+//		}
+//		sendAuth(clusterID,serverID,serverType);    
 
 
     } 
@@ -89,16 +96,28 @@ public class SocketClient /*extends Socket*/ implements Runnable {
         while(true){        	
     		try {
     			if(this.sock==null ||this.sock.isClosed()|| !this.sock.isConnected()){
-    				log.info("Reconnect to  message server,IP"+this.IP+" port: "+this.port);
-    				//new SocketClient(this.IP, this.port,clusterID,	serverID, serverType);
+
     				this.sock=new Socket(IP,port);
-    				sendAuth(this.clusterID, this.serverID, this.serverType);;
+    				sendAuth(this.clusterID, this.serverID, this.serverType);
+    				log.info("succefull connect to  message server,IP:"+this.IP+" port: "+this.port);
+    				try {
+    					Thread.sleep(60*1000);					
+    				} catch (InterruptedException e2) {
+    					e2.printStackTrace();
+    				} 
     			}
     		} catch (UnknownHostException e) {
     			e.printStackTrace();
     		} catch (IOException e) {
     			e.printStackTrace();
+				log.info("waiting for 60 senconds,Reconnect to  message server,IP:"+this.IP+" port: "+this.port);
+				try {
+					Thread.sleep(60*1000);					
+				} catch (InterruptedException e2) {
+					e2.printStackTrace();
+				}    			
     		}
+    		
     	if (actFlag==true) {   //做一些事情
       	   Message msg=CtrolSocketServer.readFromClient(this.sock);
       	   if(msg!=null){
@@ -182,24 +201,24 @@ public class SocketClient /*extends Socket*/ implements Runnable {
    
     public static void main(String [] args) throws UnknownHostException, IOException, InterruptedException       
     {  
-		SocketClient msgSock= new SocketClient("172.16.35.173", 20190,1,5,200,false);
-//		if(msgSock!=null){
-//	    	msgSock.sendAuth(1,5,200);
-//			new Thread(msgSock).start();
-//		}
-		Thread.sleep(1000);
-		msgSock.sendAuth(1,5,200);
-		Message msg=CtrolSocketServer.readFromClient(msgSock.sock);
-		if(msg!=null)
-		System.out.println(msg.toString());
-       Message msg2=Message.getOneMsg();
-       msg2.writeBytesToSock2(msgSock.sock);
-       
-       Thread.sleep(20000);
-    	
-    	Socket sock =new Socket("172.16.35.173", 20190);
-      Message msg3=Message.getOneMsg();
-      msg3.writeBytesToSock2(msgSock.sock);
+		SocketClient msgSock= new SocketClient("172.16.35.173", 10790,2,15,201,false);
+		if(msgSock!=null){
+	    	//msgSock.sendAuth(1,5,200);
+			new Thread(msgSock).start();
+		}
+//		Thread.sleep(1000);
+//		msgSock.sendAuth(1,5,200);
+//		Message msg=CtrolSocketServer.readFromClient(msgSock.sock);
+//		if(msg!=null)
+//		System.out.println(msg.toString());
+//       Message msg2=Message.getOneMsg();
+//       msg2.writeBytesToSock2(msgSock.sock);
+//       
+//       Thread.sleep(20000);
+//    	
+//    	Socket sock =new Socket("172.16.35.173", 20190);
+//      Message msg3=Message.getOneMsg();
+//      msg3.writeBytesToSock2(msgSock.sock);
       
       Thread.sleep(20000);
     	

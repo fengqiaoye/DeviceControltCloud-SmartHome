@@ -108,7 +108,7 @@ public class Event {
 				e.printStackTrace();
 			}
 		}else {
-			this.ctrolID=123456;
+			this.ctrolID=12345678;
 		}
 		if(msg.getJson().has("roomID")){
 			try {
@@ -133,7 +133,16 @@ public class Event {
 			} catch (JSONException e) {
 				e.printStackTrace();
 			}
-		}else this.originalSenderRole=0;
+		}else this.originalSenderRole=this.senderRole;
+		
+		if(msg.getJson().has("receiver")){
+			try {
+				this.receiveRole=msg.getJson().getInt("receiver");
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}else this.receiveRole=0;
+		
 
 		if(msg.getJson().has("errorCode")){
 			try {
@@ -230,7 +239,7 @@ public class Event {
 					+sdf.format(this.replyTime)+"','"
 					+this.json
 					+"')";
-			System.out.println(sql);
+			//System.out.println(sql);
 			mysql.query(sql);		
 		mysql.conn.commit();		
 	}

@@ -226,25 +226,21 @@ public class LogicControl {
 		String mysql_database	=cf.getValue("mysql_database");		
 		String redis_ip         =cf.getValue("redis_ip");
 		int redis_port       	=Integer.parseInt(cf.getValue("redis_port"));	
-		String msg_server_IP=cf.getValue("msg_server_ip");
-		int msg_server_port =Integer.parseInt(cf.getValue("msg_server_port"));
+		String msg_server_IP    =cf.getValue("msg_server_IP");
+		int msg_server_port     =Integer.parseInt(cf.getValue("msg_server_port"));
+		int cluster_id          =Integer.parseInt(cf.getValue("cluster_id"));
+		int server_id           =Integer.parseInt(cf.getValue("server_id"));
 		
 		
 		mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
 		this.jedis= new Jedis(redis_ip, redis_port,200);
 		try{
-//	    	ConnectThread th=new ConnectThread(msg_server_IP, msg_server_port, 1, 6, 201);
+//	    	ConnectThread th=new ConnectThread(msg_server_IP, msg_server_port, 1, 6, 201,false);
 //	    	th.start();	
 			
-			try {
-				this.msgSock=new SocketClient(msg_server_IP, msg_server_port, 2, 15, 201, false);
-			} catch (UnknownHostException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();				
-			}	
-			new Thread((Runnable) this.msgSock).start();
-			log.info("Successfull connect to msg Server: "+msg_server_IP+":"+msg_server_port);
+//			this.msgSock=new SocketClient(msg_server_IP, msg_server_port, cluster_id, 6, 201, false);	
+//			new Thread((Runnable) this.msgSock).start();
+//			log.info("Successfull connect to msg Server: "+msg_server_IP+":"+msg_server_port);
 	 	
 			this.profileMap= new ProfileMap(mysql);
 			this.profileSetMap= new ProfileSetMap(mysql);
@@ -713,7 +709,8 @@ public class LogicControl {
     	}
     	msg.setCommandID(SWITCH_ROOM_PROFILE_ACK);
     	json.put("sender",2);
-    	json.put("receiver",0);
+    	json.put("receiver",sender);
+    	json.put("originalSenderRole", sender);
 		replyMsg.setJson(new JSONObject());
     	CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
     }
@@ -1290,12 +1287,21 @@ public class LogicControl {
 		//if(this.msgSock!=null &&  !this.msgSock.sock.isOutputShutdown()  && !this.msgSock.sock.isClosed()){
 		//msg.writeBytesToSock2(this.msgSock.sock);	
 			try {
+				if(msg.getJson().has("sender")){
+					//msg.getJson().getInt("originalSenderRole");
+					int senderRole=msg.getJson().getInt("sender");
+					JSONObject json=msg.getJson();
+					json.put("originalSenderRole", senderRole);
+					json.put("receiver", 6);
+					msg.setJson(json);
+				}
 				CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
-			}			
-		//}
-	} 
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		} 
 	
 	public void warning_msg_ack(final Message msg){
 		System.out.println("successfull sending warning message");
