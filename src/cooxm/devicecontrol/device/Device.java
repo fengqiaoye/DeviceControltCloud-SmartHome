@@ -569,9 +569,10 @@ public class Device {
 //		  int count=dev.saveToDB(mysql);		
 //		  System.out.println("Query OK,  "+count+" row affected.");
 		  int ctrolID=1256787;
-		  Jedis jedis= new Jedis("172.16.35.170", 6379);
-		  Device dev=new Device(ctrolID , 1234567891 , "XJFGOD847X" ,      571 ,    0 ,  2,  101 ,    1, 0,date,date);
-		  jedis.hset(ctrolID+"_roomBind", 1234567891+"", dev.toJsonObj().toString());
+		  Jedis jedis= new Jedis("120.24.81.226", 6379);
+		  Device dev=new Device(ctrolID , 1256786 , "XJFGOD847X" ,      571 ,    0 ,  2,  101 ,    1, 0,date,date);
+		  jedis.hset(ctrolID+"_roomBind", 101+"", dev.toJsonObj().toString());
+		  System.out.println("Query OK");
 		  
 		  
 

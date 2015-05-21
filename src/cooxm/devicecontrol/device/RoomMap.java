@@ -83,7 +83,7 @@ public class RoomMap  extends HashMap<String, Room>{
 			room.roomName=index[3]; 
 			try {
 				room.createTime=sdf.parse(index[4]);
-				room.modifyTime=sdf.parse(index[5]);
+				room.setModifyTime(sdf.parse(index[5]));
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

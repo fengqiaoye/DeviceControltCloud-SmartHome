@@ -24,32 +24,62 @@ public class Room {
 	int roomType;
 	
 	/***这个房间所有的情景模式ID 列表 */
-	List<Integer> profileList; 
+	//List<Integer> profileList; 
 	
 	/***这个房间所有的设备ID 列表 */
-	List<Integer> deviceList;
+	//List<Integer> deviceList;
 	Date createTime;
-	Date modifyTime;
+	private Date modifyTime;
 	
-	Profile currProfile;
+	//Profile currProfile;
 	private static final Logger logger = Logger.getLogger("global");
 	
 	static final String roomIndexTable = "info_user_room";
+	
 
+	public int getRoomID() {
+		return roomID;
+	}
+	public void setRoomID(int roomID) {
+		this.roomID = roomID;
+	}
+	public String getRoomName() {
+		return roomName;
+	}
+	public void setRoomName(String roomName) {
+		this.roomName = roomName;
+	}
+	public int getCtrolID() {
+		return ctrolID;
+	}
+	public void setCtrolID(int ctrolID) {
+		this.ctrolID = ctrolID;
+	}
+	public int getRoomType() {
+		return roomType;
+	}
+	public void setRoomType(int roomType) {
+		this.roomType = roomType;
+	}
+	public Date getCreateTime() {
+		return createTime;
+	}
+	public void setCreateTime(Date createTime) {
+		this.createTime = createTime;
+	}
 	public Room(){}
 	public Room(Room room) {
 		this.roomID       =     room.roomID      ;  
 		this.roomName      =    room.roomName    ;
 		this.ctrolID      =     room.ctrolID     ;
 		this.roomType      =    room.roomType    ;
-		//this.currProfile      = room.currProfile ;
-		this.profileList      = room.profileList ;
-		this.deviceList      =  room.deviceList  ;
+		//this.profileList      = room.profileList ;
+		//this.deviceList      =  room.deviceList  ;
 		this.createTime      =  room.createTime  ;
-		this.modifyTime      =  room.modifyTime  ;
+		this.setModifyTime(room.getModifyTime())  ;
 	}
 	
-	Room (JSONObject roomJson){
+	public Room (JSONObject roomJson){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		try {
 			this.roomID=roomJson.getInt("roomID");
@@ -57,14 +87,14 @@ public class Room {
 			this.ctrolID=roomJson.getInt("ctrolID");			
 			this.roomType=roomJson.getInt("roomType");
 			
-			JSONArray profileListJSON= roomJson.getJSONArray("profileList");
+			/*JSONArray profileListJSON= roomJson.getJSONArray("profileList");
 			List<Integer> profileList = new ArrayList<Integer>() ;
 			for(int i=0;i<profileListJSON.length();i++){
 				JSONObject profileJson=profileListJSON.getJSONObject(i);
 				Integer profileID= profileJson.getInt("profileID");	
 				profileList.add(profileID);		
 			}	
-			this.profileList=profileList;
+			//this.profileList=profileList;
 			
 			JSONArray deviceListJSON= roomJson.getJSONArray("deviceList");
 			List<Integer> deviceList = new ArrayList<Integer>() ;
@@ -73,10 +103,10 @@ public class Room {
 				Integer deviceID= deviceJson.getInt("deviceID");	
 				deviceList.add(deviceID);		
 			}
-			this.deviceList=deviceList;			
+			this.deviceList=deviceList*/;			
 
 			this.createTime=sdf.parse(roomJson.getString("createTime"));
-			this.modifyTime=sdf.parse(roomJson.getString("createTime"));	
+			this.setModifyTime(sdf.parse(roomJson.getString("createTime")));	
 		} catch (JSONException | ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -93,7 +123,7 @@ public class Room {
 			roomJson.put("roomName",    this.roomName      );
 		    roomJson.put("ctrolID",        this.ctrolID      );
 		    roomJson.put("roomType",      this.roomType        );
-		    for(Integer profileID: this.profileList){
+		    /*for(Integer profileID: this.profileList){
 		    	profileJson= new JSONObject(); 		    	
 		    	profileJson.put("profileID",profileID); 
 		    	roomJson.accumulate("profileList", profileJson);
@@ -102,7 +132,7 @@ public class Room {
 		    	deviceJson= new JSONObject(); 
 		    	deviceJson.put("deviceID",deviceID); 
 		    	roomJson.accumulate("deviceList", deviceJson);
-		    }
+		    }*/
 		    roomJson.put("createTime",sdf.format(this.createTime));
 		    roomJson.put("modifyTime",sdf.format(this.createTime));
 		} catch (JSONException e) {
@@ -115,24 +145,24 @@ public class Room {
 	}
 
 	/*** 判断这个房间是否存在某个设备 */
-	public boolean isDeviceExist(int deviceID){
+	/*public boolean isDeviceExist(int deviceID){
 		for (int i = 0; i < this.deviceList.size(); i++) {
 			if(this.deviceList.get(i)==deviceID){
 				return true;
 			}			
 		}		
 		return false;		
-	}
+	}*/
 	
 	/*** 判断这个房间是否存在某个情景模式 */
-	public boolean isProfileExist(int profileID){
+	/*public boolean isProfileExist(int profileID){
 		for (int i = 0; i < this.profileList.size(); i++) {
 			if(this.profileList.get(i)==profileID){
 				return true;
 			}			
 		}
 		return false;		
-	}
+	}*/
 	
 	
 	
@@ -203,11 +233,6 @@ public class Room {
 	
 	
 	
-	
-	public void switchToProfile(Profile profile){
-		this.currProfile=profile;		
-	}
-	
 	/*** 
 	 * Save Profile info to Mysql:
 	 * @param  Mysql:		    MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
@@ -231,7 +256,7 @@ public class Room {
 				+this.roomType+",'"
 				+this.roomName+"','"
 				+sdf.format(this.createTime)+"','"
-				+sdf.format(this.modifyTime)
+				+sdf.format(this.getModifyTime())
 				+"');";
 		logger.info(sql);
 		if(mysql.query(sql)!=-1){
@@ -248,7 +273,7 @@ public class Room {
    * @throws SQLException 
    * @throws IOException 
    */
-	public static Room  getRoomHeadFromDB(MySqlClass mysql,int ctrolID,int roomID) throws SQLException, IOException
+	public static Room  getRoomHeadFromDB(MySqlClass mysql,int ctrolID,int roomID) 
 	{
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Room room =new Room();
@@ -282,7 +307,7 @@ public class Room {
 			room.roomName=index[3];
 			try {
 				room.createTime=sdf.parse(index[4]);
-				room.modifyTime=sdf.parse(index[5]);
+				room.setModifyTime(sdf.parse(index[5]));
 			} catch (ParseException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -320,6 +345,12 @@ public class Room {
 			//logger.log.error(e.printStackTrace());
 			//logger.error(e.getMessage(),e); 
 		}
+	}
+	public Date getModifyTime() {
+		return modifyTime;
+	}
+	public void setModifyTime(Date modifyTime) {
+		this.modifyTime = modifyTime;
 	}
 
 }

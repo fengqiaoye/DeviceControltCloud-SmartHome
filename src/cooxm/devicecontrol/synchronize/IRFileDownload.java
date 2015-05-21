@@ -1,11 +1,14 @@
 package cooxm.devicecontrol.synchronize;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.net.ftp.FTPClient;
 
+import cooxm.devicecontrol.control.Configure;
+import cooxm.devicecontrol.control.MainEntry;
 import cooxm.devicecontrol.encode.ChineseToSpell;
 import cooxm.devicecontrol.encode.SQLiteUtil;
 
@@ -15,7 +18,7 @@ import cooxm.devicecontrol.encode.SQLiteUtil;
  */
 
 public class IRFileDownload {
-	private static final String DOWNLOAD_FTP_IP="172.16.35.173";
+	private static  String DOWNLOAD_FTP_IP;//="172.16.35.173";
 	String format_ID;
 	public String getFormat_ID() {
 		return format_ID;
@@ -25,6 +28,9 @@ public class IRFileDownload {
 	}
 	public IRFileDownload(String format_ID) {
 		this.format_ID = format_ID;
+		Configure cf=MainEntry.getConfig();
+		//file=new File(cf.getValue("ir_file_path"));
+		DOWNLOAD_FTP_IP=cf.getValue("ir_file_url");
 	}	
 	
 	
@@ -37,10 +43,13 @@ public class IRFileDownload {
 		return this.format_ID;
 	}
 	public String getURL(){	
-		String url=DOWNLOAD_FTP_IP+"/keyfiles2/AC/codes/"+this.getFilename()+".txt"; 		
+		String url=DOWNLOAD_FTP_IP+""+this.getFilename()+".txt"; 		
 		return url;		
 	}
-	
+	public String getURLWithoutExtention(){	
+		String url=DOWNLOAD_FTP_IP+""+this.getFilename(); 		
+		return url;		
+	}
 	public void downlaod(){
 		FTPClient ftpClient = new FTPClient(); 
         FileOutputStream fos = null; 

@@ -7,6 +7,7 @@
  */
 
 
+import java.io.File;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
@@ -30,6 +31,7 @@ import cooxm.devicecontrol.device.ProfileMap;
 import cooxm.devicecontrol.device.ProfileSet;
 import cooxm.devicecontrol.device.ProfileSetMap;
 import cooxm.devicecontrol.device.ProfileTemplate;
+import cooxm.devicecontrol.device.Room;
 import cooxm.devicecontrol.device.RoomMap;
 import cooxm.devicecontrol.device.Trigger;
 import cooxm.devicecontrol.device.TriggerMap;
@@ -37,6 +39,7 @@ import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.socket.Message;
 import cooxm.devicecontrol.socket.SocketClient;
 import cooxm.devicecontrol.synchronize.IRFileDownload;
+import cooxm.devicecontrol.synchronize.IRMatch2;
 import cooxm.devicecontrol.util.MySqlClass;
 import redis.clients.jedis.Jedis;
 
@@ -120,6 +123,21 @@ public class LogicControl {
 	/*** 切换某个家电状态 的回复*/
 	private static final short SWITCH_DEVICE_STATE_ACK		=	COMMAND_START+44+COMMAND_ACK_OFFSET;
 	
+	/*** 请求家电列表*/
+	private static final short GET_ONE_ROOM				=	COMMAND_START+51;
+	/*** 请求家电列表 的回复*/
+	private static final short GET_ONE_ROOM_ACK			=	COMMAND_START+51+COMMAND_ACK_OFFSET;	
+	
+	/*** 设置 家电列表*/
+	private static final short SET_ONE_ROOM				=	COMMAND_START+52;
+	/*** 设置 家电列表 的回复*/
+	private static final short SET_ONE_ROOM_ACK			=	COMMAND_START+52+COMMAND_ACK_OFFSET;	
+
+	/*** 删除某一个 家电*/
+	private static final short DELETE_ONE_ROOM			=	COMMAND_START+53;
+	/*** 删除某一个 家电*/
+	private static final short DELETE_ONE_ROOM_ACK		=	COMMAND_START+53+COMMAND_ACK_OFFSET;
+	
 	/*** 请求触发规则模板 */
 	private static final short GET_TRIGGER_TEMPLATE				=	COMMAND_START+61;	
 	/*** 请求触发规则模板 的回复*/
@@ -151,11 +169,15 @@ public class LogicControl {
 	
 	/**请求遥控 文件 */
 	private static final short DOWNLOAD_INFRARED_FILE       =   COMMAND_START+91;
-	private static final short DOWNLOAD_INFRARED_FILE_ACK			=	COMMAND_START+91+COMMAND_ACK_OFFSET;
+	private static final short DOWNLOAD_INFRARED_FILE_ACK	=	COMMAND_START+91+COMMAND_ACK_OFFSET;
 	
-	/** */
+	/**上传学习到的红外码，即这些红外码不在我们的红外码库中*/
 	private static final short UPLOAD_INFRARED_LEARN       =   COMMAND_START+92;
 	private static final short UPLOAD_INFRARED_LEARN_ACK   =   COMMAND_START+92+COMMAND_ACK_OFFSET;
+	
+	/**上传的扑捉到红外码值 ，用来识别遥控器的型号*/
+	private static final short RECOGNIZE_INFRARED_CODE       =   COMMAND_START+93;
+	private static final short RECOGNIZE_INFRARED_CODE_ACK   =   COMMAND_START+93+COMMAND_ACK_OFFSET;
 	
     /*** 告警消息   */
 	private static final short WARNING_MSG				 	=	WARNING_START+3;
@@ -191,6 +213,8 @@ public class LogicControl {
 	
 	/** 红外码库文件不存在*/
 	public static final int INFRARED_FILE_NOT_EXIST	  = -50031;
+	/** 红外码库文件不存在*/
+	public static final int INFRARED_CODE_NOT_RECOGNIZED = -50032;
 	
 	/** 服务器没有通过认证*/
 	public static final int SERVER_NOT_AUTHORIZED	  = -50041;
@@ -209,6 +233,7 @@ public class LogicControl {
 	DeviceMap deviceMap=null;
 	TriggerMap triggerMap=null;
 	RoomMap roomMap=null;
+	File ir_file;//=new File(cf.getValue("ir_file_path"));
 	private final static String currentProfile= "currentProfile";
 	private final static String currentProfileSet= "currentProfileSet";
 	private final static String currentDeviceState= "currentDeviceState";	
@@ -230,6 +255,8 @@ public class LogicControl {
 		int msg_server_port     =Integer.parseInt(cf.getValue("msg_server_port"));
 		int cluster_id          =Integer.parseInt(cf.getValue("cluster_id"));
 		int server_id           =Integer.parseInt(cf.getValue("server_id"));
+		
+		ir_file=new File(cf.getValue("ir_file_path"));
 		
 		
 		mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
@@ -401,6 +428,29 @@ public class LogicControl {
 				e.printStackTrace();
 			}
 			break;
+		case GET_ONE_ROOM:	
+			try {
+				get_one_room(msg);;
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			break;
+		case SET_ONE_ROOM:	
+			try {
+				set_one_room(msg, mysql);;
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			break;	
+		case DELETE_ONE_ROOM:
+			try {
+				delete_one_room(msg);
+			} catch (JSONException | SQLException e) {
+				e.printStackTrace();
+			}
+			break;	
 		case WARNING_MSG:	
 			warning_msg(msg);
 			break;
@@ -464,6 +514,13 @@ public class LogicControl {
 				e1.printStackTrace();
 			}
 			break;
+		case RECOGNIZE_INFRARED_CODE:
+			try {
+				recognize_infrared_code(msg);
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+			break;
 		default:
 			int sender=0;
 			if(msg.getJson().has("sender")){
@@ -503,7 +560,9 @@ public class LogicControl {
 		}		
 	}
 	
-    /*** 请求查询情景模式
+
+
+	/*** 请求查询情景模式
      * <pre>传入的json格式为：
      * { 
      *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
@@ -1259,6 +1318,128 @@ public class LogicControl {
 		}
 	}
 	
+	/*** 获取一个设备
+	 * 	 <pre>对应json消息体为：
+	 *   {
+	 *     ctrolID:1234567
+	 *     deviceID:
+     *   }
+     *   @return List< Device > 加电列表 的json格式
+	 * @throws JSONException 
+     *   */
+	public void get_one_room(Message msg) throws JSONException{
+    	JSONObject json=new JSONObject();
+    	Room room=new Room();
+    	int ctrolID=msg.getJson().getInt("ctrolID");
+    	int roomID=msg.getJson().getInt("roomID");
+    	String key=ctrolID+"_"+roomID;
+    	int sender=0;
+    	if(msg.getJson().has("sender")){
+    		sender=msg.getJson().getInt("sender"); 
+    	}
+    	if(  (room=Room.getRoomHeadFromDB(mysql, ctrolID, roomID))!=null){
+    		json.put("room", room.toJsonObject());
+    		json.put("errorCode",SUCCESS);   
+    	}else {
+			log.warn("Can't get_one_room, ctrolID:"+ctrolID+"roomID: "+ roomID+" from roomMap or Mysql.");
+			json.put("errorCode",DEVICE_NOT_EXIST);
+    	}
+    	msg.setCommandID( GET_ONE_DEVICE_ACK);
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}	
+	}
+	
+	
+	/*** 设置 一个家电
+	 * 	 <pre>对应的jsonArray:* 
+	 *   {
+	 *     将这个家电的jsonObject格式
+     *   }
+	 * @throws JSONException 
+	 * @throws ParseException */
+	public void set_one_room(Message msg,MySqlClass mysql) throws JSONException, ParseException{
+		JSONObject json= new JSONObject();
+    	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    	Room msgRoom=new Room(msg.getJson());
+    	Room dbRoom;
+    	int ctrolID=msg.getJson().getInt("ctrolID");
+    	int roomID=msg.getJson().getInt("roomID");
+    	Date msgModifyTime=sdf.parse(msg.getJson().getString("modifyTime"));
+    	String key=ctrolID+"_"+roomID;
+    	int sender=0;
+    	if(msg.getJson().has("sender")){
+    		sender=msg.getJson().getInt("sender"); 
+    	}
+    	
+    	if((dbRoom=this.roomMap.get(key))==null  || dbRoom.getModifyTime().before(msgModifyTime) ){	 //不存在或者云端较旧
+    		this.roomMap.put(key, msgRoom);
+			json.put("errorCode",SUCCESS);  
+
+			String key2=ctrolID+"_roomBind";
+    		//int roomID=msgRoom.getRoomID();
+    		String command=msgRoom.getCtrolID()+","+msg.getCommandID()+","+msgRoom.getRoomType()+","+msgRoom.getRoomID()+","+roomID;
+    		jedis.publish(commandQueue,command);
+    		jedis.hset(key2, roomID+"", msgRoom.toJsonObject().toString());
+			json.put("errorCode",SUCCESS);
+    	}else if(dbRoom.getModifyTime().after(msgModifyTime)){ //云端较新  
+			json.put("errorCode",DEVICE_OBSOLETE);   
+		}
+  		msg.setCommandID(SET_ONE_DEVICE_ACK);
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} 		
+	}
+	
+    /*** 删除情景模式集
+     * <pre>传入的json格式为：
+     * { 
+     *   ctrolID:1234567
+     *   roomID:7654321
+     * }
+     * @throws JSONException 
+     * @return message 的json格式：
+     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50002}
+     *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
+     */
+    public void delete_one_room(Message msg) throws JSONException, SQLException{
+    	JSONObject json=new JSONObject();
+    	int ctrolID=msg.getJson().getInt("ctrolID");
+    	int roomID=msg.getJson().getInt("roomID");
+    	String key=ctrolID+"_"+roomID;
+    	int sender=0;
+    	Room room=new Room();
+    	if(msg.getJson().has("sender")){
+    		sender=msg.getJson().getInt("sender"); 
+    	}
+		if((room=roomMap.get(key))!=null || (room=Room.getRoomHeadFromDB(mysql, ctrolID, roomID))!=null){
+    		roomMap.remove(key);
+    		json.put("errorCode", SUCCESS);    		
+    	}else {
+			log.warn("room_room not exist ctrolID:"+ctrolID+" roomID:"+roomID+" from roomMap or Mysql.");
+			json.put("errorCode",DEVICE_NOT_EXIST);
+    	}
+    	msg.setCommandID( DELETE_ONE_DEVICE_ACK);
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
+    	try {
+			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}    	
+    }
+	
     /*** 请求切换某个家电状态,返回值
      * <pre>传入的json格式为：
     * { 
@@ -1715,10 +1896,59 @@ public class LogicControl {
 		}
     }
     
+    /*** 上报某一个型号家电的 红外码，让云端来识别
+     * <pre> ；        
+     * 请求的json格式为：
+     * { 
+     *   senderRole:    中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *   receiverRole:  中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *   ctrolID:1234567
+     *   applianceType: 填写家电的factorID,
+     *   ircode:红外码的16进制字符串格式例如："27,04,00,00,24,00,26,81,FC,01,FC,81,FC,05,F8,C1,0E,1B,C2,00,05,F8,C3,00,70,23,CB,26,01,00,24,8,07,09,00,00,00,00,51,00"
+     * @return message 的json格式：
+     *   （1）若 这一型号的家电的 红外码识别成功，则返回  这个红外型号对应码库文件的URL 地址；
+     *   （2）若 这一型号的家电的 红外识别识别，则返回  NOT_EXIST 
+     * @throws JSONException 
+     */
+    private void recognize_infrared_code(Message msg) throws JSONException {
+		JSONObject json= new JSONObject();
+    	int sender=0;
+		if(msg.getJson().has("sender")){
+			   sender=msg.getJson().getInt("sender");
+		}
+		String ircode=msg.getJson().optString("ircode");
+    	IRMatch2 im=new IRMatch2();
+		im.match(this.ir_file, im.getC3(ircode));
+		String fileName=im.getTop1();
+		if(fileName==null){
+			json.put("errorCode", INFRARED_CODE_NOT_RECOGNIZED);
+		}else{
+			IRFileDownload irDownload=new IRFileDownload(fileName.split(",")[1]);
+			String url=irDownload.getURLWithoutExtention();		
+
+
+			if(url.equals("") || url==null){
+				json.put("errorCode", INFRARED_FILE_NOT_EXIST);
+			}else{
+				json.put("url", url);
+			}			
+		}
+    	msg.setCommandID(DOWNLOAD_INFRARED_FILE_ACK);
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+    	
+	}
+    
 
 	public static void main(String[] args) {		
 		Configure cf= new Configure();
 		LogicControl lc= new LogicControl(cf);		
-		System.out.println(lc);
+		System.out.println("lc="+lc);
 	}		
 }

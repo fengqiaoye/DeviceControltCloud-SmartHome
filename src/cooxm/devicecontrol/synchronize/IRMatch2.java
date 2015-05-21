@@ -10,6 +10,9 @@ import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
 
+import cooxm.devicecontrol.control.Configure;
+import cooxm.devicecontrol.control.MainEntry;
+
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
  * @version Created：Apr 14, 2015 2:16:50 PM 
@@ -17,11 +20,13 @@ import org.apache.log4j.Logger;
 
 public class IRMatch2 {
 	static Logger log= Logger.getLogger(IRMatch.class);
-	private static File file=new File("D:\\documents\\cooxm\\document\\小秘智能家居后台设计\\红外码库\\ird3\\keyfiles3\\AC\\codes");
+	private static File file;//=new File("D:\\documents\\cooxm\\document\\小秘智能家居后台设计\\红外码库\\ird3\\keyfiles3\\AC\\codes");
 	/** < 疑或后1的个数，文件名> */
 	Map<Integer, String> fileScoreMap;//=new TreeMap<Integer, String>() ;
-	IRMatch2(){
+	public IRMatch2(){
 		this.fileScoreMap=new TreeMap<Integer, String>() ;
+		Configure cf=MainEntry.getConfig();
+		file=new File(cf.getValue("ir_file_path"));
 	}
 	
 	public void getTop5(){
@@ -33,6 +38,18 @@ public class IRMatch2 {
 		System.out.println("\n");
 	}
 	
+	/** 返回值为匹配最为相似的红外码相差的位数 和文件名，用逗号分隔*/
+	public String getTop1(){
+		Object[] a =this.fileScoreMap.keySet().toArray();  
+		int len=Math.min(1, this.fileScoreMap.keySet().size());
+		if(len>0){
+			return a[0]+","+(this.fileScoreMap.get(a[0]).split("\\|"))[0];
+		}else{
+			return null;
+		}
+	}
+	
+	/** 将匹配的结果按相差位数从小到大排序，结果保存在 map中*/
 	public  void match(File file,String c3code) {		
     	Map<Integer, String> lineScoreMap= new TreeMap<Integer, String>();
         if (file.isDirectory()) {
@@ -166,7 +183,8 @@ public class IRMatch2 {
 	    	System.out.println(i);
 	    	IRMatch2 im=new IRMatch2();
 			im.match(file, im.getC3(raw[i]));
-			im.getTop5();
+			String x=im.getTop1();
+			System.out.println(x);
 		}
 
 		
