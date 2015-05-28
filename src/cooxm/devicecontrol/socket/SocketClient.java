@@ -72,9 +72,39 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 		String cookie=System.currentTimeMillis()/1000+"_"+serverID;
 		Message authMsg=new Message(header, cookie, jsonStr);
 		authMsg.writeBytesToSock2(this.sock);
-		System.out.println("Send Auth "+this.sock.getInetAddress().getHostAddress()+":"+this.sock.getPort()+":"+authMsg.toString());		
+		System.out.println("Send Auth "+this.sock.getInetAddress().getHostAddress()+":"+this.sock.getPort()+":"+authMsg.toString());	
+		
+		 Message msg=CtrolSocketServer.readFromClient(sock);
+		 if(msg!=null){
+			int errorCode= msg.getJson().optInt("errorCode");
+			if(errorCode==0){
+				log.info("succefull connect to  message server,IP:"+this.IP+" port: "+this.port);
+			}else{
+				log.info("Auth failed to:"+this.IP+" port: "+this.port+"by auth info:"+jsonStr);
+			}
+		 }
 	}
-    
+	
+	
+	public static void sendAuth(Socket sock,int clusterID,int  serverID ,int serverType){					
+		Header header=Message.getOneHeaer((short)CMD__Identity_REQ);
+		String jsonStr="{\"uiClusterID\":"+clusterID+",\"usServerType\":"+serverType+",\"uiServerID\":"+serverID+"}";
+		String cookie=System.currentTimeMillis()/1000+"_"+serverID;
+		Message authMsg=new Message(header, cookie, jsonStr);
+		authMsg.writeBytesToSock2(sock);
+		System.out.println("Send Auth "+sock.getRemoteSocketAddress().toString()+":"+authMsg.toString());	
+		
+		 Message msg=CtrolSocketServer.readFromClient(sock);
+		 if(msg!=null){
+			int errorCode= msg.getJson().optInt("errorCode");
+			if(errorCode==0){
+				log.info("succefull connect to  message server,IP:"+sock.getRemoteSocketAddress().toString());
+			}else{
+				log.info("Auth failed to:"+sock.getRemoteSocketAddress().toString()+"by auth info:"+jsonStr);
+			}
+		 }
+	}
+
 
 	
 	public static String getLocalIP(){
@@ -99,24 +129,19 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 
     				this.sock=new Socket(IP,port);
     				sendAuth(this.clusterID, this.serverID, this.serverType);
-    				log.info("succefull connect to  message server,IP:"+this.IP+" port: "+this.port);
-    				try {
-    					Thread.sleep(60*1000);					
-    				} catch (InterruptedException e2) {
-    					e2.printStackTrace();
-    				} 
+    				
     			}
     		} catch (UnknownHostException e) {
     			e.printStackTrace();
     		} catch (IOException e) {
     			e.printStackTrace();
-				log.info("waiting for 60 senconds,Reconnect to  message server,IP:"+this.IP+" port: "+this.port);
-				try {
-					Thread.sleep(60*1000);					
-				} catch (InterruptedException e2) {
-					e2.printStackTrace();
-				}    			
+				log.info("waiting for 120 senconds,Reconnect to  message server,IP:"+this.IP+" port: "+this.port);  			
     		}
+			try {
+				Thread.sleep(120*1000);					
+			} catch (InterruptedException e2) {
+				e2.printStackTrace();
+			} 
     		
     	if (actFlag==true) {   //做一些事情
       	   Message msg=CtrolSocketServer.readFromClient(this.sock);
@@ -203,11 +228,12 @@ public class SocketClient /*extends Socket*/ implements Runnable {
     {  
 		SocketClient msgSock= new SocketClient("172.16.35.173", 10790,2,15,201,false);
 		if(msgSock!=null){
-	    	//msgSock.sendAuth(1,5,200);
+	    	msgSock.sendAuth(1,5,200);
 			new Thread(msgSock).start();
 		}
-//		Thread.sleep(1000);
-//		msgSock.sendAuth(1,5,200);
+		
+		//Message msg1=new Message(commandID, cookie, json)
+
 //		Message msg=CtrolSocketServer.readFromClient(msgSock.sock);
 //		if(msg!=null)
 //		System.out.println(msg.toString());
@@ -221,6 +247,11 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 //      msg3.writeBytesToSock2(msgSock.sock);
       
       Thread.sleep(20000);
+      
+      
+      Socket sock =new Socket("172.16.35.173", 20190);
+      
+      
     	
 
    	

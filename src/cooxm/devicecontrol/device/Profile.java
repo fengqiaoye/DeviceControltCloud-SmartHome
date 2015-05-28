@@ -9,11 +9,15 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.mysql.jdbc.log.Log;
+
 import redis.clients.jedis.Jedis;
+import cooxm.devicecontrol.control.MainEntry;
 import cooxm.devicecontrol.util.MySqlClass;
 
 
@@ -24,6 +28,7 @@ import cooxm.devicecontrol.util.MySqlClass;
  * */
 public class Profile  {
 	
+	static Logger log =Logger.getLogger(Profile.class);
 	private int profileID;
 	private String profileName;
 	private int ctrolID;
@@ -130,7 +135,7 @@ public class Profile  {
 			}		
 			setFactorList(factorList);
 			setCreateTime(sdf.parse(profileJson.optString("createTime")));
-			setModifyTime(sdf.parse(profileJson.optString("createTime")));	
+			setModifyTime(sdf.parse(profileJson.optString("modifyTime")));	
 		} catch (JSONException | ParseException e) {
 			e.printStackTrace();
 		}
@@ -179,16 +184,18 @@ public class Profile  {
 		    profileJson.put("profileID",this.profileID);
 		    profileJson.put("profileName",this.profileName);
 		    profileJson.put("ctrolID",this.ctrolID); 
-		    profileJson.put("roomID",this.getRoomID());
-		    profileJson.put("roomType",this.getRoomType());
+		    //profileJson.put("roomID",this.getRoomID());
+		    //profileJson.put("roomType",this.getRoomType());
 		    profileJson.put("profileTemplateID",getProfileTemplateID());
 		    profileJson.put("profileSetID",this.profileSetID);
+		    JSONArray ja=new JSONArray();
 		    for(Factor factor: getFactorList()){
 		    	factorJson= new JSONObject(); 
-		    	factorJson=factor.toProfileJson();		    	
-		    	profileJson.accumulate("factorList",factorJson); 
+		    	factorJson=factor.toProfileJson();
+		    	ja.put(factorJson);
+		    	//profileJson.accumulate("factorList",factorJson); 
 		    }
-		    
+		    profileJson.put("factorList",ja); 
 		    profileJson.put("createTime",sdf.format(getCreateTime()));
 		    profileJson.put("modifyTime",sdf.format(getModifyTime()));
 		} catch (JSONException e) {
@@ -268,8 +275,8 @@ public class Profile  {
 					+sdf.format(ft.getModifyTime())
 					+"')";
 			//System.out.println(sql);
-			int count=mysql.query(sql);
-			if(count>0) System.out.println("insert success"); 	
+			//int count=mysql.query(sql);
+			//if(count>0) System.out.println("insert success"); 	
 		}		
 		
 		
@@ -343,7 +350,7 @@ public class Profile  {
 				System.err.println("ERROR:empty query by : "+sql2);
 				return null;
 			} else if(res2.split("\n").length!=1){
-				System.err.println("ERROR:Multi profile retrieved from mysql. ");
+				log.error("ERROR:Multi profile retrieved from mysql. ");
 				return null;
 			}else{
 				String[] index=res2.split(",");
@@ -457,7 +464,7 @@ public class Profile  {
 					System.err.println("ERROR:empty query by : "+sql2);
 					return null;
 				} else if(res2.split("\n").length!=1){
-					System.err.println("ERROR:Multi profile retrieved from mysql. ");
+					log.error("ERROR:Multi profile retrieved from mysql. ");
 					return null;
 				}else{
 					String[] index=res2.split(",");
@@ -543,7 +550,7 @@ public class Profile  {
 	public	static int deleteFromDB(MySqlClass mysql,int ctrolID,int profileID) throws SQLException
 		{
 			mysql.conn.setAutoCommit(false);
-			String sql="delete * "
+			String sql="delete "
 					+ "  from  "				
 					+profileDetailTable
 					+" where ctr_id="+ctrolID
@@ -557,7 +564,7 @@ public class Profile  {
 				return 0;
 			}
 			
-			String sql2="delete *  "
+			String sql2="delete   "
 			+ "  from "				
 			+profileIndexTable
 			+" where ctr_id="+ctrolID
@@ -683,7 +690,7 @@ public class Profile  {
 			System.err.println("ERROR:empty query by : "+sql2);
 			return null;
 		} else if(res2.split("\n").length!=1){
-			System.err.println("ERROR:Multi profile retrieved from mysql. ");
+			log.error("ERROR:Multi profile retrieved from mysql. ");
 			return null;
 		}else{
 			String[] index=res2.split(",");

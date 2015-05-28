@@ -232,7 +232,7 @@ public class IRMatch {
 		
 	public static String[][] getAllMaches(){
 		
-		SQLiteUtil sqlite=new SQLiteUtil("ird2.db");
+		SQLiteUtil sqlite=new SQLiteUtil("ird3.db");
 		String sql="select id,matchs,format_name from formats;";
 		String rs=sqlite.select(sql);
 		//System.out.println(rs);
@@ -448,7 +448,7 @@ public class IRMatch {
 	
 	public static void main(String[] args) {
 		
-		String[] raw=new String[21];
+		String[] raw=new String[23];
 		raw[0]="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
 		raw[1]="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
 		raw[2]="1e,04,00,00,24,00,26,82,a0,02,a0,82,a0,06,86,c1,23,4d,c2,00,11,85,c3,00,23,04,0c,00,50,02,00";
@@ -470,7 +470,11 @@ public class IRMatch {
         raw[18]="2A,04,00,00,24,00,26,81,8E,01,8E,81,8E,06,8F,C1,D,6F,C2,00,06,8F,C3,00,88,40,00,14,80,43,02,A8,EE,23,00,68,00,00,2,00,00,55,00";
         raw[19]="33,04,00,00,24,00,26,82,35,02,35,82,35,06,58,C1,11,5E,C2,00,11,5E,C3,00,30,4D,B2,F8,07,1B,E4,C2,00,11,5E,C1,11,5E,C2,00,11,5E,C3,00,30,4D,B2,F8,07,1B,E4,00";
         raw[20]="27,04,00,00,24,00,26,81,FC,01,FC,81,FC,05,F8,C1,0E,1B,C2,00,05,F8,C3,00,70,23,CB,26,01,00,24,8,07,09,00,00,00,00,51,00";
-	    for (int k = 0; k < raw.length; k++) {
+        
+        raw[21]="33,04,00,00,24,00,26,81,AE,02,81,81,AE,06,D4,C1,10,BD,C2,00,11,94,C3,00,30,4D,B2,DE,21,07,F8,C2,00,14,C3,C1,10,BC,C2,00,11,92,C3,00,30,4D,B2,DE,21,07,F8,00";
+        raw[22]="33,04,00,00,24,00,26,81,9F,02,93,81,9F,06,E3,C1,10,AE,C2,00,11,A0,C3,00,30,4D,B2,F8,07,1A,E5,C2,00,14,D4,C1,10,AA,C2,00,11,A4,C3,00,30,4D,B2,F8,07,1A,E5,00";
+		    
+	    for (int k = 21; k < raw.length; k++) {
     	    String wave=getIRString(raw[k].toUpperCase());
     	  //System.out.println("wave = "+wave);
     		String encode=encode(wave.substring(0, wave.length()-1));

@@ -136,7 +136,7 @@ public class Header{
 			 byte[] reserve	    ={header[19],header[20],header[21],header[22]} ;
 			 
 			//大端字节序 
-			this.headTag=new String(headTag,"UTF-8");;			
+			this.headTag=new String(headTag,"UTF-8");		
 			this.mainVersion=mainVersion;
 			this.subVersion=subVersion;
 			this.msgLen=BytesUtil.getShort(msgLen);

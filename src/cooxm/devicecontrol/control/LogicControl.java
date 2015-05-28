@@ -14,8 +14,10 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
@@ -73,6 +75,16 @@ public class LogicControl {
 	/*** 中控切换情景模式命令 的回复 */
 	private static final short SWITCH_ROOM_PROFILE_ACK			=	COMMAND_START+4+COMMAND_ACK_OFFSET;
 	
+    /*** 请求 一个用户家里所有情景模式    @see get_room_profile() */
+	private static final short GET_ALL_PROFILES					=	COMMAND_START+5;	
+    /*** 请求一个用户家里所的情景模式 回复    @see get_room_profile_ack() */
+	private static final short GET_ALL_PROFILE_ACK     		=   COMMAND_START+5 + COMMAND_ACK_OFFSET;	
+	
+    /*** 上报一个用户家里所有情景模式   @see set_room_profile()  */
+	private static final short SET_ALL_PROFILES					=	COMMAND_START+6;	
+    /*** 上报一个用户家里所有情景模式的回复   @see set_room_profile_ack()  */
+	private static final short SET_ALL_PROFILE_ACK	    		=	COMMAND_START+6+COMMAND_ACK_OFFSET;
+	
 	/*** 请求 情景模式集 */	
 	private static final short GET_RROFILE_SET					=	COMMAND_START+21;
 	/*** 请求 情景模式集 的回复*/	
@@ -103,12 +115,22 @@ public class LogicControl {
 	/*** 上报或者下发 情景模板 回复*/
 	private static final short SET_RROFILE_TEMPLATE_ACK			=	COMMAND_START+26+COMMAND_ACK_OFFSET;
 	
-	/*** 请求家电列表*/
+	/*** 请求一个用户家里所有 情景模式集 */	
+	private static final short GET_ALL_RROFILE_SET					=	COMMAND_START+27;
+	/*** 请求一个用户家里所有 情景模式集 的回复*/	
+	private static final short GET_ALL_RROFILE_SET_ACK				=	COMMAND_START+27+COMMAND_ACK_OFFSET;
+	
+	/*** 上报一个用户家里所有 情景模式集*/
+	private static final short SET_ALL_RROFILE_SET					=	COMMAND_START+28;
+	/*** 上报一个用户家里所有 情景模式集 的回复*/
+	private static final short SET_ALL_RROFILE_SET_ACK				=	COMMAND_START+28+COMMAND_ACK_OFFSET;
+	
+	/*** 请求一个家电*/
 	private static final short GET_ONE_DEVICE				=	COMMAND_START+41;
 	/*** 请求家电列表 的回复*/
 	private static final short GET_ONE_DEVICE_ACK			=	COMMAND_START+41+COMMAND_ACK_OFFSET;	
 	
-	/*** 设置 家电列表*/
+	/*** 设置 家电*/
 	private static final short SET_ONE_DEVICE				=	COMMAND_START+42;
 	/*** 设置 家电列表 的回复*/
 	private static final short SET_ONE_DEVICE_ACK			=	COMMAND_START+42+COMMAND_ACK_OFFSET;	
@@ -122,6 +144,16 @@ public class LogicControl {
 	public static final short SWITCH_DEVICE_STATE		    =	COMMAND_START+44;
 	/*** 切换某个家电状态 的回复*/
 	private static final short SWITCH_DEVICE_STATE_ACK		=	COMMAND_START+44+COMMAND_ACK_OFFSET;
+	
+	/*** 请求一个用户家里所有家电列表*/
+	private static final short GET_ALL_DEVICE				=	COMMAND_START+45;
+	/*** 请求一个用户家里所有家电列表 的回复*/
+	private static final short GET_ALL_DEVICE_ACK			=	COMMAND_START+45+COMMAND_ACK_OFFSET;	
+	
+	/*** 上报一个用户家里所有家电列表*/
+	private static final short SET_ALL_DEVICE				=	COMMAND_START+46;
+	/*** 上报一个用户家里所有家电列表 的回复*/
+	private static final short SET_ALL_DEVICE_ACK			=	COMMAND_START+46+COMMAND_ACK_OFFSET;
 	
 	/*** 请求家电列表*/
 	private static final short GET_ONE_ROOM				=	COMMAND_START+51;
@@ -137,6 +169,16 @@ public class LogicControl {
 	private static final short DELETE_ONE_ROOM			=	COMMAND_START+53;
 	/*** 删除某一个 家电*/
 	private static final short DELETE_ONE_ROOM_ACK		=	COMMAND_START+53+COMMAND_ACK_OFFSET;
+	
+	/*** 请求家电列表*/
+	private static final short GET_ALL_ROOM				=	COMMAND_START+54;
+	/*** 请求家电列表 的回复*/
+	private static final short GET_ALL_ROOM_ACK			=	COMMAND_START+54+COMMAND_ACK_OFFSET;	
+	
+	/*** 设置 家电列表*/
+	private static final short SET_ALL_ROOM				=	COMMAND_START+55;
+	/*** 设置 家电列表 的回复*/
+	private static final short SET_ALL_ROOM_ACK			=	COMMAND_START+55+COMMAND_ACK_OFFSET;
 	
 	/*** 请求触发规则模板 */
 	private static final short GET_TRIGGER_TEMPLATE				=	COMMAND_START+61;	
@@ -216,8 +258,14 @@ public class LogicControl {
 	/** 红外码库文件不存在*/
 	public static final int INFRARED_CODE_NOT_RECOGNIZED = -50032;
 	
+	/** 下载红外码库时 没有告知家电类型*/
+	public static final int UNKNOWN_DEVICE_TYPE = -50033;
+	
 	/** 服务器没有通过认证*/
 	public static final int SERVER_NOT_AUTHORIZED	  = -50041;
+	
+	/** 服务器没有通过认证*/
+	public static final int IN_PROCESS_PLEASE_WAIT	  = -50051;
 	
 
 	
@@ -228,12 +276,12 @@ public class LogicControl {
 	static MySqlClass mysql=null;
 	SocketClient msgSock=null;
 	Jedis jedis=null;// new Jedis("172.16.35.170", 6379,200);
-	ProfileMap profileMap =null;
+	public static ProfileMap profileMap =null;
 	ProfileSetMap profileSetMap =null;
 	DeviceMap deviceMap=null;
 	TriggerMap triggerMap=null;
 	RoomMap roomMap=null;
-	File ir_file;//=new File(cf.getValue("ir_file_path"));
+	String ir_file_path;//=new File(cf.getValue("ir_file_path"));
 	private final static String currentProfile= "currentProfile";
 	private final static String currentProfileSet= "currentProfileSet";
 	private final static String currentDeviceState= "currentDeviceState";	
@@ -256,7 +304,7 @@ public class LogicControl {
 		int cluster_id          =Integer.parseInt(cf.getValue("cluster_id"));
 		int server_id           =Integer.parseInt(cf.getValue("server_id"));
 		
-		ir_file=new File(cf.getValue("ir_file_path"));
+		ir_file_path=cf.getValue("ir_file_path");
 		
 		
 		mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
@@ -277,10 +325,10 @@ public class LogicControl {
 		} catch (SQLException  e) {
 			e.printStackTrace();
 		}
-		log.info("Initialization of map successful :  profileMap,size="+profileMap.size()
+		log.info("Initialization of map successful :  profileMap size="+profileMap.size()
 				+";profileSetMap size="+profileMap.size()
-				+"; deviceMap, size="+deviceMap.size()
-				+"; roomMap, size="+roomMap.size()
+				+"; deviceMap size="+deviceMap.size()
+				+"; roomMap size="+roomMap.size()
 				);
 		log.info("Initialization of Logic control module finished. ");
 	}
@@ -338,6 +386,22 @@ public class LogicControl {
 				e.printStackTrace();
 			}
 			break;
+		case GET_ALL_PROFILES:			
+			try {
+				get_all_profile(msg);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			break;
+		case SET_ALL_PROFILES:
+			try {
+				set_all_profile(msg);
+			} catch (JSONException | SQLException | ParseException e) {
+				e.printStackTrace();
+			} 
+			break;	
 		case GET_RROFILE_SET:	
 			try {
 				get_profile_set(msg);
@@ -374,6 +438,26 @@ public class LogicControl {
 				e1.printStackTrace();
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
+			}
+			break;
+		case GET_ALL_RROFILE_SET:	
+			try {
+				get_all_profile_set(msg);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			break;
+		case SET_ALL_RROFILE_SET:	
+			try {
+				set_all_profile_set(msg);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			} catch (ParseException e) {
+				e.printStackTrace();
 			}
 			break;
 		case GET_RROFILE_TEMPLATE: 	
@@ -428,6 +512,22 @@ public class LogicControl {
 				e.printStackTrace();
 			}
 			break;
+		case GET_ALL_DEVICE:	
+			try {
+				get_all_device(msg);;
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			break;
+		case SET_ALL_DEVICE:	
+			try {
+				set_all_device(msg, mysql);;
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			break;	
 		case GET_ONE_ROOM:	
 			try {
 				get_one_room(msg);;
@@ -451,6 +551,22 @@ public class LogicControl {
 				e.printStackTrace();
 			}
 			break;	
+		case GET_ALL_ROOM:	
+			try {
+				get_all_room(msg);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			break;
+		case SET_ALL_ROOM:	
+			try {
+				set_all_room(msg, mysql);;
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			break;
 		case WARNING_MSG:	
 			warning_msg(msg);
 			break;
@@ -565,8 +681,8 @@ public class LogicControl {
 	/*** 请求查询情景模式
      * <pre>传入的json格式为：
      * { 
-     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   sender:    0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:  0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
      *   ctrolID:1234567
      *   profileID:7654321
      * }
@@ -576,8 +692,8 @@ public class LogicControl {
      *   （2）如果查询的情景模式存在，则返回:
      *  { 
      *  errorCode:SUCCESS,
-     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   sender:    0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:  0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
      *   ctrolID:1234567,
      *   profileID:7654321,
      *   profile: 
@@ -601,18 +717,19 @@ public class LogicControl {
     		json.put("profile", profile.toJsonObj());
     		json.put("errorCode",SUCCESS);
     	}else {
-			log.warn("Can't get_room_profile ctrolID:"+ctrolID+" profileID:"+profileID+" from profileMap or Mysql.");
+			log.error("Can't get_room_profile ctrolID:"+ctrolID+" profileID:"+profileID+" from profileMap or Mysql.");
 			json.put("errorCode",PROFILE_NOT_EXIST);
     	}
     	msg.setCommandID(GET_ROOM_PROFILE_ACK);
 		json.put("sender",2);
-
 		json.put("receiver",sender);  
+		msg.setJson(json);
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
-		}    	
+		} 
+    	//System.out.println("get room profile result:"+msg.toString());
     }
      
     /*** 保存或者上传一个情景模式
@@ -624,9 +741,10 @@ public class LogicControl {
      *  (2)如果上传的profile的修改时间早于云端，则需要将云端的情景模式下发到 终端（手机、中控）,返回{"errorCode":OBSOLTE_PROFILE}  ；     *         
      *@param message 传入的json格式为： （要上传或者保存的prifile的json格式）
      * {
-     *  "senderRole":    中控:0 ; 手机:1 ; 设备控制服务器:2;
-     *  "receiverRole":  中控:0 ; 手机:1 ; 设备控制服务器:2;
-     *  profile:
+     *  "sender":     0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *  "receiver":   0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *  "ctrolID":12345677
+     *  "profile":
      *   {
 			"profileID":123456789,
 			"ctrolID":12345677,
@@ -656,16 +774,17 @@ public class LogicControl {
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	Profile msgProfile=new Profile(msg.getJson().getJSONObject("profile"));
     	Profile dbProfile;
-    	int ctrolID=msg.getJson().getInt("ctrolID");
-    	int profileID=msg.getJson().getInt("profileID");
-    	Date msgModifyTime=sdf.parse(msg.getJson().getString("modifyTime"));
+    	int ctrolID=msgProfile.getCtrolID();
+    	int profileID=msgProfile.getProfileID();
+    	Date msgModifyTime=msgProfile.getModifyTime();
     	String key=ctrolID+"_"+profileID;
     	int sender=0;
 		if(msg.getJson().has("sender")){
 			   sender=msg.getJson().getInt("sender");
 		}
     	if( (dbProfile=this.profileMap.get(key))!=null && dbProfile.getModifyTime().after(msgModifyTime)){	//云端较新  
-			json.put("errorCode",PROFILE_OBSOLETE);    		
+			json.put("errorCode",PROFILE_OBSOLETE);    	
+			log.error("Profile in Cloud is newer than from profile from user, ctrolID:"+ctrolID+" profileID:"+profileID+".");
     	}else { //云端较旧  或者 不存在，则保存
     		this.profileMap.put(key, msgProfile);
 			
@@ -685,8 +804,8 @@ public class LogicControl {
     /*** 删除情景模式
      * <pre>传入的json格式为：
      * { 
-     *   senderRole:    中控:0 ; 手机:1 ; 设备控制服务器:2;
-     *   receiverRole:  中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *   sender:     0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:   0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
      *   ctrolID:1234567
      *   profileID:7654321
      * }
@@ -712,7 +831,7 @@ public class LogicControl {
     		Profile.deleteFromDB(mysql, ctrolID, profileID);
     		json.put("errorCode", SUCCESS);
     	}else {
-			log.warn("room_profile not exist ctrolID:"+ctrolID+" profileID:"+profileID+" from profileMap or Mysql.");
+			log.error("room_profile not exist ctrolID:"+ctrolID+" profileID:"+profileID+" from profileMap or Mysql.");			
 			//msg.setJson()new JSONObject();
 			json.put("errorCode",PROFILE_NOT_EXIST);
     	}
@@ -750,28 +869,139 @@ public class LogicControl {
     	if(msg.getJson().has("sender")){
     		sender=msg.getJson().getInt("sender"); 
     	}
-    	String key=ctrolID+"_currentProfile";
+    	String key=ctrolID+"_"+profileID;
     	if((profile= profileMap.get(key))!=null || (profile=Profile.getFromDBByProfileID(mysql, ctrolID, profileID))!=null){
     		int roomID=profile.getRoomID();
     		String command=profile.getCtrolID()+","+msg.getCommandID()+","+profile.getRoomType()+","+profile.getRoomID()+","+profileID;
     		jedis.publish(commandQueue,command);
-    		jedis.hset(key, roomID+"", profile.toJsonObj().toString());
+        	String key2=ctrolID+"_currentProfile";
+    		jedis.hset(key2, roomID+"", profile.toJsonObj().toString());
     		if(sender==0){
     			json.put("errorCode",SUCCESS);
     		}else {
     			TimeOutTread to=new TimeOutTread(10,msg);
-    			to.start();   			
+    			to.start();   	
+    			json.put("errorCode", IN_PROCESS_PLEASE_WAIT);
     		}
     	}else {
-			log.warn("Can't switch room profile,profile doesn't exist. ctrolID:"+ctrolID+" profileID:"+profileID+" from profileMap or Mysql.");
+			log.error("Can't switch room profile,profile doesn't exist. ctrolID:"+ctrolID+" profileID:"+profileID+" from profileMap or Mysql.");
 			json.put("errorCode",PROFILE_NOT_EXIST);
     	}
-    	msg.setCommandID(SWITCH_ROOM_PROFILE_ACK);
+    	//2015-05-27 收到切换请求暂时不回复，等待中控的回复。
+    	/*replyMsg.setCommandID(SWITCH_ROOM_PROFILE_ACK);
     	json.put("sender",2);
     	json.put("receiver",sender);
     	json.put("originalSenderRole", sender);
-		replyMsg.setJson(new JSONObject());
-    	CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		replyMsg.setJson(json);
+    	CtrolSocketServer.sendCommandQueue.offer(replyMsg, 100, TimeUnit.MILLISECONDS);*/
+    }
+    
+	/*** 请求查询一个用户家里所有情景模式
+     * <pre>传入的json格式为：
+     * { 
+     *   sender:    0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:  0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   ctrolID:1234567
+     * }
+     * @throws JSONException 
+     * @return message 的json格式：
+     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode": XXXX}
+     *   （2）如果查询的情景模式存在，则返回:
+     *  { 
+     *  errorCode:SUCCESS,
+     *   sender:    0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:  0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   ctrolID:1234567,
+     *   profileArray: 
+     *         [  { 情景模式的json格式      },
+     *            { 情景模式的json格式      },
+     *            { 情景模式的json格式      },
+     *         ]
+     * }                 
+     */
+    public void get_all_profile(Message msg) throws JSONException, SQLException{
+    	List<Profile> profileList=null;
+    	int ctrolID=msg.getJson().getInt("ctrolID");
+    	//int profileID=msg.getJson().getInt("profileID");
+		JSONObject json= new JSONObject();
+    	int sender=0;
+		if(msg.getJson().has("sender")){
+			   sender=msg.getJson().getInt("sender");
+		}
+    	if( (profileList= profileMap.getProfilesByctrolID(ctrolID))!=null  ){
+    		JSONArray ja=new JSONArray();
+    		for (Profile profile : profileList) {
+				ja.put(profile.toJsonObj());
+			}
+    		json.put("profileArray", ja);
+    		json.put("errorCode",SUCCESS);
+    	}else {
+			log.error("Can't get_all_profile by ctrolID:"+ctrolID+" from profileMap or Mysql.");
+			json.put("errorCode",PROFILE_NOT_EXIST);
+    	}
+    	msg.setCommandID(GET_ALL_PROFILE_ACK);
+		json.put("sender",2);
+
+		json.put("receiver",sender);  
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}    	
+    }
+     
+    /*** 保存或者上传一个情景模式
+     *<pre> @throws JSONException 
+     * @throws SQLException 
+     * @return message的json格式:
+     *  (1)如果云端不存在该情景模式，直接保存，返回json: {"errorCode":SUCCESS}；
+     *  (2)如果上传的profile的修改时间晚于云端，则将上报的profile保存在数据库，返回{"errorCode":SUCCESS}；
+     *  (2)如果上传的profile的修改时间早于云端，则需要将云端的情景模式下发到 终端（手机、中控）,返回{"errorCode":OBSOLTE_PROFILE}  ；     *         
+     *@param message 传入的json格式为： （要上传或者保存的prifileArray的json格式）
+     * {
+     *  "sender":     0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *  "receiver":   0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *  "profileArray":[
+     *                 {profile1的jason格式	},
+     *                 {profile2的jason格式	},
+     *                 ....
+     *                 ]
+	  }
+     * @throws ParseException 
+	*/
+    public void set_all_profile( Message msg) throws JSONException, SQLException, ParseException{
+    	JSONObject json=new JSONObject();
+    	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    	//Profile msgProfile=new Profile(msg.getJson().getJSONObject("profile"));
+    	Profile dbProfile;
+    	int ctrolID=msg.getJson().getInt("ctrolID");
+    	int sender=0;
+		if(msg.getJson().has("sender")){
+			   sender=msg.getJson().getInt("sender");
+		}
+		JSONArray ja=msg.getJson().getJSONArray("profileArray");		
+		for (int i=0;i<ja.length();i++) {
+			Profile msgProfile = new Profile(ja.getJSONObject(i));
+	    	int profileID=msg.getJson().getInt("profileID");
+	    	String key=ctrolID+"_"+profileID;
+	    	Date msgModifyTime=sdf.parse(msg.getJson().getString("modifyTime"));    
+	    	if( (dbProfile=this.profileMap.get(key))!=null && dbProfile.getModifyTime().after(msgModifyTime)){	//云端较新  
+	    		log.error("Profile in Cloud is newer than from profile from user, ctrolID:"+ctrolID+" profileID:"+profileID+".");
+				json.put("errorCode",PROFILE_OBSOLETE);    		
+	    	}else { //云端较旧  或者 不存在，则保存
+	    		this.profileMap.put(key, msgProfile);
+				json.put("errorCode",SUCCESS);   
+			}    		
+		}    	
+  		msg.setCommandID(SET_ALL_PROFILE_ACK);
+		json.put("sender",2);
+		json.put("receiver",sender); 
+    	msg.setJson(json);
+    	try {
+			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}     	
     }
     
     /*** 请求切换情景模式,返回值
@@ -802,8 +1032,8 @@ public class LogicControl {
      *   （2）如果查询的情景模式集存在，则返回:
      *  { 
      *   errorCode:SUCCESS,
-     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   sender:    0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:  0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
      *   ctrolID:1234567,
      *   profileSetID:7654321,
      *   profile: 
@@ -826,7 +1056,7 @@ public class LogicControl {
     		json.put("profileSet", profileSet.toJsonObj());
     		json.put("errorCode",SUCCESS);   
     	}else {
-			log.warn("Can't get_profile_set, ctrolID:"+ctrolID+" profileSetID:"+profileSetID+" from profileMap or Mysql.");
+			log.error("Can't get_profile_set, ctrolID:"+ctrolID+" profileSetID:"+profileSetID+" from profileMap or Mysql.");
 			json.put("errorCode",PROFILE_SET_NOT_EXIST);
     	}
     	msg.setCommandID( GET_RROFILE_SET_ACK);
@@ -847,8 +1077,9 @@ public class LogicControl {
 	 * <pre>Json格式和 设置情景模式 和 {@link cooxm.devicecontrol.control.LogicControl#SET_ROOM_RROFILE SET_ROOM_RROFILE} 类似：
 
      * { 
-     *  "senderRole":    中控:0 ; 手机:1 ; 设备控制服务器:2;
-     *  "receiverRole":  中控:0 ; 手机:1 ; 设备控制服务器:2; 
+     *  "sender":     0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *  "receiver":   0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务 
+     *  "ctrolID":12345677
      *   profileSet:
      *     {  
      *      情景模式集 的json格式 ：即多个情景模式组成的json数组    
@@ -860,9 +1091,9 @@ public class LogicControl {
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	ProfileSet msgProfileSet=new ProfileSet(msg.getJson().getJSONObject("profileSet"));
     	ProfileSet dbProfileSet;
-    	int ctrolID=msg.getJson().getInt("ctrolID");
-    	int profileSetID=msg.getJson().getInt("profileSetID");
-    	Date msgModifyTime=sdf.parse(msg.getJson().getString("modifyTime"));
+    	int ctrolID=msgProfileSet.getCtrolID();
+    	int profileSetID=msgProfileSet.getProfileSetID();
+    	Date msgModifyTime=msgProfileSet.getModifyTime();
     	String key=ctrolID+"_"+profileSetID;
     	int sender=0;
     	if(msg.getJson().has("sender")){
@@ -873,6 +1104,7 @@ public class LogicControl {
     		profileSetMap.put(key, msgProfileSet);
 			json.put("errorCode",SUCCESS);     		
     	}else if( dbProfileSet.getModifyTime().after(msgModifyTime)){	//云端较新  
+    		log.error("Profile in Cloud is newer than from profile from user, ctrolID:"+ctrolID+" profileID:"+profileSetID+".");
 			json.put("errorCode",PROFILE_SET_OBSOLETE);    		
     	}else if( dbProfileSet.getModifyTime().before(msgModifyTime)){
     		profileSetMap.put(key, msgProfileSet);
@@ -917,7 +1149,7 @@ public class LogicControl {
     		ProfileSet.deleteProfileSetFromDB(mysql, ctrolID, profileSetID);
     		json.put("errorCode", SUCCESS);
     	}else {
-			log.warn("room_profileSet not exist ctrolID:"+ctrolID+" profileSetID:"+profileSetID+" from profileSetMap or Mysql.");
+			log.error("room_profileSet not exist ctrolID:"+ctrolID+" profileSetID:"+profileSetID+" from profileSetMap or Mysql.");
 			json.put("errorCode",PROFILE_SET_NOT_EXIST);
     	}
     	msg.setCommandID( DELETE_RROFILE_SET_ACK);
@@ -936,7 +1168,7 @@ public class LogicControl {
 	/*** 情景模式集切换 
 	 * 	 <pre>对应json消息体为：
 	 *   {
-	 *     senderRole:"control"/"mobile"/"cloud"
+	 *     sender:"control"/"mobile"/"cloud"
 	 *     ctrolID:1234567
 	 *     profileSetID:7654321
      *   }*/
@@ -964,10 +1196,11 @@ public class LogicControl {
 	    		json.put("errorCode",SUCCESS);  	    		
     		}else {
     			TimeOutTread to=new TimeOutTread(10,msg);
-    			to.start();  				
+    			to.start();  	
+    			json.put("errorCode", IN_PROCESS_PLEASE_WAIT);
     		}
     	}else {
-			log.warn("Can't switch room profileSet,profileSet doesn't exit. ctrolID:"+ctrolID+" profileSetID:"+profileSetID+" from profileSetMap or Mysql.");
+			log.error("Can't switch room profileSet,profileSet doesn't exit. ctrolID:"+ctrolID+" profileSetID:"+profileSetID+" from profileSetMap or Mysql.");
 			json.put("errorCode",PROFILE_NOT_EXIST);
     	}
     	msg.setCommandID( SWITCH_RROFILE_SET_ACK);
@@ -977,6 +1210,129 @@ public class LogicControl {
 		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		
 	}
+	
+    /*** 请求切换某个情景模式,返回值
+     * <pre>传入的json格式为：
+    * { 
+     *   sender:    中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:4; ...
+     *   receiver:  中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:5; ...
+         errorCode: SUCCESS/ PROFILE_SET_NOT_EXIST /TIME_OUT /WRONG_COMMAND
+    * }
+     * @throws InterruptedException 
+ 	* */
+    public void switch_room_profile_set_ack(final Message msg)throws JSONException, SQLException, InterruptedException{
+		TimeOutTread to=new TimeOutTread(10,msg);
+		to.start();
+    }
+	
+	/*** 请求查询一个用户家里所有情景模式
+     * <pre>传入的json格式为：
+     * { 
+     *   sender:    0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:  0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   ctrolID:1234567
+     * }
+     * @throws JSONException 
+     * @return message 的json格式：
+     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode": XXXX}
+     *   （2）如果查询的情景模式存在，则返回:
+     *  { 
+     *  errorCode:SUCCESS,
+     *   sender:    0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:  0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   ctrolID:1234567,
+     *   profileSetArray: 
+     *         [  { 情景集的json格式      },
+     *            { 情景集的json格式      },
+     *            { 情景集的json格式      },
+     *         ]
+     * }                 
+     */
+    public void get_all_profile_set(Message msg) throws JSONException, SQLException{
+    	List<ProfileSet> profileSetList=null;
+    	int ctrolID=msg.getJson().getInt("ctrolID");
+    	//int profileID=msg.getJson().getInt("profileSetID");
+		JSONObject json= new JSONObject();
+    	int sender=0;
+		if(msg.getJson().has("sender")){
+			   sender=msg.getJson().getInt("sender");
+		}
+    	if( (profileSetList= profileSetMap.getProfileSetsByctrolID(ctrolID))!=null  ){
+    		JSONArray ja=new JSONArray();
+    		for (ProfileSet profile : profileSetList) {
+				ja.put(profile.toJsonObj());
+			}
+    		json.put("profileSetArray", ja);
+    		json.put("errorCode",SUCCESS);
+    	}else {
+			log.error("Can't get_room_profileSet by ctrolID:"+ctrolID+" from profileMap or Mysql.");
+			json.put("errorCode",PROFILE_NOT_EXIST);
+    	}
+    	msg.setCommandID(GET_ALL_RROFILE_SET_ACK);
+		json.put("sender",2);
+
+		json.put("receiver",sender);  
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}    	
+    }
+     
+    /*** 保存或者上传一个情景模式
+     *<pre> @throws JSONException 
+     * @throws SQLException 
+     * @return message的json格式:
+     *  (1)如果云端不存在该情景模式，直接保存，返回json: {"errorCode":SUCCESS}；
+     *  (2)如果上传的profile的修改时间晚于云端，则将上报的profile保存在数据库，返回{"errorCode":SUCCESS}；
+     *  (2)如果上传的profile的修改时间早于云端，则需要将云端的情景模式下发到 终端（手机、中控）,返回{"errorCode":OBSOLTE_PROFILE}  ；     *         
+     *@param message 传入的json格式为： （要上传或者保存的prifileArray的json格式）
+     * {
+     *  "sender":     0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *  "receiver":   0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *  "profileSetArray":[
+     *                 {profile1的jason格式	},
+     *                 {profile2的jason格式	},
+     *                 ....
+     *                 ]
+	  }
+     * @throws ParseException 
+	*/
+    public void set_all_profile_set( Message msg) throws JSONException, SQLException, ParseException{
+    	JSONObject json=new JSONObject();
+    	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    	//Profile msgProfile=new Profile(msg.getJson().getJSONObject("profile"));
+    	ProfileSet dbProfile;
+    	int ctrolID=msg.getJson().getInt("ctrolID");
+    	int sender=0;
+		if(msg.getJson().has("sender")){
+			   sender=msg.getJson().getInt("sender");
+		}
+		JSONArray ja=msg.getJson().getJSONArray("profileSetArray");		
+		for (int i=0;i<ja.length();i++) {
+			ProfileSet msgProfile = new ProfileSet(ja.getJSONObject(i));
+	    	int profileSetID=msgProfile.getProfileSetID();
+	    	Date msgModifyTime=msgProfile.getModifyTime();		
+			String key=ctrolID+"_"+profileSetID;
+			
+	    	if( (dbProfile=this.profileSetMap.get(key))!=null && dbProfile.getModifyTime().after(msgModifyTime)){	//云端较新  
+	    		log.error("Profile in Cloud is newer than from profile from user, ctrolID:"+ctrolID+" profileID:"+profileSetID+".");
+				json.put("errorCode",PROFILE_OBSOLETE);    		
+	    	}else { //云端较旧  或者 不存在，则保存	    		
+	    		this.profileSetMap.put(key, msgProfile);
+				json.put("errorCode",SUCCESS);   
+			}    		
+		}    	
+  		msg.setCommandID(SET_ALL_RROFILE_SET_ACK);
+		json.put("sender",2);
+		json.put("receiver",sender); 
+    	msg.setJson(json);
+    	try {
+			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}     	
+    }
 	
     /*** 请求切换情景模式集,返回值
      * <pre>传入的json格式为：
@@ -995,8 +1351,8 @@ public class LogicControl {
     /*** 请求查询情景模板
      * <pre>传入的json格式为：
      * { 
-     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   sender:    0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:  0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
      *   ctrolID:1234567
      *   profileTemplateID:7654321
      * }
@@ -1006,8 +1362,8 @@ public class LogicControl {
      *   （2）如果查询的情景模式存在，则返回:
      *  { 
      *  errorCode:SUCCESS,
-     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   sender:    0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:  0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
      *   ctrolID:1234567,
      *   profileTemplateID:7654321,
      *   profileTemplate: 
@@ -1029,7 +1385,7 @@ public class LogicControl {
     		json.put("profileTemplate", profileTemplat.toJsonObj());
     		json.put("errorCode",SUCCESS);
     	}else {
-			log.warn("Can't get_profile_template, profileTemplatID:"+profileTemplatID+" from Mysql.");
+			log.error("Can't get_profile_template, profileTemplatID:"+profileTemplatID+" from Mysql.");
 			json.put("errorCode",PROFILE_TEMPLATE_NOT_EXIST);
     	}
     	msg.setCommandID( GET_RROFILE_TEMPLATE_ACK);
@@ -1066,8 +1422,9 @@ public class LogicControl {
      *  (2)如果上传的profile的修改时间早于云端，则需要将云端的情景模式下发到 终端（手机、中控）,返回{"errorCode":OBSOLTE_PROFILE}  ；     *         
      *@param message 传入的json格式为： （要上传或者保存的prifile的json格式）
      * {
-     *  "senderRole":    中控:0 ; 手机:1 ; 设备控制服务器:2;
-     *  "receiverRole":  中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *  "sender":     0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *  "receiver":   0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     * "ctrolID":12345677
      *  profileTemplat:
      *   {
 			"profileTemplatID":123456789,
@@ -1096,10 +1453,10 @@ public class LogicControl {
     public void set_profile_template( Message msg) throws JSONException, SQLException, ParseException{
     	JSONObject json=new JSONObject();
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    	//ProfileTemplate msgProfile=new ProfileTemplate(msg.getJson().getJSONObject("profileTemplate"));
+    	ProfileTemplate msgProfile=new ProfileTemplate(msg.getJson().getJSONObject("profileTemplate"));
     	ProfileTemplate dbProfile;
-    	int profileTemplatID=msg.getJson().getInt("profileTemplatID");
-    	Date msgModifyTime=sdf.parse(msg.getJson().getString("modifyTime"));
+    	int profileTemplatID=msgProfile.getProfileTemplateID();
+    	Date msgModifyTime=msgProfile.getModifyTime();
     	int sender=0;
 		if(msg.getJson().has("sender")){
 			   sender=msg.getJson().getInt("sender");
@@ -1107,6 +1464,7 @@ public class LogicControl {
     	if((dbProfile=ProfileTemplate.getFromDB(mysql, profileTemplatID))==null){
 			json.put("errorCode",SUCCESS);     		
     	}else if(  dbProfile.getModifyTime().after(msgModifyTime)){	//云端较新  
+    		log.error("Profile_template in Cloud is newer than from profile from user,  profileTemplatID:"+profileTemplatID+".");
 			json.put("errorCode",PROFILE_TEMPLATE_OBSOLETE);    		
     	}else if(  dbProfile.getModifyTime().before(msgModifyTime)){ //云端较旧，则保存
 			json.put("errorCode",SUCCESS);   
@@ -1160,7 +1518,7 @@ public class LogicControl {
     		json.put("device", device.toJsonObj());
     		json.put("errorCode",SUCCESS);   
     	}else {
-			log.warn("Can't get_one_device, ctrolID:"+ctrolID+"deviceID: "+ deviceID+" from deviceMap or Mysql.");
+			log.error("Can't get_one_device, ctrolID:"+ctrolID+"deviceID: "+ deviceID+" from deviceMap or Mysql.");
 			json.put("errorCode",DEVICE_NOT_EXIST);
     	}
     	msg.setCommandID( GET_ONE_DEVICE_ACK);
@@ -1176,20 +1534,30 @@ public class LogicControl {
 	
 	
 	/*** 设置 一个家电
-	 * 	 <pre>对应的jsonArray:* 
-	 *   {
-	 *     将这个家电的jsonObject格式
+     * <pre>传入的json格式为：
+     * { 
+     *   ctrolID:1234567
+     *   sender:0
+     *   receiver:0
+     *   device:
+     *   { 
+     *     ...
      *   }
-	 * @throws JSONException 
-	 * @throws ParseException */
+     *   
+     * }
+     * @throws JSONException 
+     * @return message 的json格式：
+     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50002}
+     *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
+     */
 	public void set_one_device(Message msg,MySqlClass mysql) throws JSONException, ParseException{
 		JSONObject json= new JSONObject();
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    	Device msgDevice=new Device(msg.getJson());
+    	Device msgDevice=new Device(msg.getJson().getJSONObject("device"));
     	Device dbDevice;
-    	int ctrolID=msg.getJson().getInt("ctrolID");
-    	int deviceID=msg.getJson().getInt("deviceID");
-    	Date msgModifyTime=sdf.parse(msg.getJson().getString("modifyTime"));
+    	int ctrolID=msgDevice.getCtrolID();
+    	int deviceID=msgDevice.getDeviceID();
+    	Date msgModifyTime=msgDevice.getModifyTime();
     	String key=ctrolID+"_"+deviceID;
     	int sender=0;
     	if(msg.getJson().has("sender")){
@@ -1207,6 +1575,7 @@ public class LogicControl {
     		jedis.hset(key2, deviceID+"", msgDevice.toJsonObj().toString());
 			json.put("errorCode",SUCCESS);
     	}else if(dbDevice.modifyTime.after(msgModifyTime)){ //云端较新  
+    		log.error("Profile in Cloud is newer than from profile from user, ctrolID:"+ctrolID+" deviceID:"+deviceID+".");
 			json.put("errorCode",DEVICE_OBSOLETE);   
 		}
   		msg.setCommandID(SET_ONE_DEVICE_ACK);
@@ -1245,7 +1614,7 @@ public class LogicControl {
     		deviceMap.remove(key);
     		json.put("errorCode", SUCCESS);    		
     	}else {
-			log.warn("room_device not exist ctrolID:"+ctrolID+" deviceID:"+deviceID+" from deviceMap or Mysql.");
+			log.error("room_device not exist ctrolID:"+ctrolID+" deviceID:"+deviceID+" from deviceMap or Mysql.");
 			json.put("errorCode",DEVICE_NOT_EXIST);
     	}
     	msg.setCommandID( DELETE_ONE_DEVICE_ACK);
@@ -1275,6 +1644,7 @@ public class LogicControl {
 	 * @throws SQLException */
 	public void switch_device_state(Message msg) throws JSONException, SQLException{
 		JSONObject json=new JSONObject();
+		Message replyMsg=new Message(msg);
     	Device device=null;
     	int ctrolID=msg.getJson().getInt("ctrolID");
     	int deviceID=msg.getJson().getInt("deviceID");
@@ -1292,39 +1662,150 @@ public class LogicControl {
         		String command=device.getCtrolID()+","+msg.getCommandID()+","+device.getRoomType()+","+device.getRoomID()+","+deviceID+","+deviceType;
         		jedis.publish(commandQueue, command);
         		jedis.hset(key, deviceID+"", state.toJson().toString());
-        		json.put("errorCode",SUCCESS); 	  
+        		//json.put("errorCode",SUCCESS); 	  
         		if(sender==0){
-    	    		  		
+        			json.put("errorCode",SUCCESS);   		
         		}else {
         			TimeOutTread to=new TimeOutTread(10,msg);
-        			to.start();   			
+        			to.start();  
+        			json.put("errorCode", IN_PROCESS_PLEASE_WAIT);
         		}
         	}else{
         		json.put("errorCode",DEVICE_STATE_EMPTY); 	
         	}
 
     	}else {
-			log.warn("Can't switch room device,device doesn't exit. ctrolID:"+ctrolID+" deviceID:"+deviceID+" from deviceMap or Mysql.");
+			log.error("Can't switch room device,device doesn't exit. ctrolID:"+ctrolID+" deviceID:"+deviceID+" from deviceMap or Mysql.");
 			json.put("errorCode",PROFILE_NOT_EXIST);
     	}
-    	msg.setCommandID(SWITCH_DEVICE_STATE_ACK);
+    	replyMsg.setCommandID(SWITCH_DEVICE_STATE_ACK);
     	json.put("sender",2);
     	json.put("receiver",sender); 
-		msg.setJson(json);
+		replyMsg.setJson(json);
 		try {
-			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+			CtrolSocketServer.sendCommandQueue.offer(replyMsg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
 	}
 	
-	/*** 获取一个设备
+	/*** 获取一个用户家里所有设备
+	 * 	 <pre>请求对应json消息体为：
+	 *   {
+	 *     ctrolID:1234567
+     *   }
+     *   @return List< Device > 加电列表 的json格式
+     *   回复消息对应json消息体为：
+     *   deviceArray:[
+     *                 {device的json格式}
+     *                 ...
+     *               ]
+     *   
+	 * @throws JSONException 
+     *   */
+	public void get_all_device(Message msg) throws JSONException{
+    	JSONObject json=new JSONObject();
+    	List<Device> deviceList=new ArrayList<Device>();
+    	int ctrolID=msg.getJson().getInt("ctrolID");
+    	//int deviceID=msg.getJson().getInt("deviceID");
+    	//String key=ctrolID+"_"+deviceID;
+    	int sender=0;
+    	if(msg.getJson().has("sender")){
+    		sender=msg.getJson().getInt("sender"); 
+    	}
+    	if( (deviceList=deviceMap.getApplianceByctrolID(ctrolID))!=null ){
+    		JSONArray ja=new JSONArray();
+    		for (Device device : deviceList) {
+				ja.put(device.toJsonObj());
+			}
+    		json.put("deviceArray", ja);
+    		json.put("errorCode",SUCCESS); 
+    	}else {
+			log.error("Can't get_one_device, ctrolID:"+ctrolID+" from deviceMap or Mysql.");
+			json.put("errorCode",DEVICE_NOT_EXIST);
+    	}
+    	msg.setCommandID( GET_ALL_DEVICE_ACK);
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}	
+	}
+	
+	
+	/*** 设置 一个用户家里所有家电
+	 *   <pre>请求消息格式：
+	 *   {
+	 *    ctrolID:1234564
+	 *   }
+	 * 	 <pre>回复消息JOSN:* 
+	 *   {
+	 *   ctrolID:1234564
+	 *   deviceArray:[
+	 *                 {device的json格式}
+	 *                 ....
+	 *               ]
+	 *     
+     *   }
+	 * @throws JSONException 
+	 * @throws ParseException */
+	public void set_all_device(Message msg,MySqlClass mysql) throws JSONException, ParseException{
+		JSONObject json= new JSONObject();
+    	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    	//Device msgDevice=new Device(msg.getJson());
+    	Device dbDevice;
+    	int ctrolID=msg.getJson().getInt("ctrolID");
+    	int sender=0;
+    	if(msg.getJson().has("sender")){
+    		sender=msg.getJson().getInt("sender"); 
+    	}
+    	JSONArray ja=msg.getJson().getJSONArray("deviceArray");	
+		for (int i=0;i<ja.length();i++) {
+			Device msgDevice = new Device(ja.getJSONObject(i));  
+	    	int deviceID=msgDevice.getDeviceID();
+	    	Date msgModifyTime=msgDevice.getModifyTime();
+	    	String key=ctrolID+"_"+deviceID;
+	    	if((dbDevice=this.deviceMap.get(key))==null  ){	 //不存在或者云端较旧
+	    		this.deviceMap.put(key, msgDevice);
+				json.put("errorCode",SUCCESS);  
+	
+				String key2=ctrolID+"_roomBind";
+	    		int roomID=msgDevice.getRoomID();
+	    		String command=msgDevice.getCtrolID()+","+msg.getCommandID()+","+msgDevice.getRoomType()+","+msgDevice.getRoomID()+","+deviceID;
+	    		//jedis.publish(commandQueue,command);
+	    		jedis.hset(key2, deviceID+"", msgDevice.toJsonObj().toString());
+				json.put("errorCode",SUCCESS);
+	    	}else if(dbDevice.modifyTime.after(msgModifyTime)){ //云端较新  
+	    		log.error("device in Cloud is newer than from profile from user, ctrolID:"+ctrolID+" deviceID:"+deviceID+",discard.");
+				json.put("errorCode",DEVICE_OBSOLETE);   
+			}
+		}
+  		msg.setCommandID(SET_ALL_DEVICE_ACK);
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} 		
+	}
+	
+	/*** 获取一个房间
 	 * 	 <pre>对应json消息体为：
 	 *   {
 	 *     ctrolID:1234567
-	 *     deviceID:
+	 *     roomID:101
      *   }
-     *   @return List< Device > 加电列表 的json格式
+     *   @return List< Device > 加电列表 的jsonArray格式
+     *   {
+     *    ctrolID:1234567,   
+     *	  room: {JSON }
+     *   }
+     *  
 	 * @throws JSONException 
      *   */
 	public void get_one_room(Message msg) throws JSONException{
@@ -1341,10 +1822,10 @@ public class LogicControl {
     		json.put("room", room.toJsonObject());
     		json.put("errorCode",SUCCESS);   
     	}else {
-			log.warn("Can't get_one_room, ctrolID:"+ctrolID+"roomID: "+ roomID+" from roomMap or Mysql.");
+			log.error("Can't get_one_room, ctrolID:"+ctrolID+"roomID: "+ roomID+" from roomMap or Mysql.");
 			json.put("errorCode",DEVICE_NOT_EXIST);
     	}
-    	msg.setCommandID( GET_ONE_DEVICE_ACK);
+    	msg.setCommandID( GET_ALL_ROOM_ACK);
 		json.put("sender",2);
 		json.put("receiver",sender); 
 		msg.setJson(json);
@@ -1357,7 +1838,9 @@ public class LogicControl {
 	
 	
 	/*** 设置 一个家电
-	 * 	 <pre>对应的jsonArray:* 
+	 * 	 <pre>对应的json:* 
+	 *   ctrolID:123456789
+	 *   room:
 	 *   {
 	 *     将这个家电的jsonObject格式
      *   }
@@ -1366,11 +1849,11 @@ public class LogicControl {
 	public void set_one_room(Message msg,MySqlClass mysql) throws JSONException, ParseException{
 		JSONObject json= new JSONObject();
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    	Room msgRoom=new Room(msg.getJson());
+    	Room msgRoom=new Room(msg.getJson().getJSONObject("room"));
     	Room dbRoom;
     	int ctrolID=msg.getJson().getInt("ctrolID");
-    	int roomID=msg.getJson().getInt("roomID");
-    	Date msgModifyTime=sdf.parse(msg.getJson().getString("modifyTime"));
+    	int roomID=msgRoom.getRoomID();
+    	Date msgModifyTime=msgRoom.getModifyTime();
     	String key=ctrolID+"_"+roomID;
     	int sender=0;
     	if(msg.getJson().has("sender")){
@@ -1388,9 +1871,10 @@ public class LogicControl {
     		jedis.hset(key2, roomID+"", msgRoom.toJsonObject().toString());
 			json.put("errorCode",SUCCESS);
     	}else if(dbRoom.getModifyTime().after(msgModifyTime)){ //云端较新  
+    		log.error("device in Cloud is newer than from profile from user, ctrolID:"+ctrolID+" roomID:"+roomID+",discard.");
 			json.put("errorCode",DEVICE_OBSOLETE);   
 		}
-  		msg.setCommandID(SET_ONE_DEVICE_ACK);
+  		msg.setCommandID(SET_ALL_ROOM_ACK);
 		json.put("sender",2);
 		json.put("receiver",sender); 
 		msg.setJson(json);
@@ -1426,10 +1910,10 @@ public class LogicControl {
     		roomMap.remove(key);
     		json.put("errorCode", SUCCESS);    		
     	}else {
-			log.warn("room_room not exist ctrolID:"+ctrolID+" roomID:"+roomID+" from roomMap or Mysql.");
+			log.error("room_room not exist ctrolID:"+ctrolID+" roomID:"+roomID+" from roomMap or Mysql.");
 			json.put("errorCode",DEVICE_NOT_EXIST);
     	}
-    	msg.setCommandID( DELETE_ONE_DEVICE_ACK);
+    	msg.setCommandID( DELETE_ONE_ROOM_ACK);
 		json.put("sender",2);
 		json.put("receiver",sender); 
 		msg.setJson(json);
@@ -1439,20 +1923,107 @@ public class LogicControl {
 			e.printStackTrace();
 		}    	
     }
+    
+	/*** 获取一个用户家里所有房间
+	 * 	 <pre>对应json消息体为：
+	 *   {
+	 *     ctrolID:1234567
+     *   }
+     *   @return List< Device > 加电列表 的jsonArray格式
+     *   {
+     *   ctrolID:1234567,     *   
+     *	 roomArray: [
+     *               {JSON }
+     *              ]
+     *   }
+	 * @throws JSONException 
+     **/
+	public void get_all_room(Message msg) throws JSONException{
+    	JSONObject json=new JSONObject();
+    	List<Room> roomList=new ArrayList<Room>();
+    	int ctrolID=msg.getJson().getInt("ctrolID");
+
+    	int sender=0;
+    	if(msg.getJson().has("sender")){
+    		sender=msg.getJson().getInt("sender"); 
+    	}
+    	
+    	int roomID=msg.getJson().getInt("roomID");
+    	String key=ctrolID+"_"+roomID;
+    	if(  (roomList=roomMap.getRoomsByctrolID(ctrolID))!=null){
+    		JSONArray ja=new JSONArray();
+    		for (Room room : roomList) {
+				ja.put(room.toJsonObject());
+			}
+    		json.put("roomArray", ja);
+    		json.put("errorCode",SUCCESS);   
+    	}else {
+			log.error("Can't get_one_room, ctrolID:"+ctrolID+"roomID: "+ roomID+" from roomMap or Mysql.");
+			json.put("errorCode",DEVICE_NOT_EXIST);
+    	}
+    	msg.setCommandID( GET_ALL_ROOM_ACK);
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}	
+	}
 	
-    /*** 请求切换某个家电状态,返回值
-     * <pre>传入的json格式为：
-    * { 
-     *   sender:    中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:4; ...
-     *   receiver:  中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:5; ...
-         errorCode: SUCCESS/ PROFILE_SET_NOT_EXIST /TIME_OUT /WRONG_COMMAND
-    * }
-     * @throws InterruptedException 
- 	* */
-    public void switch_room_profile_set_ack(final Message msg)throws JSONException, SQLException, InterruptedException{
-		TimeOutTread to=new TimeOutTread(10,msg);
-		to.start();
-    }
+	
+	/*** 设置 一个家电
+	 * 	 <pre>对应的json:* 
+	 *   ctrolID:123456789
+	 *   roomArray:
+	 *   [
+	 *     { 家电的jsonObject格式}
+	 *   ]
+     *   }
+	 * @throws JSONException 
+	 * @throws ParseException */
+	public void set_all_room(Message msg,MySqlClass mysql) throws JSONException, ParseException{
+		JSONObject json= new JSONObject();
+    	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    	Room msgRoom=new Room(msg.getJson());
+    	Room dbRoom;
+    	int ctrolID=msg.getJson().getInt("ctrolID");
+    	int sender=0;
+    	if(msg.getJson().has("sender")){
+    		sender=msg.getJson().getInt("sender"); 
+    	}
+    	JSONArray ja=msg.getJson().getJSONArray("roomArray");	
+		for (int i=0;i<ja.length();i++) {
+	    	int roomID=msg.getJson().getInt("roomID");
+	    	Date msgModifyTime=sdf.parse(msg.getJson().getString("modifyTime"));
+	    	String key=ctrolID+"_"+roomID;
+	    	if((dbRoom=this.roomMap.get(key))==null  || dbRoom.getModifyTime().before(msgModifyTime) ){	 //不存在或者云端较旧
+	    		this.roomMap.put(key, msgRoom);
+				json.put("errorCode",SUCCESS);  
+
+				String key2=ctrolID+"_roomBind";
+	    		String command=msgRoom.getCtrolID()+","+msg.getCommandID()+","+msgRoom.getRoomType()+","+msgRoom.getRoomID()+","+roomID;
+	    		//jedis.publish(commandQueue,command);
+	    		jedis.hset(key2, roomID+"", msgRoom.toJsonObject().toString());
+				json.put("errorCode",SUCCESS);
+	    	}else if(dbRoom.getModifyTime().after(msgModifyTime)){ //云端较新  
+	    		log.error("Room in Cloud is newer than from profile from user, ctrolID:"+ctrolID+" roomID:"+roomID+",discard.");
+				json.put("errorCode",DEVICE_OBSOLETE);   
+			}
+		}
+  		msg.setCommandID(SET_ALL_ROOM_ACK);
+		json.put("sender",2);
+		json.put("receiver",sender); 
+		msg.setJson(json);
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} 		
+	}
+	
+
 	
 	  /*** 告警消息
 	  <pre>例如对应json消息体如下格式 ：
@@ -1491,8 +2062,8 @@ public class LogicControl {
     /*** 请求触发模板
      * <pre>传入的json格式为：
      * { 
-     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   sender:    0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:  0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
      *   ctrolID:1234567
      *   triggerTemplateID:7654321
      * }
@@ -1502,8 +2073,8 @@ public class LogicControl {
      *   （2）如果查询的触发模板存在，则返回:
      *  { 
      *   errorCode:SUCCESS,
-     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   sender:    0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:  0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
      *   ctrolID:1234567,
      *   triggerTemplateID:7654321,
      *   triggerTemplate: 
@@ -1526,7 +2097,7 @@ public class LogicControl {
     		json.put("triggerTemplate", trigger.toJson());
     		json.put("errorCode",SUCCESS);
     	}else {
-			log.warn("Can't get_room_trigger ctrolID:"+ctrolID+" triggerID:"+triggerID+" from triggerMap or Mysql.");
+			log.error("Can't get_room_trigger ctrolID:"+ctrolID+" triggerID:"+triggerID+" from triggerMap or Mysql.");
 			json.put("errorCode",PROFILE_NOT_EXIST);
     	}
     	msg.setCommandID(GET_ROOM_PROFILE_ACK);
@@ -1549,8 +2120,8 @@ public class LogicControl {
      *  (2)如果上传的trigger的修改时间早于云端，则需要将云端的触发模板下发到 终端（手机、中控）,返回{"errorCode":OBSOLTE_PROFILE}  ；     *         
      *@param message 传入的json格式为： （要上传或者保存的prifile的json格式）
      * {
-     *  "senderRole":    中控:0 ; 手机:1 ; 设备控制服务器:2;
-     *  "receiverRole":  中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *  "sender":     0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *  "receiver":   0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
      *  trigger:
      *   {
 			"triggerID":123456789,
@@ -1612,8 +2183,8 @@ public class LogicControl {
     /*** 请求触发规则
      * <pre>传入的json格式为：
      * { 
-     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   sender:    0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:  0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
      *   ctrolID:1234567
      *   triggerTemplateID:7654321
      * }
@@ -1623,8 +2194,8 @@ public class LogicControl {
      *   （2）如果查询的触发规则存在，则返回:
      *  { 
      *   errorCode:SUCCESS,
-     *   sender:    中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
-     *   receiver:  中控:0 ; 手机:1 ; 设备控制服务器:2; 3:主服务; 4 消息服务; ...
+     *   sender:    0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:  0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
      *   ctrolID:1234567,
      *   triggerTemplateID:7654321,
      *   triggerTemplate: 
@@ -1648,7 +2219,7 @@ public class LogicControl {
     		json.put("trigger", trigger.toJson());
     		json.put("errorCode",SUCCESS);
     	}else {
-			log.warn("Can't get_room_trigger ctrolID:"+ctrolID+" triggerID:"+triggerID+" from triggerMap or Mysql.");
+			log.error("Can't get_room_trigger ctrolID:"+ctrolID+" triggerID:"+triggerID+" from triggerMap or Mysql.");
 			json.put("errorCode",PROFILE_NOT_EXIST);
     	}
     	msg.setCommandID(GET_ROOM_PROFILE_ACK);
@@ -1672,8 +2243,8 @@ public class LogicControl {
      *  (2)如果上传的触发规则的修改时间早于云端，则需要将云端的触发模板下发到 终端（手机、中控）,返回{"errorCode":OBSOLTE_PROFILE}  ；     *         
      *@param message 传入的json格式为： （要上传或者保存的触发规则的json格式）
      * {
-     *  "senderRole":    中控:0 ; 手机:1 ; 设备控制服务器:2;
-     *  "receiverRole":  中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *  "sender":     0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *  "receiver":   0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
      *  trigger:
      *   {
 			"triggerID":123456789,
@@ -1736,8 +2307,8 @@ public class LogicControl {
     /*** 删除触发模板
      * <pre>传入的json格式为：
      * { 
-     *   senderRole:    中控:0 ; 手机:1 ; 设备控制服务器:2;
-     *   receiverRole:  中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *   sender:     0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:   0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
      *   ctrolID:1234567
      *   triggerID:7654321
      * }
@@ -1761,7 +2332,7 @@ public class LogicControl {
     		Trigger.deleteFromDB(mysql, ctrolID, triggerID);
     		json.put("errorCode", SUCCESS);
     	}else {
-			log.warn("room_trigger not exist ctrolID:"+ctrolID+" triggerID:"+triggerID+" from triggerMap or Mysql.");
+			log.error("room_trigger not exist ctrolID:"+ctrolID+" triggerID:"+triggerID+" from triggerMap or Mysql.");
 			json.put("errorCode",PROFILE_NOT_EXIST);
     	}
     	msg.setCommandID(DELETE_ROOM_PROFILE_ACK);
@@ -1783,8 +2354,8 @@ public class LogicControl {
      *             在断网时，不能刷新最后同步时间 ；        
      * 请求的json格式为：
      * { 
-     *   senderRole:    中控:0 ; 手机:1 ; 设备控制服务器:2;
-     *   receiverRole:  中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *   sender:     0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:   0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
      *   ctrolID:1234567
      *   recordType: 记录对象的类型，例如 profile,device,trigger ...
      *   record：[
@@ -1860,8 +2431,8 @@ public class LogicControl {
      * <pre> ；        
      * 请求的json格式为：
      * { 
-     *   senderRole:    中控:0 ; 手机:1 ; 设备控制服务器:2;
-     *   receiverRole:  中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *   sender:     0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:   0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
      *   ctrolID:1234567
      *   applianceType: 填写家电的factorID,
      *   fileID:这一型号的 家电对应的文件名ID
@@ -1876,8 +2447,13 @@ public class LogicControl {
 		if(msg.getJson().has("sender")){
 			   sender=msg.getJson().getInt("sender");
 		}
+		int applianceType=msg.getJson().getInt("applianceType");
+		if(applianceType==541 ||applianceType==501||applianceType==511||applianceType==521||applianceType==601 ||applianceType==591){			
+		}else{
+			json.put("errorCode", UNKNOWN_DEVICE_TYPE);
+		}
 		String fileID=msg.getJson().optString("fileID");
-		IRFileDownload irDownload=new IRFileDownload(fileID);
+		IRFileDownload irDownload=new IRFileDownload(applianceType,fileID);
 		String url=irDownload.getURL();		
 
     	msg.setCommandID(DOWNLOAD_INFRARED_FILE_ACK);
@@ -1900,10 +2476,10 @@ public class LogicControl {
      * <pre> ；        
      * 请求的json格式为：
      * { 
-     *   senderRole:    中控:0 ; 手机:1 ; 设备控制服务器:2;
-     *   receiverRole:  中控:0 ; 手机:1 ; 设备控制服务器:2;
+     *   sender:     0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:   0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
      *   ctrolID:1234567
-     *   applianceType: 填写家电的factorID,
+     *   applianceType: 填写家电类型，数值请参考factorID字典表,如果家电类型未知填写:-1
      *   ircode:红外码的16进制字符串格式例如："27,04,00,00,24,00,26,81,FC,01,FC,81,FC,05,F8,C1,0E,1B,C2,00,05,F8,C3,00,70,23,CB,26,01,00,24,8,07,09,00,00,00,00,51,00"
      * @return message 的json格式：
      *   （1）若 这一型号的家电的 红外码识别成功，则返回  这个红外型号对应码库文件的URL 地址；
@@ -1917,13 +2493,42 @@ public class LogicControl {
 			   sender=msg.getJson().getInt("sender");
 		}
 		String ircode=msg.getJson().optString("ircode");
+		int applianceType=msg.getJson().getInt("applianceType");
+		String applianceTypeStr="";
+		switch (applianceType) {
+		case 541: //空调
+			applianceTypeStr="AC";
+			break;
+		case 501: //电视
+			applianceTypeStr="TV";
+			break;
+		case 511: //机顶盒
+			applianceTypeStr="STB";
+			break;
+		case 521: //DVD
+			applianceTypeStr="DVD";
+			break;
+		case 601: //电风扇
+			applianceTypeStr="FAN";
+			break;
+		case 591: //空气净化器
+			applianceTypeStr="ACL";
+			break;			
+		default:
+			applianceTypeStr="";
+			break;
+		}
+		if(applianceTypeStr!=""){
+			this.ir_file_path=this.ir_file_path+"\\"+applianceType+"\\codes";
+		}
+		
     	IRMatch2 im=new IRMatch2();
-		im.match(this.ir_file, im.getC3(ircode));
+		im.match(new File(ir_file_path), im.getC3(ircode));
 		String fileName=im.getTop1();
 		if(fileName==null){
 			json.put("errorCode", INFRARED_CODE_NOT_RECOGNIZED);
 		}else{
-			IRFileDownload irDownload=new IRFileDownload(fileName.split(",")[1]);
+			IRFileDownload irDownload=new IRFileDownload(applianceType,fileName);
 			String url=irDownload.getURLWithoutExtention();		
 
 

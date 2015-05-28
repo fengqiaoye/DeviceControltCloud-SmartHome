@@ -56,7 +56,7 @@ public class TriggerTemplateMap  extends HashMap<Integer, TriggerTemplate>{
 				+"logicalrelation ,"
 				+"roomtype ,"		
 				+"factorid ,"
-				+"operater ,"
+				+"operator ,"
 				+"min ,"
 				+"max ,"
 				+"accumilatetime   ,"

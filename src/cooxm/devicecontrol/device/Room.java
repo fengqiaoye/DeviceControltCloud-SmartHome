@@ -260,7 +260,7 @@ public class Room {
 				+"');";
 		logger.info(sql);
 		if(mysql.query(sql)!=-1){
-		  logger.info("insert success!");
+		  //logger.info("insert success!");
 		  return true;
 		}
 		return false;
@@ -320,7 +320,7 @@ public class Room {
 	}
 	
 	public static int deleteRoomFromDB(MySqlClass mysql, int ctrolID, int roomID){
-		String sql2="delete *  "
+		String sql2="delete   "
 				+ "  from "				
 				+roomIndexTable
 				+" where ctr_id="+ctrolID

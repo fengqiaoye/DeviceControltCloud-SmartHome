@@ -38,14 +38,14 @@ public class Message extends Header {
 	}
 	public void setCookie(String cookie) {
 		this.cookie = cookie;
-		this.msgLen=(short) ((short) cookie.length()+this.json.toString().length());
+		this.msgLen=(short) (getWordCount(json.toString())+ getWordCount(cookie) );
 	}
 	public JSONObject getJson() {
 		return json;
 	}
 	public void setJson(JSONObject json) {
 		this.json = json;
-		this.msgLen=(short) ((short) cookie.length()+json.toString().length());
+		this.msgLen=(short) (getWordCount(json.toString())+ getWordCount(cookie) );
 	}
 	public Message(){}
 	
@@ -53,7 +53,11 @@ public class Message extends Header {
 		this.headTag="#XRPC#";
 		this.mainVersion=1;
 		this.subVersion=1;
-		this.msgLen=(short) (json.toString().length()+cookie.length());
+		//this.msgLen=(short) (json.toString().length()+cookie.length());
+		//2015-05-25 richard备注：如果json字符串含有中文会导致计算长度错误；
+		int a=getWordCount(json.toString());
+		int b= getWordCount(cookie) ;
+		this.msgLen=(short) (a+b);
 		this.commandID=commandID;
 		this.sequeeceNo=(int) (System.currentTimeMillis()/1000);
 		this.encType=1; 
@@ -85,7 +89,7 @@ public class Message extends Header {
 		try {
 			jsonStr = new String(command,"utf-8");
 			this.json=new JSONObject(jsonStr);
-			this.msgLen=(short) (cookie.length()+jsonStr.length());
+			this.msgLen=(short) (cookie.length()+command.length);
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} catch (JSONException e) {
@@ -95,16 +99,16 @@ public class Message extends Header {
 	
 	public Message(Header header,String cookie, String command) {
 		super(header);	
-		this.msgLen=(short) (cookie.length()+command.length());
 		this.cookie=cookie;
-		//String jsonStr=new String(command,"utf-8");
 		try {
 			this.json=new JSONObject(command);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
     	super.cookieLen=(short) cookie.length();
-    	super.msgLen=(short) ((short) cookie.length()+command.length());
+		//2015-05-25 richard备注：如果json字符串含有中文会导致计算长度错误；
+    	//super.msgLen=(short) ((short) cookie.length()+command.length());
+    	super.msgLen=(short) (getWordCount(json.toString())+ getWordCount(cookie) );
 	}
 	
     
@@ -164,7 +168,8 @@ public class Message extends Header {
     	this.cookie=cookie;
     	this.json=json2;
     	super.cookieLen=(short) cookie.length();
-    	super.msgLen=(short) ((short) cookie.length()+json2.toString().length());
+    	//super.msgLen=(short) ((short) cookie.length()+json2.toString().length());
+    	super.msgLen=(short) (getWordCount(json.toString())+ getWordCount(cookie) );
 	}
 	/*public boolean isValid() {   
 		return this.isValid();
@@ -287,7 +292,9 @@ public class Message extends Header {
 
 	
 	public short getMsgLength(){
-		return (short)(this.cookie.length()+this.json.toString().length());
+		//return (short)(this.cookie.length()+this.json.toString().length());
+		//2015-05-25 json含有中文会导致长度计算错误
+		return (short) (getWordCount(json.toString())+ getWordCount(cookie) );
 	}
     
 	public static Header getOneHeaer(short commandID){
@@ -334,6 +341,22 @@ public class Message extends Header {
     	Message msg= new Message(head,String.valueOf(timeStamp),json);
     	return msg;
 	}
+    
+    public static int getWordCount(String s)  
+    {  
+        int length = 0;  
+        int a=s.length();
+        for(int i = 0; i < s.length(); i++)  
+        {  
+            int ascii = Character.codePointAt(s, i);  
+            if(ascii >= 0 && ascii <=255)  
+                length++;  
+            else  
+                length += 3;  
+                  
+        }  
+        return length;            
+    }  
 	    
 	public static void main(String[] args)  {
 //		JSONObject jo;
@@ -344,14 +367,17 @@ public class Message extends Header {
 //			e.printStackTrace();
 //		}
 		
-		Message msg= Message.getOneMsg();
-        byte[] x=msg.toBytesSmallEnd();
-        byte[] y=BytesUtil.subByte(x, 23+msg.cookieLen, msg.msgLen-msg.cookieLen);
-        
-		System.out.println("jspn="+new String(y));
-		Message msg2=new Message(msg.toBytesSmallEnd());
-		System.out.println(msg2.toString());
-		
+//		Message msg= Message.getOneMsg();
+//        byte[] x=msg.toBytesSmallEnd();
+//        byte[] y=BytesUtil.subByte(x, 23+msg.cookieLen, msg.msgLen-msg.cookieLen);
+//        
+//		System.out.println("jspn="+new String(y));
+//		Message msg2=new Message(msg.toBytesSmallEnd());
+//		System.out.println(msg2.toString());
+		String str="{\"profileName\":\"未知情景1\",\"factorList\":{\"factorID\":20,\"minValue\":25,\"modifyTime\":\"2014-12-13 14:15:16\","
+				+ "\"validFlag\":1,\"createTime\":\"2014-12-13 14:15:16\",\"maxValue\":28,\"roomID\":203,\"roomType\":2,\"operator\":0},\"profileTemplateID\":0,"
+				+ "\"modifyTime\":\"2014-12-13 14:15:17\",\"createTime\":\"2014-12-13 14:15:16\",\"profileID\":123456789,\"profileSetID\":12345,\"ctrolID\":12345677,\"roomID\":203,\"roomType\":2}";
+		System.out.println(getWordCount(str));
 		
 	}
 }

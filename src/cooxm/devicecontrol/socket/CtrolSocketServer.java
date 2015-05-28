@@ -125,6 +125,7 @@ public class CtrolSocketServer {
        		
        		ProcessThread pt= new  ProcessThread();
        		pt.start();
+       		Thread.sleep(10);
        		
        		
         }
@@ -199,7 +200,7 @@ public class CtrolSocketServer {
 					default:
 			            try {
 			            	if(msg.isValid()){
-			            		boolean falg=CtrolSocketServer.receiveCommandQueue.offer(msg,500, TimeUnit.MICROSECONDS);
+			            		boolean falg=CtrolSocketServer.receiveCommandQueue.offer(msg,200, TimeUnit.MICROSECONDS);
 			            		//System.out.println("size of receiveCommandQueue ="+CtrolSocketServer.receiveCommandQueue.size());
 			            	}else{
 			            		return;
@@ -240,7 +241,7 @@ public class CtrolSocketServer {
 	    	while(this.sock!=null && !this.sock.isClosed())
 	    	{
 	    		try {
-					Thread.sleep(10);
+					Thread.sleep(5);
 				} catch (InterruptedException e1) {
 					e1.printStackTrace();
 				}
@@ -258,9 +259,16 @@ public class CtrolSocketServer {
 							
 							 if(serverID>0 && this.sock.equals(sockMap.get(serverID)) ){	
 								outMsg = CtrolSocketServer.sendCommandQueue.take();//poll(100, TimeUnit.MICROSECONDS);
-								outMsg.writeBytesToSock2(this.sock);
-								System.out.println("Send to  "+sock.getRemoteSocketAddress().toString()+":"+outMsg.toString());	
 								//System.out.println("size of sendCommandQueue ="+CtrolSocketServer.sendCommandQueue.size());
+								outMsg.writeBytesToSock2(this.sock);
+								DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+								if(outMsg.getCommandID()==20738){  //心跳
+									System.out.println(sdf.format(new Date())+" HeartBeat "+sock.getRemoteSocketAddress().toString()
+											+",serverID: "+outMsg.serverID+",Msg:"+outMsg.toString());
+								}else{
+
+								    System.out.println(sdf.format(new Date())+" Send  to "+sock.getRemoteSocketAddress().toString()+":"+outMsg.toString());	
+								}
 							}
 						}
 					} catch (InterruptedException e) {
@@ -272,17 +280,18 @@ public class CtrolSocketServer {
 	} 
 	
 	public class ProcessThread extends Thread
-	{
-		
+	{		
 		public void run()
 		{
 			while(true){
 				Message msg;
 				try {
-					Thread.sleep(10);
-					msg = CtrolSocketServer.receiveCommandQueue.poll(200, TimeUnit.MICROSECONDS);
+					Thread.sleep(5);
+					msg = CtrolSocketServer.receiveCommandQueue.poll(200, TimeUnit.MICROSECONDS);					
 					if(msg!=null){
-						lcontrol.decodeCommand(msg);					
+						lcontrol.decodeCommand(msg);	
+						//System.out.println("Processing  "+msg.toString());
+						
 					}
 				} catch (InterruptedException e) {
 					log.error(e);
@@ -344,8 +353,8 @@ public class CtrolSocketServer {
 			}
 
 			boolean flag=CtrolSocketServer.sendCommandQueue.offer(replyMsg,100, TimeUnit.MICROSECONDS);
-			System.out.println("HeartBeat "+sock.getRemoteSocketAddress().toString()
-					+",serverID: "+heartBeatMsg.serverID+",serverType: "+server.getServerType()+":"+replyMsg.toString());
+//			System.out.println("HeartBeat "+sock.getRemoteSocketAddress().toString()
+//					+",serverID: "+heartBeatMsg.serverID+",serverType: "+server.getServerType()+":"+replyMsg.toString());
 			
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -469,7 +478,14 @@ public class CtrolSocketServer {
     				offset=offset+len;
     			}    			
     		}
-    		head=new Header(b23);
+    		byte[] headTag     ={b23[0],b23[1],b23[2],b23[3],b23[4],b23[5]};	
+    		String headStr=new String(headTag,"UTF-8");
+    		if(headStr.equals("#XRPC#")){
+    			head=new Header(b23);
+    		}else{
+    			log.error("Input stream can't be recognized,message must be started with \"#XRPC#\",socket closed. ");
+    			return null;
+    		}
 			//head.printHeader();
 		} catch (IOException e) {
 			log.error("IOException socket:"+clientRequest.getRemoteSocketAddress()+" , socket will be closed.");
@@ -494,13 +510,15 @@ public class CtrolSocketServer {
 			e.printStackTrace();
 		}  
     	String comString=new String(commnad);
+    	//System.out.println(comString);
     	if(comString.length()==0){
     		return null;
     	}else{
     		msg=new Message(head, cookieStr, comString);
     	}
+    	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	//if(msg.isAuth() && msg.commandID!=SocketClient.CMD__HEARTBEAT_REQ){
-    		System.out.println("Recv  frm "+clientRequest.getRemoteSocketAddress().toString()+":"+msg.toString());
+    		System.out.println(sdf.format(new Date())+" Recv frm "+clientRequest.getRemoteSocketAddress().toString()+":"+msg.toString());
     	//}
         return msg; 
     } 

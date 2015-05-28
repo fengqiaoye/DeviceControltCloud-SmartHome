@@ -156,7 +156,7 @@ public class TriggerTemplate {
 					+"logicalrelation,"
 					+"roomtype ,"
 					+"factorid ,"
-					+"operater ,"
+					+"operator ,"
 					+"min ,"
 					+"max ,"
 					+"accumilatetime   ,"
@@ -180,8 +180,8 @@ public class TriggerTemplate {
 					+sdf.format(ft.getModifyTime())
 					+"');";
 			System.out.println(sql);
-			int count=mysql.query(sql);
-			if(count>0) System.out.println("insert success"); 	
+			//int count=mysql.query(sql);
+			//if(count>0) System.out.println("insert success"); 	
 		}			
 	
 		for (TriggerTemplateReact react:this.triggerTemplateReactList) {
@@ -230,7 +230,7 @@ public class TriggerTemplate {
 					+"logicalrelation ,"
 					+"roomtype ,"
 					+"factorid ,"
-					+"operater ,"
+					+"operator ,"
 					+"min ,"
 					+"max ,"
 					+"accumilatetime   ,"

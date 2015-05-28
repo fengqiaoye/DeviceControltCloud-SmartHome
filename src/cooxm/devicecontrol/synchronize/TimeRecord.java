@@ -125,8 +125,8 @@ public class TimeRecord{
 				+this.lastSynRole
 				+")";
 		System.out.println(sql);
-		int count=mysql.query(sql);
-		if(count>0) System.out.println("insert success"); 		
+//		int count=mysql.query(sql);
+//		if(count>0) System.out.println("insert success"); 		
 	
 		try {
 			mysql.conn.commit();

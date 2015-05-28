@@ -414,6 +414,7 @@ public class ProfileTemplate {
         try {
         	profileTemplateJson.put("profileTemplateID",this.profileTemplateID);
         	//profileTemplateJson.put("roomType", this.roomType);
+        	JSONArray ja=new JSONArray();
 		    for(FactorTemplate factor: this.factorTempList){
 		    	factorJson= new JSONObject(); 
 		    	factorJson.put("factorID", factor.getFactorID());
@@ -426,9 +427,10 @@ public class ProfileTemplate {
 		    	factorJson.put("modifyOperator", factor.getModifyOperator());
 		    	factorJson.put("createTime", sdf.format(factor.getCreateTime()));
 		    	factorJson.put("modifyTime", sdf.format(factor.getModifyTime()));
-		    	profileTemplateJson.accumulate("factorList",factorJson); 
+		    	ja.put(factorJson);
 		    }
-
+		    profileTemplateJson.put("factorList",ja);
+		    //profileTemplateJson.accumulate("factorList",factorJson); 
         } catch (JSONException e) {
 			e.printStackTrace();
 		}  		

@@ -188,10 +188,17 @@ public class TriggerTemplateReact {
 
 	 public static void main(String [] args) {
 		 long a=System.currentTimeMillis()/1000;
-		 System.out.println(a);
+		 //System.out.println(a);
 		 
 		 Jedis jedis =new Jedis("120.24.81.226", 6379);
 		 String b = jedis.hget("1256791_currentProfile", 203+"");
+		 System.out.println(b);
+		 
+		 String c = jedis.hget("1256789_roomBind", 1234567891+"");
+		 System.out.println(c);
+		 
+		 
+		 
 		
 	}
 }

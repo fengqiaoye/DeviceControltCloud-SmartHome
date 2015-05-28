@@ -16,14 +16,18 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;  
 import java.util.concurrent.TimeoutException;  
 
+import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import cooxm.devicecontrol.device.Profile;
 import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.socket.Header;
 import cooxm.devicecontrol.socket.Message;
   
 public class TimeOutTread extends Thread {  
+	static Logger log =Logger.getLogger(TimeOutTread.class);
+	
   	int timOut;
   	Callable<Boolean> task;
   	Message msg;
@@ -94,7 +98,7 @@ public class TimeOutTread extends Thread {
             e.printStackTrace();
             future.cancel(true);      // 中断执行此任务的线程     
         } catch (TimeoutException e) {// 超时异常             	
-            System.out.println(msg.getCommandID()+"超时"); 
+            log.error("Request time out,didn't get responce in 10 seconds for Message:"+msg.toString()); 
             try {          	
 				JSONObject json=new JSONObject();
             	json.put("errorCode",LogicControl.TIME_OUT);
@@ -108,12 +112,12 @@ public class TimeOutTread extends Thread {
 			} catch (InterruptedException | JSONException e1) {
 				e1.printStackTrace();
 			}
-            System.out.println(this.msg.getCommandID()+"线程取消，comanid："); 
+            //log.warn(this.msg.getCommandID()+"线程取消，comanid："); 
             future.cancel(true);      // 中断执行此任务的线程
 
         }finally{  
-        	System.err.println("size of msgMap:"+waitForReply.msgMap.size()+",key:"+waitForReply.msgMap.keySet().toString()+",Command:"+msg.getCommandID());
-            System.out.println(this.msg.getCommandID()+" finally 线程服务关闭!");  
+        	//System.err.println("size of msgMap:"+waitForReply.msgMap.size()+",key:"+waitForReply.msgMap.keySet().toString()+",Command:"+msg.getCommandID());
+            //System.out.println(this.msg.getCommandID()+" finally 线程服务关闭!");  
             executor.shutdown();  
         }  
     }  

@@ -222,7 +222,7 @@ public class Device {
 			this.wall=deviceJson.getInt("wall");
 			this.relatedDevType=deviceJson.getInt("relatedDevType");
 			this.createTime=sdf.parse(deviceJson.getString("createTime"));
-			this.modifyTime=sdf.parse(deviceJson.getString("createTime"));	
+			this.modifyTime=sdf.parse(deviceJson.getString("modifyTime"));	
 		} catch (JSONException | ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -488,7 +488,7 @@ public class Device {
 	 * table Name:info_user_room_bind
 	 * */
 	public static int DeleteOneDeviceFromDB(MySqlClass mysql,int ctrolID,int deviceID ){
-		String sql="delete  * "
+		String sql="delete   "
 				+ " from "				
 				+Device.deviceBindTable
 				+" where ctr_id="+ctrolID

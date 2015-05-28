@@ -16,6 +16,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import cooxm.devicecontrol.control.Configure;
+import cooxm.devicecontrol.control.LogicControl;
+import cooxm.devicecontrol.control.MainEntry;
+import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.util.MySqlClass;
 
 
@@ -119,6 +123,9 @@ public class ProfileSet {
 				JSONObject profileJson=profileListJSON.getJSONObject(i);
 				Integer profileID= profileJson.getInt("profileID");	
 				profileList.add(profileID);		
+				
+				Profile profile=new Profile(profileJson);
+				LogicControl.profileMap.put(this.ctrolID+"_"+profileID, profile);
 			}		
 			this.profileList=profileList;
 			this.createTime=sdf.parse(profileSetJson.getString("createTime"));
@@ -130,19 +137,30 @@ public class ProfileSet {
 	}
 	 
 	public JSONObject toJsonObj(){
+//		Configure cf=MainEntry.getConfig();
+//		String mysql_ip			=cf.getValue("mysql_ip");
+//		String mysql_port		=cf.getValue("mysql_port");
+//		String mysql_user		=cf.getValue("mysql_user");
+//		String mysql_password	=cf.getValue("mysql_password");
+//		String mysql_database	=cf.getValue("mysql_database");	
+//		MySqlClass mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
+		
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	    JSONObject profileSetJson = new JSONObject(); 
-        JSONObject profileJson ; 
+        //JSONObject profileJson ; 
 	    try {
 		    profileSetJson.put("deviceSN",        this.ctrolID       );
 			profileSetJson.put("profileSetID",         this.profileSetID      );
-		    profileSetJson.put("deviceID",        this.profileSetName      );
+		    profileSetJson.put("profileSetName",        this.profileSetName      );
 		    profileSetJson.put("profileSetTemplateID",      this.profileSetTemplateID        );
+		    JSONArray ja=new JSONArray();
 		    for(Integer profileID: this.profileList){
-		    	profileJson= new JSONObject(); 
-		    	profileJson.put("profileID",profileID); 
-		    	profileSetJson.accumulate("profileList", profileJson);
+		    	//Profile profile=Profile.getFromDBByProfileID(mysql, ctrolID, profileID);//从数据库获取
+		    	Profile profile=LogicControl.profileMap.get(ctrolID+"_"+profileID);
+		    	ja.put(profile.toJsonObj());
+		    	//profileSetJson.accumulate("profileArray", profile.toJsonObj());
 		    }
+		    profileSetJson.accumulate("profileArray", ja);
 		    profileSetJson.put("createTime",sdf.format(this.createTime));
 		    profileSetJson.put("modifyTime",sdf.format(this.createTime));
 		} catch (JSONException e) {

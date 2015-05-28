@@ -1,7 +1,9 @@
 package cooxm.devicecontrol.device;
 
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -29,6 +31,7 @@ public class DeviceState {
 	int volumn;
 	/** 屏幕亮度值 */
 	int brightness;	
+	Date modifyTime;
 	public int getOnOff() {
 		return onOff;
 	}
@@ -92,6 +95,15 @@ public class DeviceState {
 	public void setBrightness(int brightness) {
 		this.brightness = brightness;
 	}
+	
+
+	public Date getModifyTime() {
+		return modifyTime;
+	}
+
+	public void setModifyTime(Date modifyTime) {
+		this.modifyTime = modifyTime;
+	}
 
 	public DeviceState() {
 		this.onOff = -1;
@@ -102,6 +114,7 @@ public class DeviceState {
 		this.channel = -1;
 		this.volumn = -1;
 		this.brightness = -1;
+		this.modifyTime=new Date();
 	}
 	/** <pre> 开关   0：打开状态；  1：关闭状态 ; -1:未知 
 模式  0=自动； 1=制冷； 2=除湿， 3=送风， 4=制热; -1:未知 
@@ -122,9 +135,11 @@ public class DeviceState {
 		this.channel = channel;
 		this.volumn = volumn;
 		this.brightness = brightness;
+		this.modifyTime=new Date();
 	}
 	
 	public JSONObject toJson(){
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		JSONObject json=new JSONObject();
 		try {
 			json.put("onOff", this.onOff);
@@ -135,6 +150,7 @@ public class DeviceState {
 			json.put("channel", this.channel);
 			json.put("volumn", this.volumn);
 			json.put("brightness", this.brightness);
+			json.put("modifyTime", sdf.format(new Date()));
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -144,6 +160,7 @@ public class DeviceState {
 	}
 	
 	public DeviceState (JSONObject json){
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		this.onOff=json.optInt("onOff");
 		this.mode=json.optInt("mode");
 		this.windSpeed=json.optInt("windSpeed");
@@ -152,6 +169,13 @@ public class DeviceState {
 		this.channel=json.optInt("channel");
 		this.volumn=json.optInt("volumn");
 		this.brightness=json.optInt("brightness");
+		try {
+			this.modifyTime=sdf.parse(json.getString("modifyTime"));
+		} catch (ParseException e) {
+			e.printStackTrace();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static void main(String[] args) {

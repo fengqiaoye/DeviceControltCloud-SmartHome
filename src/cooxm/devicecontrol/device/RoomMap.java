@@ -60,7 +60,7 @@ public class RoomMap  extends HashMap<String, Room>{
 		+"ctr_id        ,"
 		+"roomid        ,"
 		+"roomtype      ,"
-		+"description  ,"
+		+"roomname  ,"
 		+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
 		+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 		+ "  from "				

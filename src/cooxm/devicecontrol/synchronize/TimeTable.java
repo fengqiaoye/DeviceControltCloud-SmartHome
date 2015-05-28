@@ -49,16 +49,19 @@ public class TimeTable {
 
 	
 	public JSONObject toJson(){
-		JSONObject json=new JSONObject();
-		for (TimeRecord rec :this.timeRecList) {			
-			try {
-				json.accumulate("timeTable", rec.toJson());
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}			
+		JSONArray ja=new JSONArray();
+		for (TimeRecord rec :this.timeRecList) {	
+			JSONObject json=new JSONObject();
+			//json.accumulate("timeTable", rec.toJson());
+			ja.put(rec.toJson());			
 		}
-		
-		return json;		
+		JSONObject jsonb=new JSONObject();
+		try {
+			jsonb.put("timeTable", ja);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return jsonb;		
 	}
 	
 	public boolean isEmpty(){

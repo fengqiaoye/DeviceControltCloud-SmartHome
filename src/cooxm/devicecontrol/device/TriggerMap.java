@@ -56,7 +56,7 @@ public class TriggerMap  extends HashMap<String, Trigger>{
 				+"roomtype ,"
 				+"roomid ,"					
 				+"factorid ,"
-				+"operater ,"
+				+"operator ,"
 				+"min ,"
 				+"max ,"
 				+"accumilatetime   ,"

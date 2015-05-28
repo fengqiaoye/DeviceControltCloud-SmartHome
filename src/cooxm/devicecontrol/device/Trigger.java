@@ -112,7 +112,7 @@ public class Trigger {
 					+"roomtype ,"
 					+"roomid ,"
 					+"factorid ,"
-					+"operater ,"
+					+"operator ,"
 					+"min ,"
 					+"max ,"
 					+"accumilatetime   ,"
@@ -137,8 +137,8 @@ public class Trigger {
 					+sdf.format(ft.getModifyTime())
 					+"')";
 			System.out.println(sql);
-			int count=mysql.query(sql);
-			if(count>0) System.out.println("insert success"); 	
+			//int count=mysql.query(sql);
+			//if(count>0) System.out.println("insert success"); 	
 		}			
 	
 		for (TriggerTemplateReact react:this.triggerReactList) {
@@ -191,7 +191,7 @@ public class Trigger {
 					+"roomtype ,"
 					+"roomid ,"					
 					+"factorid ,"
-					+"operater ,"
+					+"operator ,"
 					+"min ,"
 					+"max ,"
 					+"accumilatetime   ,"
@@ -291,7 +291,7 @@ public class Trigger {
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		}
-		String sql="delete * "
+		String sql="delete  "
 				+ "  from  "				
 				+triggerFactorInfoTable
 				+" where ctr_id="+ctrolID
@@ -304,7 +304,7 @@ public class Trigger {
 			return 0;
 		}
 		
-		String sql2="delete *  "
+		String sql2="delete   "
 		+ "  from "				
 		+triggerReactInfoTable
 		+" where ctr_id="+ctrolID
@@ -330,6 +330,8 @@ public class Trigger {
 		//Trigger trigger=new Trigger();
 		try {
 			this.triggerID=TriggerJson.getInt("triggerID");
+			this.ctrolID=TriggerJson.getInt("ctrolID");
+			TriggerJson.optInt("ctrolID");
 			JSONArray factorListJSON= TriggerJson.getJSONArray("factorList");
 			List<TriggerFactor> factorList = new ArrayList<TriggerFactor>() ;
 			for(int i=0;i<factorListJSON.length();i++){
@@ -361,18 +363,22 @@ public class Trigger {
     	JSONObject factorJson;
 		try {
     		triggerJson.put("triggerID", getTriggerID());  
+    		JSONArray ja=new JSONArray();
          	for (TriggerFactor factor:getTriggerFactorList()) {
-		    	factorJson= new JSONObject(); 
-		    	factor.toJson();		    	
-		    	triggerJson.accumulate("factorList",factorJson);			
+		    	//factorJson= new JSONObject(); 
+		    		
+		    	ja.put(factor.toJson());
+		    	//triggerJson.accumulate("factorList",factorJson);			
 			}
+         	triggerJson.put("factorList",ja);	
          	
+         	JSONArray jb=new JSONArray();
          	for (TriggerTemplateReact react:getTriggerTemplateReactList()) {
-		    	factorJson= new JSONObject(); 
-		    	react.toJson();		    	
-		    	triggerJson.accumulate("reactList",factorJson);			
+		    	//factorJson= new JSONObject(); 
+		    	jb.put(react.toJson());
+		    	//triggerJson.accumulate("reactList",factorJson);			
 			}     	
-        	
+         	triggerJson.put("reactList",jb);	
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}			

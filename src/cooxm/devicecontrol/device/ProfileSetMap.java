@@ -24,7 +24,7 @@ import cooxm.devicecontrol.util.MySqlClass;
 public class ProfileSetMap extends HashMap<String, ProfileSet> {
 	static Logger log= Logger.getLogger(ProfileSetMap.class);
 	private static final long serialVersionUID = 1L;
-	///***Map<ctrolID+profileID,Profile>*/
+	///***Map<ctrolID_profileID,Profile>*/
 	//static Map<String, ProfileSet> profileSetMap=new HashMap<String, ProfileSet>();  
 	//static final String  profileIndexTable="info_user_room_st";
 	MySqlClass mysql;
@@ -37,7 +37,7 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 	public ProfileSetMap(MySqlClass mysql) throws SQLException{
 		super(getProfileSetMapFromDB(mysql));
 	}
-	
+
    /*** 
    * 从入MYSQL读取情景模式集列表
    * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");

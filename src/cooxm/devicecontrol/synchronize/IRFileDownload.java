@@ -19,37 +19,110 @@ import cooxm.devicecontrol.encode.SQLiteUtil;
 
 public class IRFileDownload {
 	private static  String DOWNLOAD_FTP_IP;//="172.16.35.173";
-	String format_ID;
-	public String getFormat_ID() {
-		return format_ID;
+	String fileName;
+	int applianceType;
+	public String getfileName() {
+		return fileName;
 	}
-	public void setFormat_ID(String format_ID) {
-		this.format_ID = format_ID;
+	public void setfileName(String fileName) {
+		this.fileName = fileName;
 	}
-	public IRFileDownload(String format_ID) {
-		this.format_ID = format_ID;
+	
+	public int getApplianceType() {
+		return applianceType;
+	}
+	public void setApplianceType(int applianceType) {
+		this.applianceType = applianceType;
+	}
+	
+	public IRFileDownload(int applianceType, String fileName) {
+		this.fileName = fileName;
+		this.applianceType=applianceType;
 		Configure cf=MainEntry.getConfig();
 		//file=new File(cf.getValue("ir_file_path"));
-		DOWNLOAD_FTP_IP=cf.getValue("ir_file_url");
+		DOWNLOAD_FTP_IP=cf.getValue("ir_file_ip");
 	}	
 	
 	
 	/** 获取要下载文件的路径 */
 	public String getFilename(){
 		/*SQLiteUtil sqlite=new SQLiteUtil("ird.db");
-		String sql="select format_name from formats where fid='"+this.format_ID+"';";
+		String sql="select format_name from formats where fid='"+this.fileName+"';";
 		String rs=sqlite.select(sql);
 		return ChineseToSpell.converterToSpell(rs);*/
-		return this.format_ID;
+		return this.fileName;
 	}
+	
+	/** 如果初始化时候 filename的文件含没有.txt后缀，用这个函数
+	 */
 	public String getURL(){	
-		String url=DOWNLOAD_FTP_IP+""+this.getFilename()+".txt"; 		
+		String applianceTypeStr="";
+		switch (applianceType) {
+		case 541: //空调
+			applianceTypeStr="AC";
+			break;
+		case 501: //电视
+			applianceTypeStr="TV";
+			break;
+		case 511: //机顶盒
+			applianceTypeStr="STB";
+			break;
+		case 521: //DVD
+			applianceTypeStr="DVD";
+			break;
+		case 601: //电风扇
+			applianceTypeStr="FAN";
+			break;
+		case 591: //空气净化器
+			applianceTypeStr="ACL";
+			break;			
+		default:
+			applianceTypeStr="";
+			break;
+		}
+		String url=DOWNLOAD_FTP_IP+"/keyfiles3/"+applianceTypeStr+"/codes/"+this.getFilename()+".txt"; 		
 		return url;		
 	}
+	
+	/**
+	* @Title: getURLWithoutExtention 
+	* @Description:  如果初始化时候 filename的文件含有.txt后缀，用这个函数
+	* @param @return   带后缀的文件下载路径 
+	* @return String    
+	*/
 	public String getURLWithoutExtention(){	
-		String url=DOWNLOAD_FTP_IP+""+this.getFilename(); 		
+		String url=DOWNLOAD_FTP_IP+"/"+this.getFilename(); 
 		return url;		
 	}
+	
+	public String getPath(){
+		String appliceTypeStr="";
+		switch (applianceType) {
+		case 541: //空调
+			appliceTypeStr="AC";
+			break;
+		case 501: //电视
+			appliceTypeStr="TV";
+			break;
+		case 511: //机顶盒
+			appliceTypeStr="STB";
+			break;
+		case 521: //DVD
+			appliceTypeStr="DVD";
+			break;
+		case 601: //电风扇
+			appliceTypeStr="FAN";
+			break;
+		case 591: //空气净化器
+			appliceTypeStr="ACL";
+			break;			
+		default:
+			appliceTypeStr="";
+			break;
+		}
+		return appliceTypeStr;
+	}
+	
 	public void downlaod(){
 		FTPClient ftpClient = new FTPClient(); 
         FileOutputStream fos = null; 
@@ -58,7 +131,7 @@ public class IRFileDownload {
             ftpClient.connect(DOWNLOAD_FTP_IP); 
             ftpClient.login("anonymous", "12345678"); 
 
-            String remoteFileName = "/keyfiles2/AC/codes/"+this.getFilename()+".txt"; 
+            String remoteFileName = "/keyfiles3/AC/codes/"+this.getFilename()+".txt"; 
             fos = new FileOutputStream("d:/"+this.getFilename()+".txt"); 
 
             ftpClient.setBufferSize(1024); 
@@ -84,10 +157,10 @@ public class IRFileDownload {
 	
 	public static void main(String[] args) {
 		
-		IRFileDownload ir=new IRFileDownload("aokema2");
+		IRFileDownload ir=new IRFileDownload(541,"10");
 		String name=ir.getFilename();
 		System.out.println(name);
-		//ir.downlaod();
+		ir.downlaod();
 		
 		System.out.println(ir.getURL());		
 
