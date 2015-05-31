@@ -239,13 +239,13 @@ public class Room {
 	 * @table roomIndexTable :  info_user_room
 	 * @throws SQLException 
 	 * */
-	public boolean saveRoomIndexToDB(MySqlClass mysql) throws SQLException{
+	public int saveRoomIndexToDB(MySqlClass mysql) throws SQLException{
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	String sql="insert into "+roomIndexTable
 				+" (ctr_id       ," 
 				+" roomid       ," 
 				+"roomtype        ,"
-				+"description        ,"
+				+"roomname        ,"
 				+"createtime   ,"
 				+"modifytime   "
 				+ ")"				
@@ -259,11 +259,8 @@ public class Room {
 				+sdf.format(this.getModifyTime())
 				+"');";
 		logger.info(sql);
-		if(mysql.query(sql)!=-1){
-		  //logger.info("insert success!");
-		  return true;
-		}
-		return false;
+		return mysql.query(sql);
+
 	}
 	
    /*** 
@@ -281,7 +278,7 @@ public class Room {
 				+" ctr_id        ,"
 				+"roomid        ,"
 				+"roomtype      ,"
-				+"description  ,"
+				+"roomname  ,"
 				+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
 				+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 				+ "  from "				

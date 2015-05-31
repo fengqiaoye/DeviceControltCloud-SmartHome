@@ -76,12 +76,12 @@ public class TriggerTemplate {
 		this.triggerTemplateReactList = triggerReactList;
 	}
 	
-	public  TriggerTemplate fromJsom (JSONObject triggerTemplateJson){
+	public  TriggerTemplate (JSONObject triggerTemplateJson){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		TriggerTemplate trigger= new TriggerTemplate();
 		try {
-			trigger.triggerTemplateID=triggerTemplateJson.getInt("triggerTemplateID");
-			trigger.triggerTemplateID=triggerTemplateJson.getInt("profileTemplateID");
+			this.triggerTemplateID=triggerTemplateJson.getInt("triggerTemplateID");
+			this.profileTemplateID=triggerTemplateJson.getInt("profileTemplateID");
 			JSONArray factorListJSON= triggerTemplateJson.getJSONArray("factorList");
 			List<TriggerTemplateFactor> factorList = new ArrayList<TriggerTemplateFactor>() ;
 			for(int i=0;i<factorListJSON.length();i++){
@@ -90,21 +90,20 @@ public class TriggerTemplate {
 				factor=TriggerTemplateFactor.fromJson(factorJson);
 				factorList.add(factor);		
 			}		
-			trigger.setTriggerTemplateFactorList(factorList);
+			this.setTriggerTemplateFactorList(factorList);
 			
 			JSONArray reactListJSON= triggerTemplateJson.getJSONArray("reactList");
 			List<TriggerTemplateReact> reactList = new ArrayList<TriggerTemplateReact>() ;
 			for(int i=0;i<reactListJSON.length();i++){
-				JSONObject reactJson=factorListJSON.getJSONObject(i);
+				JSONObject reactJson=reactListJSON.getJSONObject(i);
 				TriggerTemplateReact react= new TriggerTemplateReact();
 				react=TriggerTemplateReact.fromJson(reactJson);
 				reactList.add(react);		
 			}		
-			trigger.setTriggerTemplateReactList(reactList);			
+			this.setTriggerTemplateReactList(reactList);			
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
-		return trigger;
 	}
 	
 	public JSONObject toJson() {		
@@ -114,11 +113,11 @@ public class TriggerTemplate {
 		try {
     		triggerJson.put("triggerTemplateID", getTriggerTemplateID());  
     		triggerJson.put("profileTemplateID", getProfileTemplateID()); 
+    		JSONArray ja=new JSONArray();
          	for (TriggerTemplateFactor factor:getTriggerTemplateFactorList()) {
-		    	factorJson= new JSONObject(); 
-		    	factor.toJson();		    	
-		    	triggerJson.accumulate("factorList",factorJson);			
+         		ja.put(factor.toJson());		    				
 			}
+         	triggerJson.put("factorList",ja);
          	
          	for (TriggerTemplateReact react:getTriggerTemplateReactList()) {
 		    	factorJson= new JSONObject(); 
@@ -149,8 +148,10 @@ public class TriggerTemplate {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		String [] sql=new String[this.triggerTemplateFactorList.size()];
+		int i=0;
 		for (TriggerTemplateFactor ft:this.triggerTemplateFactorList) {
-			String sql="replace into "+triggerFactorTable
+			 sql[i]="replace into "+triggerFactorTable
 					+" (triggerid  ,"    
 					+"sttemplateid ,"
 					+"logicalrelation,"
@@ -179,8 +180,9 @@ public class TriggerTemplate {
 					+sdf.format(ft.getCreateTime())+"','"
 					+sdf.format(ft.getModifyTime())
 					+"');";
-			System.out.println(sql);
-			//int count=mysql.query(sql);
+			System.out.println(sql[i]);
+			int count=mysql.query(sql[i]);
+			i++;
 			//if(count>0) System.out.println("insert success"); 	
 		}			
 	
@@ -245,7 +247,7 @@ public class TriggerTemplate {
 			String res=mysql.select(sql);
 			System.out.println("get from mysql:\n"+res);
 			if(res==null || res=="" ) {
-				System.err.println("ERROR:query result is empty: "+sql);
+				//System.err.println("ERROR:query result is empty: "+sql);
 				return null;
 			}
 			String[] resArray=res.split("\n");
@@ -272,14 +274,15 @@ public class TriggerTemplate {
 						e.printStackTrace();
 					}					
 					factorList.add(ft);
-					triggert.setTriggerTemplateFactorList(factorList);
-					triggert.setTriggerTemplateID(Integer.parseInt(cells[0]));
-					triggert.setProfileTemplateID(Integer.parseInt(cells[1]));					
+					
 				}else {
 					System.out.println("ERROR:Columns mismatch between class Profile  and table  "+ triggerFactorTable);
 					return null;				
 				}
-			}			
+			}
+			triggert.setTriggerTemplateFactorList(factorList);
+			triggert.setTriggerTemplateID(Integer.parseInt(cells[0]));
+			triggert.setProfileTemplateID(Integer.parseInt(cells[1]));
 			
 			List<TriggerTemplateReact> triggerReactList=new ArrayList<TriggerTemplateReact>();
 			TriggerTemplateReact react=null;
@@ -328,7 +331,7 @@ public class TriggerTemplate {
 	
 	public static void main(String[] args) {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");		
-		TriggerTemplate t=getFromDB(mysql, 3);
+		TriggerTemplate t=getFromDB(mysql, 1300);
 		t.triggerTemplateID++;
 		t.saveToDB(mysql);
 

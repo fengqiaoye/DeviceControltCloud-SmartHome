@@ -6,6 +6,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
+
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -24,9 +26,17 @@ public class Message extends Header {
 	 private String cookie=null;
 	 private JSONObject json;
 	 int serverID;
-
+	 Date createTime;
+     
+	 
 
 	 
+	public Date getCreateTime() {
+		return createTime;
+	}
+	public void setCreateTime(Date createTime) {
+		this.createTime = createTime;
+	}
 	public void setServerID(int serverID) {
 		this.serverID = serverID;
 	}	
@@ -182,7 +192,7 @@ public class Message extends Header {
 	   out+=		this.mainVersion	+",";
 	   out+=		this.subVersion	+",";
 	   out+=		this.msgLen		+",";
-	   out+=		this.commandID	+",";
+	   out+=		Integer.toHexString(this.commandID) 	+",";
 	   out+=		this.sequeeceNo	+",";
 	   out+=		this.encType		+",";
 	   out+=		this.cookieLen	+",";

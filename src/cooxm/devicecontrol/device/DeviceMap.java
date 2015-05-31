@@ -36,6 +36,7 @@ public class DeviceMap extends HashMap<String, Device> {
 	
 	public DeviceMap(MySqlClass mysql) throws SQLException{
 		super(getDeviceMapFromDB(mysql));
+		this.mysql=mysql;
 	}
 
 /*** 
@@ -49,7 +50,8 @@ public class DeviceMap extends HashMap<String, Device> {
 		HashMap<String, Device> deviceMap=new HashMap<String, Device>();
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String sql="select  "
-				+" ctr_id       ,"     
+				+" ctr_id       ," 
+				+" name       ," 
 				+"devid        ,"
 				+"devsn        ,"
 				+"devtype      ,"
@@ -74,20 +76,22 @@ public class DeviceMap extends HashMap<String, Device> {
 		
 		String[] resArray=res.split("\n");
 		//List<Device> deviceList=null;//new ArrayList<Factor>();
-		Device device=new Device();
+
 		for(String line:resArray){ 
 			String[] index=line.split(",");
+			Device device=new Device();
 			device.ctrolID=Integer.parseInt(index[0]);	
-			device.deviceID=Integer.parseInt(index[1]);	
-			device.deviceSN=index[2];
-			device.deviceType=Integer.parseInt(index[3]);
-			device.type=Integer.parseInt(index[4]);
-			device.roomID=Integer.parseInt(index[5]);
-			device.wall=Integer.parseInt(index[6]);
-			device.relatedDevType=Integer.parseInt(index[7]);
+			device.deviceName=index[1];
+			device.deviceID=Integer.parseInt(index[2]);	
+			device.deviceSN=index[3];
+			device.deviceType=Integer.parseInt(index[4]);
+			device.type=Integer.parseInt(index[5]);
+			device.roomID=Integer.parseInt(index[6]);
+			device.wall=Integer.parseInt(index[7]);
+			device.relatedDevType=Integer.parseInt(index[8]);
 			try {
-				device.createTime=sdf.parse(index[8]);
-				device.modifyTime=sdf.parse(index[9]);
+				device.createTime=sdf.parse(index[9]);
+				device.modifyTime=sdf.parse(index[10]);
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
@@ -129,10 +133,17 @@ public class DeviceMap extends HashMap<String, Device> {
 	 *  */
 	@Override
 	public Device put(String key,Device device) {
-		if(null==this.mysql)
+		if(null==this.mysql){
+			log.error("Can't insert data,mysql is null.");
 			return null;
-		device.saveToDB(this.mysql)	;
-		return super.put(key, device);
+
+		}
+		int x=device.saveToDB(this.mysql)	;
+		if(x>0){
+		   return super.put(key, device);
+		}else{
+			return null;
+		}
 	}	
 	
 	/**
@@ -142,9 +153,14 @@ public class DeviceMap extends HashMap<String, Device> {
 	public Device remove(Object ctrolID_deviceID) {		
 		if(null==this.mysql)
 			return null;
-		Device device = super.get(ctrolID_deviceID);
-		Device.DeleteOneDeviceFromDB(mysql, device.ctrolID, device.deviceID);
-		return super.remove(ctrolID_deviceID);
+		Device device = super.get(ctrolID_deviceID);		
+		int x=Device.DeleteOneDeviceFromDB(mysql, device.ctrolID, device.deviceID);
+		if(x>0){
+			return super.remove(ctrolID_deviceID);
+		}else{
+			return null;
+		}
+		
 	}
 
 	/**
@@ -156,9 +172,9 @@ public class DeviceMap extends HashMap<String, Device> {
 	 * @throws 
 	 */
 	public static void main(String[] args) throws SQLException {
-//		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
-//		DeviceMap dm=new DeviceMap(mysql);
-//		System.out.println(dm.size());
+		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+		DeviceMap dm=new DeviceMap(mysql);
+		System.out.println(dm.size());
 		
 
 		

@@ -159,6 +159,7 @@ public class TriggerMap  extends HashMap<String, Trigger>{
 			react.setTargetID(Integer.parseInt(array[3]));
 			react.setReactWay(Integer.parseInt(array[4]));
 			triggerReactList.add(react);
+			trigger.setTriggerTemplateReactList(triggerReactList);
 		}	
 		trigger.setTriggerTemplateReactList(triggerReactList);
 		try {
@@ -178,9 +179,13 @@ public class TriggerMap  extends HashMap<String, Trigger>{
 	public Trigger put(String key,Trigger trigger) {
 		if(null==this.mysql)
 			return null;
-		trigger.saveToDB(this.mysql)	;
-		super.put(key, trigger);
-		return trigger;		
+		int x=trigger.saveToDB(this.mysql)	;
+		if(x>0){
+			super.put(key, trigger);
+			return trigger;	
+		}else{
+			return null;
+		}
 	}	
 	
 	/**

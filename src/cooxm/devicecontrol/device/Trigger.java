@@ -137,8 +137,18 @@ public class Trigger {
 					+sdf.format(ft.getModifyTime())
 					+"')";
 			System.out.println(sql);
-			//int count=mysql.query(sql);
-			//if(count>0) System.out.println("insert success"); 	
+			int count=mysql.query(sql);
+			//if(count>0) System.out.println("insert success"); 
+			try {
+				mysql.conn.commit();
+			} catch (SQLException e) {
+				e.printStackTrace();
+				try {
+					mysql.conn.rollback();
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+			}
 		}			
 	
 		for (TriggerTemplateReact react:this.triggerReactList) {
@@ -166,6 +176,11 @@ public class Trigger {
 			mysql.conn.commit();
 		} catch (SQLException e) {
 			e.printStackTrace();
+			try {
+				mysql.conn.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 		}		
 		return 1;	
 	}
@@ -294,8 +309,8 @@ public class Trigger {
 		String sql="delete  "
 				+ "  from  "				
 				+triggerFactorInfoTable
-				+" where ctr_id="+ctrolID
-				+" and userroomstid="+triggerID
+				+" where ctrolid="+ctrolID
+				+" and triggerid="+triggerID
 				+ ";";
 		int res=mysql.query(sql);
 		//System.out.println("deleted "+ res + " rows of records from table:"+triggerFactorInfoTable);
@@ -345,7 +360,7 @@ public class Trigger {
 			JSONArray reactListJSON= TriggerJson.getJSONArray("reactList");
 			List<TriggerTemplateReact> reactList = new ArrayList<TriggerTemplateReact>() ;
 			for(int i=0;i<reactListJSON.length();i++){
-				JSONObject reactJson=factorListJSON.getJSONObject(i);
+				JSONObject reactJson=reactListJSON.getJSONObject(i);
 				TriggerTemplateReact react= new TriggerTemplateReact();
 				react=TriggerTemplateReact.fromJson(reactJson);
 				reactList.add(react);		
@@ -403,6 +418,8 @@ public class Trigger {
 		
 		Trigger T=getFromDB(mysql, 1234567,1025);
 		T.saveToDB(mysql);
+		
+		deleteFromDB(mysql, 1234567, 1025);
 
 	}
 

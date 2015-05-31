@@ -1,6 +1,7 @@
 ﻿package cooxm.devicecontrol.device;
 
 
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -250,8 +251,10 @@ public class Profile  {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		String[] sql=new String[factorList.size()];
+		int i=0;
 		for (Factor ft:factorList) {
-			String sql="replace into "+profileDetailTable
+			sql[i]="replace into "+profileDetailTable
 					+" (userroomstid  ,"     
 					+"ctr_id ,"
 					+"factorid ,"
@@ -274,8 +277,21 @@ public class Profile  {
 					+sdf.format(ft.getCreateTime())+"','"
 					+sdf.format(ft.getModifyTime())
 					+"')";
-			//System.out.println(sql);
-			//int count=mysql.query(sql);
+			int count=mysql.query(sql[i]);
+			//System.out.println(sql[i]);
+			i++;
+
+
+//			try {
+//				mysql.conn.commit();
+//			} catch (SQLException e) {
+//				e.printStackTrace();
+//				try {
+//					mysql.conn.rollback();
+//				} catch (SQLException e1) {
+//					e1.printStackTrace();
+//				} 
+//			} 
 			//if(count>0) System.out.println("insert success"); 	
 		}		
 		
@@ -303,13 +319,20 @@ public class Profile  {
 				+sdf.format(getCreateTime())+"','"
 				+sdf.format(getModifyTime())
 				+"')";
-		System.out.println(sql2);	
+		//System.out.println(sql2);	
 		mysql.query(sql2);
 		try {
 			mysql.conn.commit();
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}		
+			 try {
+				mysql.conn.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			} 
+		}	
+
+		
 		return 1;	
 	}
 
@@ -319,11 +342,15 @@ public class Profile  {
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
-	public	static Profile getFromDBByProfileID(MySqlClass mysql,int ctrolID,int profileID) throws SQLException
+	public	static Profile getFromDBByProfileID(MySqlClass mysql,int ctrolID,int profileID) 
 		{
 			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			Profile profile=new Profile();
-			mysql.conn.setAutoCommit(false);
+			try {
+				mysql.conn.setAutoCommit(false);
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 			
 			int roomID;
 			int roomType;
@@ -423,7 +450,11 @@ public class Profile  {
 			}
 			
 		
-	mysql.conn.commit();			
+	try {
+		mysql.conn.commit();
+	} catch (SQLException e) {
+		e.printStackTrace();
+	}			
 	return profile;			
 	}
 	
@@ -547,9 +578,13 @@ public class Profile  {
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
-	public	static int deleteFromDB(MySqlClass mysql,int ctrolID,int profileID) throws SQLException
+	public	static int deleteFromDB(MySqlClass mysql,int ctrolID,int profileID) 
 		{
-			mysql.conn.setAutoCommit(false);
+			try {
+				mysql.conn.setAutoCommit(false);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 			String sql="delete "
 					+ "  from  "				
 					+profileDetailTable
@@ -574,10 +609,14 @@ public class Profile  {
 			int res2=mysql.query(sql2);
 			System.out.println("deleted "+ res + " rows of records from table:"+profileIndexTable);
 			if(res2<0){
-				System.err.println("ERROR:exception happened: "+sql2);
+				log.error("ERROR:exception happened: "+sql2);
 				return 0;
 			} 
-		mysql.conn.commit();			
+		try {
+			mysql.conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}			
 		return 1;			
 	}
 	
@@ -725,16 +764,19 @@ public class Profile  {
 	public static void main(String[] args) throws SQLException, JSONException {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		Profile p =new Profile();
-		p=Profile.getFromDBByProfileID(mysql, 12345677, 123456789);
-		System.out.println(p.toJsonObj().toString());
-	    //JSONObject jo=p.toJsonObj();		
+		p=Profile.getFromDBByProfileID(mysql, 12345679, 123456790);
+		p.ctrolID=p.ctrolID+1;
+		p.saveToDB(mysql);
 		
-		Jedis jedis=new Jedis("172.16.35.170", 6379);
-		jedis.set(p.profileID+"",p.toJsonObj().toString());
-		System.out.println(jedis.get(p.profileID+""));
-		jedis.hgetAll("key");
-		//p.profileID+=2;		
-		//p.saveToDB(mysql);		
+//		System.out.println(p.toJsonObj().toString());
+//	    //JSONObject jo=p.toJsonObj();		
+//		
+//		Jedis jedis=new Jedis("172.16.35.170", 6379);
+//		jedis.set(p.profileID+"",p.toJsonObj().toString());
+//		System.out.println(jedis.get(p.profileID+""));
+//		jedis.hgetAll("key");
+//		//p.profileID+=2;		
+//		//p.saveToDB(mysql);		
 	}
 
 }

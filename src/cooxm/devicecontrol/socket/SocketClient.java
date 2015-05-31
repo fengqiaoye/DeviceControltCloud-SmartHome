@@ -94,15 +94,15 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 		authMsg.writeBytesToSock2(sock);
 		System.out.println("Send Auth "+sock.getRemoteSocketAddress().toString()+":"+authMsg.toString());	
 		
-		 Message msg=CtrolSocketServer.readFromClient(sock);
-		 if(msg!=null){
-			int errorCode= msg.getJson().optInt("errorCode");
-			if(errorCode==0){
-				log.info("succefull connect to  message server,IP:"+sock.getRemoteSocketAddress().toString());
-			}else{
-				log.info("Auth failed to:"+sock.getRemoteSocketAddress().toString()+"by auth info:"+jsonStr);
-			}
-		 }
+//		 Message msg=CtrolSocketServer.readFromClient(sock);
+//		 if(msg!=null){
+//			int errorCode= msg.getJson().optInt("errorCode");
+//			if(errorCode==0){
+//				log.info("succefull connect to  message server,IP:"+sock.getRemoteSocketAddress().toString());
+//			}else{
+//				log.info("Auth failed to:"+sock.getRemoteSocketAddress().toString()+"by auth info:"+jsonStr);
+//			}
+//		 }
 	}
 
 

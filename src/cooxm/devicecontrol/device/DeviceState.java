@@ -31,6 +31,7 @@ public class DeviceState {
 	int volumn;
 	/** 屏幕亮度值 */
 	int brightness;	
+	
 	Date modifyTime;
 	public int getOnOff() {
 		return onOff;
@@ -169,13 +170,14 @@ public class DeviceState {
 		this.channel=json.optInt("channel");
 		this.volumn=json.optInt("volumn");
 		this.brightness=json.optInt("brightness");
-		try {
+		/*try {
 			this.modifyTime=sdf.parse(json.getString("modifyTime"));
 		} catch (ParseException e) {
 			e.printStackTrace();
 		} catch (JSONException e) {
 			e.printStackTrace();
-		}
+		}*/
+		this.modifyTime=new Date();
 	}
 
 	public static void main(String[] args) {

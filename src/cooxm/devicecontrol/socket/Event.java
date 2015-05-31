@@ -164,7 +164,7 @@ public class Event {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-			String sql="insert into "+receiveTable
+			String sql="replace into "+receiveTable
 					+" ( "
 				    + "month  ,"  
 				    + "date  ,"  

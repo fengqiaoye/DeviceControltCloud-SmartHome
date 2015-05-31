@@ -159,28 +159,34 @@ public class ProfileTemplate {
 	 * @table profileDetailTable :  cfg_sttemplate_factor
 	 * @throws SQLException 
 	 * */
-	public  int saveToDB(MySqlClass mysql) throws SQLException{
+	public  int saveToDB(MySqlClass mysql) {
 		if(null==this.factorTempList){
 			System.err.println("Error: save to db failed, make sure the target object is not empty!");
 			return -1;
 		}
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		int resultCount=0;
-		mysql.conn.setAutoCommit(false);		
+		try {
+			mysql.conn.setAutoCommit(false);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		String[] sql=new String[factorTempList.size()];
+		int i=0;
 		for (FactorTemplate factor:this.factorTempList) {
-		String sql="replace into "+profileTemplatDetailTable
+		sql[i]="replace into "+profileTemplatDetailTable
 				+" ("
 				+ "sttemplateid ," 
 				+" factorid     ," 
 				+"roomType   ,"
-				+"lower  ,"
-				+"upper  ,"
-				+"cmpalg ,"
+				+"min  ,"
+				+"max  ,"
+				+"operator ,"
 				+"valid_flag ,"
 				+"createoperator ,"
 				+"modifyoperator ,"					
-				+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
-				+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
+				+"createtime,"
+				+"modifytime"
 				+ ")"
 				+"values "
 				+ "("
@@ -190,15 +196,17 @@ public class ProfileTemplate {
 				+factor.getMinValue()+","
 				+factor.getMaxValue()+","
 				+factor.getOperator()+","
-				+factor.getIsAbstract()+",'"
-			    +factor.getCreateOperator()+"','"
-			    +factor.getModifyOperator()+"','"												
+				+factor.getIsAbstract()+","
+			    +factor.getCreateOperator()+","
+			    +factor.getModifyOperator()+",'"												
 				+sdf.format(factor.getCreateTime())+"','"
 				+sdf.format(factor.getModifyTime())
 				+"')";
 		System.out.println(sql);		
-		mysql.query(sql);
-		
+		mysql.query(sql[i]);
+		i++;
+
+		}
 		String sql2="replace into   "
 				+ profileTemplatIndexTable
 				+"("
@@ -206,20 +214,28 @@ public class ProfileTemplate {
 				+"name,"
 				+"createoperator  ,"
 				+"modifyoperator  ,"			
-				+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
-				+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
-				+ ")  values "				
-				+this.profileTemplateID   +","
-				+this.profileTemplateName +","
+				+"createtime,"
+				+"modifytime"
+				+ ")  values ("				
+				+this.profileTemplateID   +",'"
+				+this.profileTemplateName +"',"
 				+this.getCreateOperator()+","
 				+this.getModifyOperator()+",'"
-				+this.createTime+"','"
-				+this.modifyTime+"'"
-				+ ";";
+				+sdf.format(this.getCreateTime())+"','"
+				+sdf.format(this.getModifyTime())
+				+ "');";
 		System.out.println("query:"+sql2);
 		resultCount+=mysql.query(sql2);
-		}
-		mysql.conn.commit();			
+		try {
+			mysql.conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				mysql.conn.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}			
 		return resultCount;	
 	}
 
@@ -229,10 +245,14 @@ public class ProfileTemplate {
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
-	public	static ProfileTemplate getFromDB(MySqlClass mysql,int profileTemplateID) throws SQLException
+	public	static ProfileTemplate getFromDB(MySqlClass mysql,int profileTemplateID)
 		{
 			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			mysql.conn.setAutoCommit(false);
+			try {
+				mysql.conn.setAutoCommit(false);
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
 			String sql="select "
 					+" sttemplateid ," 
 					+" factorid     ," 
@@ -240,6 +260,7 @@ public class ProfileTemplate {
 					+"min  ,"
 					+"max  ,"
 					+"operator ,"
+					+"valid_flag ,"
 					+"createoperator ,"
 					+"modifyoperator ,"					
 					+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
@@ -251,8 +272,8 @@ public class ProfileTemplate {
 			System.out.println("query:"+sql);
 			String res=mysql.select(sql);
 			System.out.println("get from mysql:\n"+res);
-			if(res==""||res.length()==0) {
-				System.err.println("ERROR:query result is empty: "+sql);
+			if(res==null||res.equals("")||res.length()==0) {
+				//System.err.println("ERROR:query result is empty: "+sql);
 				return null;
 			}
 			String[] resArray=res.split("\n");
@@ -268,12 +289,12 @@ public class ProfileTemplate {
 				factor.setMinValue(Integer.parseInt(cells[3]));
 				factor.setMaxValue(Integer.parseInt(cells[4]));
 				factor.setOperator(Integer.parseInt(cells[5]));
-				//factor.setValidFlag(Integer.parseInt(cells[6]));
-				factor.setCreateOperator(Integer.parseInt(cells[6]));;
-				factor.setModifyOperator(Integer.parseInt(cells[7]));
+				factor.setIsAbstract(Integer.parseInt(cells[6]));
+				factor.setCreateOperator(Integer.parseInt(cells[7]));;
+				factor.setModifyOperator(Integer.parseInt(cells[8]));
 				try {
-					factor.setCreateTime(sdf.parse(cells[8]));
-					factor.setModifyTime(sdf.parse(cells[9]));
+					factor.setCreateTime(sdf.parse(cells[9]));
+					factor.setModifyTime(sdf.parse(cells[10]));
 				} catch (ParseException e) {
 					e.printStackTrace();
 				}
@@ -281,9 +302,10 @@ public class ProfileTemplate {
 				profileTemp.profileTemplateID=Integer.parseInt(cells[0]);
 				//profileTemp.roomType=Integer.parseInt(cells[2]);
 				
-				
 						
 			}
+			profileTemp.setFactorTemplateTempList(factorList);
+			
 			String sql2="select  "
 					+" templateid       ,"
 					+"name,"
@@ -302,9 +324,19 @@ public class ProfileTemplate {
 			profileTemp.setProfileTemplateName(cells2[1]);
 			profileTemp.setCreateOperator(Integer.parseInt(cells2[2]));
 			profileTemp.setModifyOperator(Integer.parseInt(cells2[3]));
-			profileTemp.setProfileTemplateName(cells2[4]);
-			profileTemp.setProfileTemplateName(cells2[5]);
-			mysql.conn.commit();
+			try {
+				profileTemp.setCreateTime(sdf.parse(cells2[4]));
+				profileTemp.setModifyTime(sdf.parse(cells2[5]));
+			} catch (ParseException e1) {
+				e1.printStackTrace();
+			}
+
+			
+			try {
+				mysql.conn.commit();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 			return profileTemp;
 		}
 	
@@ -358,6 +390,7 @@ public class ProfileTemplate {
 						+"min  ,"
 						+"max  ,"
 						+"operator ,"
+						+"valid_flag,"
 						+"createoperator ,"
 						+"modifyoperator ,"					
 						+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
@@ -370,7 +403,7 @@ public class ProfileTemplate {
 				String res=mysql.select(sql);
 				System.out.println("get from mysql:\n"+res);
 				if(res==""||res.length()==0) {
-					System.err.println("ERROR:query result is empty: "+sql);
+					//System.err.println("ERROR:query result is empty: "+sql);
 					return null;
 				}
 				String[] resArray=res.split("\n");
@@ -387,12 +420,12 @@ public class ProfileTemplate {
 					factor.setMinValue(Integer.parseInt(cells[3]));
 					factor.setMaxValue(Integer.parseInt(cells[4]));
 					factor.setOperator(Integer.parseInt(cells[5]));
-					//factor.setValidFlag(Integer.parseInt(cells[6]));
-					factor.setCreateOperator(Integer.parseInt(cells[6]));;
-					factor.setModifyOperator(Integer.parseInt(cells[7]));
+					factor.setIsAbstract(Integer.parseInt(cells[6]));
+					factor.setCreateOperator(Integer.parseInt(cells[7]));;
+					factor.setModifyOperator(Integer.parseInt(cells[8]));
 					try {
-						factor.setCreateTime(sdf.parse(cells[8]));
-						factor.setModifyTime(sdf.parse(cells[9]));
+						factor.setCreateTime(sdf.parse(cells[9]));
+						factor.setModifyTime(sdf.parse(cells[10]));
 					} catch (ParseException e) {
 						e.printStackTrace();
 					}
@@ -443,6 +476,8 @@ public class ProfileTemplate {
 		List<ProfileTemplate> a = getAllFromDB(mysql);
 		//new ProfileTemplat().saveToDB(mysql);
 		System.out.println("xx");
+		
+		a.get(0).saveToDB(mysql);
 		
 	}
 

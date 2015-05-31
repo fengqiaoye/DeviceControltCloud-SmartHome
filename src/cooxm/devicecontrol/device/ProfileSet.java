@@ -117,7 +117,7 @@ public class ProfileSet {
 			this.profileSetName=profileSetJson.getString("profileSetName");
 			this.profileSetTemplateID=profileSetJson.getInt("profileSetTemplateID");
 			
-			JSONArray profileListJSON= profileSetJson.getJSONArray("profileList");
+			JSONArray profileListJSON= profileSetJson.getJSONArray("profileArray");
 			List<Integer> profileList = new ArrayList<Integer>() ;
 			for(int i=0;i<profileListJSON.length();i++){
 				JSONObject profileJson=profileListJSON.getJSONObject(i);
@@ -160,7 +160,7 @@ public class ProfileSet {
 		    	ja.put(profile.toJsonObj());
 		    	//profileSetJson.accumulate("profileArray", profile.toJsonObj());
 		    }
-		    profileSetJson.accumulate("profileArray", ja);
+		    profileSetJson.put("profileArray", ja);
 		    profileSetJson.put("createTime",sdf.format(this.createTime));
 		    profileSetJson.put("modifyTime",sdf.format(this.createTime));
 		} catch (JSONException e) {
@@ -196,14 +196,18 @@ public class ProfileSet {
 	 * @table profileIndexTable  :	info_user_room_st
 	 * @throws SQLException 
 	 * */
-	public int saveProfileSetToDB(MySqlClass mysql) throws SQLException{
+	public int saveProfileSetToDB(MySqlClass mysql) {
 		if(this.isEmpty()){
 			System.out.println("ERROR:object is empty,can't save to mysql");
 			return -1;
 		}
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		int resultCount=0;
-		mysql.conn.setAutoCommit(false);		
+		try {
+			mysql.conn.setAutoCommit(false);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}		
 		for (Integer profileID:this.profileList) {
 		String sql="replace into "+profileSetTable
 				+" (ctr_id       ," 
@@ -224,10 +228,20 @@ public class ProfileSet {
 				+sdf.format(this.createTime)+"','"
 				+sdf.format(this.modifyTime)
 				+"')";
-		System.out.println(sql);		
+		//System.out.println(sql);		
 		resultCount+=mysql.query(sql);
-		}
-		mysql.conn.commit();		
+		try {
+			mysql.conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				mysql.conn.rollback();
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}	
+	}
+	
 		
 		return resultCount;	
 	}
@@ -238,10 +252,9 @@ public class ProfileSet {
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
-	public	static ProfileSet getProfileSetFromDB(MySqlClass mysql,int ctrolID,int profileSetID) throws SQLException
+	public	static ProfileSet getProfileSetFromDB(MySqlClass mysql,int ctrolID,int profileSetID) 
 		{
 			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			mysql.conn.setAutoCommit(false);
 			String sql="select "
 					+" ctr_id       ," 
 					+" userstsetid       ," 
@@ -285,7 +298,11 @@ public class ProfileSet {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			mysql.conn.commit();
+			try {
+				mysql.conn.commit();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
 			return profileSet;
 		}
 	
@@ -352,9 +369,13 @@ public class ProfileSet {
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
-	public static int deleteProfileSetFromDB(MySqlClass mysql,int ctrolID,int profileSetID) throws SQLException
+	public static int deleteProfileSetFromDB(MySqlClass mysql,int ctrolID,int profileSetID) 
 	{
-		mysql.conn.setAutoCommit(false);
+		try {
+			mysql.conn.setAutoCommit(false);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		String sql="delte *  "
 				+ "  from  "				
 				+profileSetTable
@@ -367,7 +388,11 @@ public class ProfileSet {
 			System.out.println("ERROR:query result is empty: "+sql);
 			return 0;
 		}				
-		mysql.conn.commit();
+		try {
+			mysql.conn.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
 		return 1;
 	}
 		
@@ -379,12 +404,7 @@ public class ProfileSet {
 		p=ProfileSet.getProfileSetFromDB(mysql, 12345677, 12345);
 		p.profileSetID++;
 		
-		try {
-			p.saveProfileSetToDB(mysql);
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		p.saveProfileSetToDB(mysql);
 	}
 
 

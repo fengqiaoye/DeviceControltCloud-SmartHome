@@ -23,6 +23,7 @@ import cooxm.devicecontrol.util.*;
 public class Device {	
 	int deviceID;
 	int ctrolID;
+	String deviceName;
 	String deviceSN;
 	int roomType;
 	int roomID;
@@ -177,11 +178,16 @@ public class Device {
 	public void setModifyTime(Date modifyTime) {
 		this.modifyTime = modifyTime;
 	}
+	
 
 	
+	public void setDeviceName(String deviceName) {
+		this.deviceName = deviceName;
+	}
 	public Device(){}
 	public Device(
 			int ctrolID,
+			String deviceName,
 			int deviceID,
 			String deviceSN,
 			int deviceType,
@@ -193,7 +199,8 @@ public class Device {
 			Date createTime,
 			Date modifyTime
 			) {		
-		this.deviceID              =   deviceID      ;    
+		this.deviceID              =   deviceID      ; 
+		this.deviceName            =   deviceName;
 		this.deviceSN              = deviceSN    ;
 		this.ctrolID              =    ctrolID       ;
 		this.roomID              =     roomID        ;
@@ -214,6 +221,7 @@ public class Device {
 		try {
 			this.deviceID=deviceJson.getInt("deviceID");
 			this.deviceSN=deviceJson.getString("deviceSN");
+			this.deviceName=deviceJson.getString("deviceName");
 			this.ctrolID=deviceJson.getInt("ctrolID");	
 			this.roomID=deviceJson.getInt("roomID");
 			this.roomType=deviceJson.getInt("roomType");
@@ -235,6 +243,7 @@ public class Device {
 	    try {
 			deviceJson.put("ctrolID",         this.ctrolID      );
 		    deviceJson.put("deviceID",        this.deviceID      );
+		    deviceJson.put("deviceName",        this.deviceName       );
 		    deviceJson.put("deviceSN",        this.deviceSN       );
 		    deviceJson.put("roomID",          this.roomID        );
 		    deviceJson.put("roomType",        this.roomType        );
@@ -335,7 +344,8 @@ public class Device {
 		String tablename="info_user_room_bind";
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String sql="replace into "+tablename
-				+" (ctr_id       ,"     
+				+" (ctr_id       ,"  
+				+"name,"
 				+"devid        ,"
 				+"devsn        ,"
 				+"devtype      ,"
@@ -349,7 +359,8 @@ public class Device {
 				+ ")"				
 				+"values "
 				+ "("
-				+ctrolID+","
+				+ctrolID+",'"
+				+deviceName+"',"
 				+deviceID+",'"
 				+deviceSN+"',"
 				+deviceType+","
@@ -361,7 +372,7 @@ public class Device {
 				+sdf.format(createTime)+"','"
 				+sdf.format(createTime)
 				+"')";
-		//System.out.println(sql);
+		System.out.println(sql);
 		return mysql.query(sql);		
 	}
 
@@ -492,7 +503,7 @@ public class Device {
 				+ " from "				
 				+Device.deviceBindTable
 				+" where ctr_id="+ctrolID
-				+" and deviceid="+deviceID
+				+" and devid="+deviceID
 				+ ";";
 		System.out.println("query:"+sql);
 		int res2=mysql.query(sql);
@@ -564,14 +575,21 @@ public class Device {
 	
 	
 	  public static void main(String[] args) throws SQLException{
-		  //MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+		  MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
 		  Date date=new Date();
-//		  int count=dev.saveToDB(mysql);		
-//		  System.out.println("Query OK,  "+count+" row affected.");
 		  int ctrolID=1256787;
-		  Jedis jedis= new Jedis("120.24.81.226", 6379);
-		  Device dev=new Device(ctrolID , 1256786 , "XJFGOD847X" ,      571 ,    0 ,  2,  101 ,    1, 0,date,date);
-		  jedis.hset(ctrolID+"_roomBind", 101+"", dev.toJsonObj().toString());
+		  Device dev=new Device(ctrolID , "空调",1256786 , "XJFGOD847X" ,      571 ,    0 ,  2,  101 ,    1, 0,date,date);
+		  int count=dev.saveToDB(mysql);
+		  dev.saveToDB(mysql);
+//		  System.out.println("Query OK,  "+count+" row affected.");
+		  
+		  Device d= getOneDeviceFromDB(mysql, 2001, 1300);
+		  
+//
+//		  Jedis jedis= new Jedis("120.24.81.226", 6379);
+//
+//
+//		  jedis.hset(ctrolID+"_roomBind", 101+"", dev.toJsonObj().toString());
 		  System.out.println("Query OK");
 		  
 		  

@@ -101,8 +101,9 @@ public class RoomMap  extends HashMap<String, Room>{
 	public Room put(String key,Room room) {
 		if(null==this.mysql)
 			return null;
+		int x=0;
 		try {
-			room.saveRoomIndexToDB(this.mysql)	;
+		  x=	room.saveRoomIndexToDB(this.mysql)	;
 		} catch (SQLException e) {
 			e.printStackTrace();
 			return null;

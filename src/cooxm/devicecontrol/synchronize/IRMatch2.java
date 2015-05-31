@@ -66,21 +66,20 @@ public class IRMatch2 {
             		String line=null;
             		try {
 						BufferedReader br=new BufferedReader(new FileReader(file));
-						String abstract_path="";
 						while((line=br.readLine())!=null){
 							int diff= differceBitCount(line,c3code);
 							if(diff<score){
 								lineScoreMap.put(diff, line);
 								score=Math.min(score, diff);
 							}
-							String path=file.getPath();
-							abstract_path=path.substring(path.indexOf("keyfiles3"),path.length() );
 
 							if(score==0){
-								fileScoreMap.put(score, abstract_path+"|"+line);
+								fileScoreMap.put(score, file.getPath()+"|"+line);
 								return;
 							}
-						}
+						}	
+						String path=file.getPath();
+						String abstract_path=path.substring(path.indexOf("keyfiles3"),path.length() );
 						fileScoreMap.put(score, abstract_path+"|"+lineScoreMap.get(score));
 						br.close();
 					} catch (FileNotFoundException e) {

@@ -87,14 +87,8 @@ public class TimeTable {
 			return 0;
 		}
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		try {
-			mysql.conn.setAutoCommit(false);
-			for(TimeRecord rec:this.timeRecList){
-				rec.saveToDB(mysql);
-			}
-			mysql.conn.commit();
-		} catch (SQLException e) {
-			e.printStackTrace();
+		for(TimeRecord rec:this.timeRecList){
+			rec.saveToDB(mysql);
 		}		
 		return 1;	
 	}

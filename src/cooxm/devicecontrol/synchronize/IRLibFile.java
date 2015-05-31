@@ -162,6 +162,11 @@ public class IRLibFile {
 		+this.recordCount
 		+ ";";
 		System.out.println("query:"+sql2);
+		try {
+			mysql.conn.setAutoCommit(true);
+		} catch (SQLException e1) {
+			e1.printStackTrace();
+		}
 		int res2=mysql.query(sql2);
 		
 		return res2;			

@@ -56,31 +56,7 @@ public class IRFileDownload {
 	/** 如果初始化时候 filename的文件含没有.txt后缀，用这个函数
 	 */
 	public String getURL(){	
-		String applianceTypeStr="";
-		switch (applianceType) {
-		case 541: //空调
-			applianceTypeStr="AC";
-			break;
-		case 501: //电视
-			applianceTypeStr="TV";
-			break;
-		case 511: //机顶盒
-			applianceTypeStr="STB";
-			break;
-		case 521: //DVD
-			applianceTypeStr="DVD";
-			break;
-		case 601: //电风扇
-			applianceTypeStr="FAN";
-			break;
-		case 591: //空气净化器
-			applianceTypeStr="ACL";
-			break;			
-		default:
-			applianceTypeStr="";
-			break;
-		}
-		String url=DOWNLOAD_FTP_IP+"/keyfiles3/"+applianceTypeStr+"/codes/"+this.getFilename()+".txt"; 		
+		String url=DOWNLOAD_FTP_IP+"/"+this.getFilename()+".txt"; 		
 		return url;		
 	}
 	

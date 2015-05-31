@@ -194,7 +194,7 @@ public class TriggerTemplateReact {
 		 String b = jedis.hget("1256791_currentProfile", 203+"");
 		 System.out.println(b);
 		 
-		 String c = jedis.hget("1256789_roomBind", 1234567891+"");
+		 String c = jedis.hget("1256789_roomBind", 203+"");
 		 System.out.println(c);
 		 
 		 

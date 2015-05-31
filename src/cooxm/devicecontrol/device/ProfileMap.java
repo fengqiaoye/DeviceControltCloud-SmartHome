@@ -124,11 +124,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 	@Override
 	public Profile remove(Object key) {
 		Profile profile = super.get(key);
-		try {
-			Profile.deleteFromDB(mysql, profile.getCtrolID(), profile.getProfileID());
-		} catch (SQLException e) {
-			e.printStackTrace();
-		}
+		Profile.deleteFromDB(mysql, profile.getCtrolID(), profile.getProfileID());
 		return super.remove(key);
 		//return profile;
 	}
@@ -141,7 +137,8 @@ public class ProfileMap extends HashMap<String, Profile>{
 	public List<Profile> getProfilesByctrolID(int ctrolID){	
 		List<Profile> profileList=new ArrayList<Profile>();
 		for (Entry<String, Profile> entry : this.entrySet()) {
-			if(entry.getKey().split("_")[0]==ctrolID+""){
+			String ctrolID2=entry.getKey().split("_")[0];
+			if(ctrolID2.equals(ctrolID+"")){
 				profileList.add(entry.getValue());
 			}			
 		}

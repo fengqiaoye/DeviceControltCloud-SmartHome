@@ -115,12 +115,7 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 	public ProfileSet put(String key,ProfileSet profileSet) {
 		if(null==this.mysql)
 			return null;
-		try {
-			profileSet.saveProfileSetToDB(this.mysql)	;
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
-		}
+		profileSet.saveProfileSetToDB(this.mysql)	;
 		super.put(key, profileSet);
 		return profileSet;		
 	}	
@@ -131,12 +126,7 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 	@Override
 	public ProfileSet remove(Object ctrolID_profileSetID) {
 		ProfileSet profileSet=this.get(ctrolID_profileSetID);
-		try {
-			ProfileSet.deleteProfileSetFromDB(mysql, profileSet.ctrolID, profileSet.profileSetID);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			return null;
-		}
+		ProfileSet.deleteProfileSetFromDB(mysql, profileSet.ctrolID, profileSet.profileSetID);
 		return super.remove(ctrolID_profileSetID);
 		//return profileSet;
 	}
