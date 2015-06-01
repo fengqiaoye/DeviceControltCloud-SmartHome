@@ -40,7 +40,6 @@ import cooxm.devicecontrol.device.RoomMap;
 import cooxm.devicecontrol.device.Trigger;
 import cooxm.devicecontrol.device.TriggerMap;
 import cooxm.devicecontrol.device.TriggerTemplate;
-import cooxm.devicecontrol.device.enviromentState;
 import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.socket.Message;
 import cooxm.devicecontrol.socket.SocketClient;
@@ -1026,7 +1025,6 @@ public class LogicControl {
 				log.error("Can't get_all_profile by ctrolID:"+ctrolID+" from profileMap or Mysql.");
 				json.put("errorCode",PROFILE_NOT_EXIST);
 	    	}
-
  
 		} catch (JSONException e1) {
 			e1.printStackTrace();
@@ -1038,7 +1036,7 @@ public class LogicControl {
 			}
 		}
         msg.setJson(json);
-  		msg.setCommandID(GET_ALL_PROFILE_ACK);
+  		msg.setCommandID(GET_PROFILE_LIST_ACK);
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -1544,7 +1542,7 @@ public class LogicControl {
 	    		json.put("errorCode",SUCCESS);
 	    	}else {
 				log.error("Can't get_room_profileSet by ctrolID:"+ctrolID+" from profileMap or Mysql.");
-				json.put("errorCode",PROFILE_NOT_EXIST);
+				json.put("errorCode",PROFILE_SET_NOT_EXIST);
 	    	}
 		} catch (JSONException e1) {
 			e1.printStackTrace();
@@ -1555,7 +1553,7 @@ public class LogicControl {
 				e2.printStackTrace();
 			}
 		}
-    	msg.setCommandID(GET_ALL_RROFILE_SET_ACK);
+    	msg.setCommandID(GET_RROFILE_SET_LIST_ACK);
     	msg.setJson(json);
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
@@ -2171,11 +2169,14 @@ public class LogicControl {
 	    	if(msg.getJson().has("sender")){
 	    		sender=msg.getJson().getInt("sender"); 
 	    	}
+
+			json.put("sender",2);
+			json.put("receiver",sender); 
 	    	if( (deviceList=deviceMap.getApplianceByctrolID(ctrolID)).size()!=0 ){
 	    		JSONArray ja=new JSONArray();
 	    		for (Device device : deviceList) {
 	    			JSONObject jo=new JSONObject();
-	    			jo.put("profileSetID", device.getDeviceID());
+	    			jo.put("deviceID", device.getDeviceID());
 	    			jo.put("modifyTime", sdf.format(device.getModifyTime()));
 					ja.put(jo);
 				}
@@ -2186,8 +2187,6 @@ public class LogicControl {
 				json.put("errorCode",DEVICE_NOT_EXIST);
 	    	}
 
-			json.put("sender",2);
-			json.put("receiver",sender); 
 
 		} catch (JSONException e1) {
 			e1.printStackTrace();
@@ -2198,7 +2197,7 @@ public class LogicControl {
 				e.printStackTrace();
 			}
 		}
-    	msg.setCommandID( GET_ALL_DEVICE_ACK);
+    	msg.setCommandID( GET_DEVICE_LIST_ACK);
 		msg.setJson(json);
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
@@ -2507,14 +2506,16 @@ public class LogicControl {
 	
 	/*** 获取一个用户家里所有房间
 	 * 	 <pre>对应json消息体为：
-	 *   {
+	 *   { 
+	 *     sender:
+	 *     receiver:
 	 *     ctrolID:1234567
      *   }
      *   @return List< Device > 加电列表 的jsonArray格式
      *   {
      *   ctrolID:1234567,     *   
      *	 roomArray: [
-     *               {JSON }
+     *               {roomID:1, modifyTime:2015-06-01 12:13:14 }
      *              ]
      *   }
 	 * @throws JSONException 
@@ -2544,7 +2545,7 @@ public class LogicControl {
 	    		json.put("errorCode",SUCCESS);   
 	    	}else {
 				log.error("Can't get_all_room by ctrolID:"+ctrolID+""+" from roomMap or Mysql.");
-				json.put("errorCode",DEVICE_NOT_EXIST);
+				json.put("errorCode",ROOM_NOT_EXIST);
 	    	}
 
 		} catch (JSONException e1) {
@@ -2556,7 +2557,7 @@ public class LogicControl {
 				e.printStackTrace();
 			}
 		}
-    	msg.setCommandID( GET_ALL_ROOM_ACK);
+    	msg.setCommandID( GET_ROOM_LIST_ACK);
 		msg.setJson(json);
     	try {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);

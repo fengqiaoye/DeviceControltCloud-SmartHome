@@ -99,10 +99,9 @@ public class EnviromentState {
 	public void setWaterLeak(State waterLeak) {
 		this.waterLeak = waterLeak;
 	}*/
-	public enviromentState(State lux, State pm25, 
+	public EnviromentState(State lux, State pm25, 
 			State temprature, State moisture, State noise, State harmfulGas //,
 			/*State waterLeak,State infrared*/) {
-		super();
 		this.lux = lux;
 		this.pm25 = pm25;
 		//this.infrared = infrared;
@@ -130,7 +129,7 @@ public class EnviromentState {
 		return json;		
 	}
 	
-	public enviromentState(JSONObject json){
+	public EnviromentState(JSONObject json){
 		try {
 			this.lux=new State(json.getJSONObject("lux"));
 			this.pm25=new State(json.getJSONObject("pm25"));
