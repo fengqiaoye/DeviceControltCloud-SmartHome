@@ -24,10 +24,12 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.omg.CORBA.Environment;
 
 import cooxm.devicecontrol.device.Device;
 import cooxm.devicecontrol.device.DeviceMap;
 import cooxm.devicecontrol.device.DeviceState;
+import cooxm.devicecontrol.device.EnviromentState;
 import cooxm.devicecontrol.device.Profile;
 import cooxm.devicecontrol.device.ProfileMap;
 import cooxm.devicecontrol.device.ProfileSet;
@@ -38,6 +40,7 @@ import cooxm.devicecontrol.device.RoomMap;
 import cooxm.devicecontrol.device.Trigger;
 import cooxm.devicecontrol.device.TriggerMap;
 import cooxm.devicecontrol.device.TriggerTemplate;
+import cooxm.devicecontrol.device.enviromentState;
 import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.socket.Message;
 import cooxm.devicecontrol.socket.SocketClient;
@@ -79,12 +82,17 @@ public class LogicControl {
     /*** 请求 一个用户家里所有情景模式    @see get_room_profile() */
 	private static final short GET_ALL_PROFILES					=	COMMAND_START+5;	
     /*** 请求一个用户家里所的情景模式 回复    @see get_room_profile_ack() */
-	private static final short GET_ALL_PROFILE_ACK     		=   COMMAND_START+5 + COMMAND_ACK_OFFSET;	
+	private static final short GET_ALL_PROFILE_ACK     		    =   COMMAND_START+5 + COMMAND_ACK_OFFSET;	
 	
     /*** 上报一个用户家里所有情景模式   @see set_room_profile()  */
 	private static final short SET_ALL_PROFILES					=	COMMAND_START+6;	
     /*** 上报一个用户家里所有情景模式的回复   @see set_room_profile_ack()  */
 	private static final short SET_ALL_PROFILE_ACK	    		=	COMMAND_START+6+COMMAND_ACK_OFFSET;
+	
+    /*** 请求 一个用户家里所有情景模式列表，不含情景细节     */
+	private static final short GET_PROFILE_LIST					=	COMMAND_START+7;	
+    /*** 请求一个用户家里所的情景模式 回复    */
+	private static final short GET_PROFILE_LIST_ACK     		=   COMMAND_START+7 + COMMAND_ACK_OFFSET;
 	
 	/*** 请求 情景模式集 */	
 	private static final short GET_RROFILE_SET					=	COMMAND_START+21;
@@ -126,6 +134,11 @@ public class LogicControl {
 	/*** 上报一个用户家里所有 情景模式集 的回复*/
 	private static final short SET_ALL_RROFILE_SET_ACK				=	COMMAND_START+28+COMMAND_ACK_OFFSET;
 	
+	/*** 请求一个用户家里所有 情景模式集列表 */	
+	private static final short GET_RROFILE_SET_LIST					=	COMMAND_START+29;
+	/*** 请求一个用户家里所有 情景模式集 的回复*/	
+	private static final short GET_RROFILE_SET_LIST_ACK				=	COMMAND_START+29+COMMAND_ACK_OFFSET;
+	
 	/*** 请求一个家电*/
 	private static final short GET_ONE_DEVICE				=	COMMAND_START+41;
 	/*** 请求家电列表 的回复*/
@@ -156,6 +169,11 @@ public class LogicControl {
 	/*** 上报一个用户家里所有家电列表 的回复*/
 	private static final short SET_ALL_DEVICE_ACK			=	COMMAND_START+46+COMMAND_ACK_OFFSET;
 	
+	/*** 请求一个用户家里所有家电列表*/
+	private static final short GET_DEVICE_LIST				=	COMMAND_START+47;
+	/*** 请求一个用户家里所有家电列表 的回复*/
+	private static final short GET_DEVICE_LIST_ACK			=	COMMAND_START+47+COMMAND_ACK_OFFSET;
+	
 	/*** 请求家电列表*/
 	private static final short GET_ONE_ROOM				=	COMMAND_START+51;
 	/*** 请求家电列表 的回复*/
@@ -180,6 +198,11 @@ public class LogicControl {
 	private static final short SET_ALL_ROOM				=	COMMAND_START+55;
 	/*** 设置 家电列表 的回复*/
 	private static final short SET_ALL_ROOM_ACK			=	COMMAND_START+55+COMMAND_ACK_OFFSET;
+	
+	/*** 请求家电列表*/
+	private static final short GET_ROOM_LIST				=	COMMAND_START+56;
+	/*** 请求家电列表 的回复*/
+	private static final short GET_ROOM_LIST_ACK			=	COMMAND_START+56+COMMAND_ACK_OFFSET;
 	
 	/*** 请求触发规则模板 */
 	private static final short GET_TRIGGER_TEMPLATE				=	COMMAND_START+61;	
@@ -222,6 +245,10 @@ public class LogicControl {
 	private static final short RECOGNIZE_INFRARED_CODE       =   COMMAND_START+93;
 	private static final short RECOGNIZE_INFRARED_CODE_ACK   =   COMMAND_START+93+COMMAND_ACK_OFFSET;
 	
+	/**上传的扑捉到红外码值 ，用来识别遥控器的型号*/
+	private static final short GET_ENVIROMENT_STATE       =   COMMAND_START+101;
+	private static final short GET_ENVIROMENT_STATE_ACK   =   COMMAND_START+101+COMMAND_ACK_OFFSET;
+	
     /*** 告警消息   */
 	private static final short WARNING_MSG				 	=	WARNING_START+3;
     /*** 告警消息  的回复  */
@@ -260,7 +287,7 @@ public class LogicControl {
 	public static final int INFRARED_CODE_NOT_RECOGNIZED = -50032;
 	
 	/** 下载红外码库时 没有告知家电类型*/
-	public static final int UNKNOWN_DEVICE_TYPE = -50033;
+	public static final int UNKNOWN_DEVICE_TYPE          = -50033;
 	
 	/** 服务器没有通过认证*/
 	public static final int SERVER_NOT_AUTHORIZED	  = -50041;
@@ -385,6 +412,9 @@ public class LogicControl {
 		case SET_ALL_PROFILES:
 			set_all_profile(msg); 
 			break;	
+		case GET_PROFILE_LIST:			
+			get_profile_list(msg);
+			break;
 		case GET_RROFILE_SET:	
 			get_profile_set(msg);
 			break;
@@ -403,6 +433,9 @@ public class LogicControl {
 		case SET_ALL_RROFILE_SET:	
 			set_all_profile_set(msg);
 			break;
+		case GET_RROFILE_SET_LIST:	
+			get_profile_set_list(msg);
+			break;
 		case GET_RROFILE_TEMPLATE: 	
 			get_profile_template(msg);
 			break;
@@ -410,10 +443,10 @@ public class LogicControl {
 			set_profile_template(msg);
 			break;	
 		case GET_ONE_DEVICE:	
-			get_one_device(msg);;
+			get_one_device(msg);
 			break;
 		case SET_ONE_DEVICE:	
-			set_one_device(msg, mysql);;
+			set_one_device(msg, mysql);
 			break;	
 		case DELETE_ONE_DEVICE:
 			delete_one_device(msg);
@@ -422,16 +455,19 @@ public class LogicControl {
 			switch_device_state(msg);
 			break;
 		case GET_ALL_DEVICE:	
-			get_all_device(msg);;
+			get_all_device(msg);
 			break;
 		case SET_ALL_DEVICE:	
-			set_all_device(msg, mysql);;
-			break;	
+			set_all_device(msg, mysql);
+			break;
+		case GET_DEVICE_LIST:	
+			get_all_device(msg);
+			break;
 		case GET_ONE_ROOM:	
-			get_one_room(msg);;
+			get_one_room(msg);
 			break;
 		case SET_ONE_ROOM:	
-			set_one_room(msg, mysql);;
+			set_one_room(msg, mysql);
 			break;	
 		case DELETE_ONE_ROOM:
 			delete_one_room(msg);
@@ -440,8 +476,10 @@ public class LogicControl {
 			get_all_room(msg);
 			break;
 		case SET_ALL_ROOM:	
-			set_all_room(msg, mysql);;
+			set_all_room(msg, mysql);
 			break;
+		case GET_ROOM_LIST:	
+			get_room_list(msg);
 		case WARNING_MSG:	
 			warning_msg(msg);
 			break;
@@ -471,6 +509,9 @@ public class LogicControl {
 			break;
 		case RECOGNIZE_INFRARED_CODE:
 			recognize_infrared_code(msg);
+			break;			
+		case GET_ENVIROMENT_STATE:
+			get_enviroment_state(msg);
 			break;
 		default:
 			int sender=0;
@@ -934,6 +975,78 @@ public class LogicControl {
 		}     	
     }
     
+	/*** 请求查询一个用户家里所有情景模式列表，不包含情景详细细节
+     * <pre>传入的json格式为：
+     * { 
+     *   sender:    0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:  0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   ctrolID:1234567
+     * }
+     * @throws JSONException 
+     * @return message 的json格式：
+     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode": XXXX}
+     *   （2）如果查询的情景模式存在，则返回:
+     *  { 
+     *  errorCode:SUCCESS,
+     *   sender:    0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:  0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   ctrolID:1234567,
+     *   profileArray: 
+     *         [  { profileID:123,modifytime:2015-06-01 12:13:14      },
+     *            { profileID:124,modifytime:2015-06-01 12:13:14      },
+     *            { profileID:125,modifytime:2015-06-01 12:13:14      },
+     *         ]
+     * }                 
+     */
+    public void get_profile_list(Message msg) {
+    	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		JSONObject json= new JSONObject();
+    	List<Profile> profileList=null;
+    	int ctrolID;
+		try {
+			ctrolID = msg.getJson().getInt("ctrolID");
+	    	int sender=0;
+			if(msg.getJson().has("sender")){
+				   sender=msg.getJson().getInt("sender");
+			}
+			json.put("sender",2);	
+			json.put("receiver",sender); 
+			profileMap.size();
+	    	if( (profileList= profileMap.getProfilesByctrolID(ctrolID)).size()!=0  ){
+	    		JSONArray ja=new JSONArray();
+	    		for (Profile profile : profileList) {
+	    			JSONObject jo=new JSONObject();
+	    			jo.put("profileID", profile.getProfileID());
+	    			jo.put("modifyTime", sdf.format(profile.getModifyTime()));
+					ja.put(jo);	    			
+				}
+	    		json.put("profileArray", ja);
+	    		json.put("errorCode",SUCCESS);
+	    	}else {
+				log.error("Can't get_all_profile by ctrolID:"+ctrolID+" from profileMap or Mysql.");
+				json.put("errorCode",PROFILE_NOT_EXIST);
+	    	}
+
+ 
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			try {
+				json.put("errorCode",JSON_PARSE_ERROR);
+				json.put("errorDescription",e1.getCause().getMessage());
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+        msg.setJson(json);
+  		msg.setCommandID(GET_ALL_PROFILE_ACK);
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}    	
+    }
+
+    
     /*** 请求切换情景模式,返回值
      * <pre>传入的json格式为：
     * { 
@@ -1053,10 +1166,12 @@ public class LogicControl {
 			json.put("sender",2);
 			json.put("receiver",sender); 
 	    	if((dbProfileSet=profileSetMap.get(key))==null &&  dbProfileSet.getModifyTime().before(msgModifyTime)){
+    			//2015-06-01 和李鹏商量，商定profileSet分房间发送,set里面不再包含profile任何细节
 	    		ProfileSet ps=profileSetMap.put(key, msgProfileSet);
-	    		JSONArray ja=msg.getJson().getJSONObject("profileSet").getJSONArray("profileArray");
+				/*JSONArray ja=msg.getJson().getJSONObject("profileSet").getJSONArray("profileArray");
 	    		for (int i=0;i< ja.length();i++) {
-					Profile p=new Profile(ja.getJSONObject(i));
+	    			
+	    			Profile p=new Profile(ja.getJSONObject(i));	    			
 					String key2=ctrolID+"_"+p.getProfileID();
 					Profile p2=profileMap.put(key2, p);
 					if(p2!=null){
@@ -1065,7 +1180,7 @@ public class LogicControl {
 						json.put("errorCode",SQL_ERROR); 
 						break;
 					}
-				}
+				}*/
 				if(ps!=null){
 					json.put("errorCode",SUCCESS); 
 				}else{
@@ -1376,6 +1491,77 @@ public class LogicControl {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}     	
+    }
+    
+	/*** 请求查询一个用户家里所有情景模式列表，不含情景详细信息
+     * <pre>传入的json格式为：
+     * { 
+     *   sender:    0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:  0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   ctrolID:1234567
+     * }
+     * @throws JSONException 
+     * @return message 的json格式：
+     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode": XXXX}
+     *   （2）如果查询的情景模式存在，则返回:
+     *  { 
+     *  errorCode:SUCCESS,
+     *   sender:    0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:  0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   ctrolID:1234567,
+     *   profileSetArray: 
+     *         [  { profileSetID:123，modifyTime: 2015-06-01 12:13:14     },
+     *            { profileSetID:123，modifyTime: 2015-06-01 12:13:14     },
+     *            { profileSetID:123，modifyTime: 2015-06-01 12:13:14      },
+     *         ]
+     * }                 
+     */
+    public void get_profile_set_list(Message msg) {
+    	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    	List<ProfileSet> profileSetList=null;
+		JSONObject json= new JSONObject();
+    	int ctrolID;
+		try {
+			ctrolID = msg.getJson().getInt("ctrolID");
+
+	    	//int profileID=msg.getJson().getInt("profileSetID");
+
+	    	int sender=0;
+			if(msg.getJson().has("sender")){
+				   sender=msg.getJson().getInt("sender");
+			}
+			json.put("sender",2);	
+			json.put("receiver",sender); 
+	    	if( (profileSetList= profileSetMap.getProfileSetsByctrolID(ctrolID)).size()!=0  ){
+	    		JSONArray ja=new JSONArray();
+	    		for (ProfileSet profile : profileSetList) {
+	    			JSONObject jo=new JSONObject();
+	    			jo.put("profileSetID", profile.getProfileSetID());
+	    			jo.put("modifyTime", sdf.format(profile.getModifyTime()));
+					ja.put(jo);
+				}
+	    		json.put("profileSetArray", ja);
+	    		json.put("errorCode",SUCCESS);
+	    	}else {
+				log.error("Can't get_room_profileSet by ctrolID:"+ctrolID+" from profileMap or Mysql.");
+				json.put("errorCode",PROFILE_NOT_EXIST);
+	    	}
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			try {
+				json.put("errorCode",JSON_PARSE_ERROR);
+				json.put("errorDescription",e1.getCause().getMessage());
+			} catch (JSONException e2) {
+				e2.printStackTrace();
+			}
+		}
+    	msg.setCommandID(GET_ALL_RROFILE_SET_ACK);
+    	msg.setJson(json);
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}    	
     }
 	
     /*** 请求切换情景模式集,返回值
@@ -1957,6 +2143,70 @@ public class LogicControl {
 		} 		
 	}
 	
+	/*** 获取一个用户家里所有设备
+	 * 	 <pre>请求对应json消息体为：
+	 *   {
+	 *     ctrolID:1234567
+     *   }
+     *   @return List< Device > 加电列表 的json格式
+     *   回复消息对应json消息体为：
+     *   deviceArray:[
+     *                 {device的json格式}
+     *                 ...
+     *               ]
+     *   
+	 * @throws JSONException 
+     *   */
+	public void get_device_list(Message msg) {
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    	JSONObject json=new JSONObject();
+    	List<Device> deviceList=new ArrayList<Device>();
+    	int ctrolID;
+		try {
+			ctrolID = msg.getJson().getInt("ctrolID");
+
+	    	//int deviceID=msg.getJson().getInt("deviceID");
+	    	//String key=ctrolID+"_"+deviceID;
+	    	int sender=0;
+	    	if(msg.getJson().has("sender")){
+	    		sender=msg.getJson().getInt("sender"); 
+	    	}
+	    	if( (deviceList=deviceMap.getApplianceByctrolID(ctrolID)).size()!=0 ){
+	    		JSONArray ja=new JSONArray();
+	    		for (Device device : deviceList) {
+	    			JSONObject jo=new JSONObject();
+	    			jo.put("profileSetID", device.getDeviceID());
+	    			jo.put("modifyTime", sdf.format(device.getModifyTime()));
+					ja.put(jo);
+				}
+	    		json.put("deviceArray", ja);
+	    		json.put("errorCode",SUCCESS); 
+	    	}else {
+				log.error("Can't get_one_device, ctrolID:"+ctrolID+" from deviceMap or Mysql.");
+				json.put("errorCode",DEVICE_NOT_EXIST);
+	    	}
+
+			json.put("sender",2);
+			json.put("receiver",sender); 
+
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			try {
+				json.put("errorCode",JSON_PARSE_ERROR);
+				json.put("errorDescription",e1.getCause().getMessage());
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+    	msg.setCommandID( GET_ALL_DEVICE_ACK);
+		msg.setJson(json);
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}	
+	}
+	
 	/*** 获取一个房间
 	 * 	 <pre>对应json消息体为：
 	 *   {
@@ -2253,6 +2503,66 @@ public class LogicControl {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		} 		
+	}
+	
+	/*** 获取一个用户家里所有房间
+	 * 	 <pre>对应json消息体为：
+	 *   {
+	 *     ctrolID:1234567
+     *   }
+     *   @return List< Device > 加电列表 的jsonArray格式
+     *   {
+     *   ctrolID:1234567,     *   
+     *	 roomArray: [
+     *               {JSON }
+     *              ]
+     *   }
+	 * @throws JSONException 
+     **/
+	public void get_room_list(Message msg) {
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    	JSONObject json=new JSONObject();
+    	List<Room> roomList=new ArrayList<Room>();
+    	int ctrolID;
+		try {
+			ctrolID = msg.getJson().getInt("ctrolID");
+	    	int sender=0;
+	    	if(msg.getJson().has("sender")){
+	    		sender=msg.getJson().getInt("sender"); 
+	    	}	
+			json.put("sender",2);
+			json.put("receiver",sender); 
+	    	if(  (roomList=roomMap.getRoomsByctrolID(ctrolID)).size()!=0){
+	    		JSONArray ja=new JSONArray();
+	    		for (Room room : roomList) {
+	    			JSONObject jo=new JSONObject();
+	    			jo.put("roomID", room.getRoomID());
+	    			jo.put("modifyTime", sdf.format(room.getModifyTime()));
+					ja.put(jo);
+				}
+	    		json.put("roomArray", ja);
+	    		json.put("errorCode",SUCCESS);   
+	    	}else {
+				log.error("Can't get_all_room by ctrolID:"+ctrolID+""+" from roomMap or Mysql.");
+				json.put("errorCode",DEVICE_NOT_EXIST);
+	    	}
+
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			try {
+				json.put("errorCode",JSON_PARSE_ERROR);
+				json.put("errorDescription",e1.getCause().getMessage());
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+    	msg.setCommandID( GET_ALL_ROOM_ACK);
+		msg.setJson(json);
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}	
 	}
 	
 
@@ -2650,6 +2960,12 @@ public class LogicControl {
 			json.put("receiver",sender); 
 		} catch (JSONException e1) {
 			e1.printStackTrace();
+			try {
+				json.put("errorCode",JSON_PARSE_ERROR);
+				json.put("errorDescription",e1.getCause().getMessage());
+			} catch (JSONException e2) {
+				e2.printStackTrace();
+			}
 		}
 		msg.setJson(json);
     	msg.setCommandID(DELETE_TRIGGER_ACK);
@@ -2734,6 +3050,12 @@ public class LogicControl {
 
 		} catch (JSONException e) {
 			e.printStackTrace();
+			try {
+				json.put("errorCode",JSON_PARSE_ERROR);
+				json.put("errorDescription",e.getCause().getMessage());
+			} catch (JSONException e2) {
+				e2.printStackTrace();
+			}
 		}
    	msg.setCommandID(SYN_UPDATETIME_ACK);
 	msg.setJson(json);
@@ -2789,6 +3111,12 @@ public class LogicControl {
 
 		} catch (JSONException e1) {
 			e1.printStackTrace();
+			try {
+				json.put("errorCode",JSON_PARSE_ERROR);
+				json.put("errorDescription",e1.getCause().getMessage());
+			} catch (JSONException e2) {
+				e2.printStackTrace();
+			}
 		}
 		msg.setJson(json);
     	msg.setCommandID(DOWNLOAD_INFRARED_FILE_ACK);
@@ -2875,6 +3203,12 @@ public class LogicControl {
 
 		} catch (JSONException e1) {
 			e1.printStackTrace();
+			try {
+				json.put("errorCode",JSON_PARSE_ERROR);
+				json.put("errorDescription",e1.getCause().getMessage());
+			} catch (JSONException e2) {
+				e2.printStackTrace();
+			}
 		}
     	msg.setCommandID(DOWNLOAD_INFRARED_FILE_ACK);
 		msg.setJson(json);
@@ -2886,10 +3220,72 @@ public class LogicControl {
     	
 	}
     
+    /*** 请求用户家里一个房间的 环境数据，如温度
+     * <pre> ；        
+     * 请求的json格式为：
+     * { 
+     *   sender:     0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   receiver:   0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务
+     *   ctrolID:1234567
+     *   roomID: 
+     *  }
+     * @return message 的json格式：
+     *   （1）若 这个房间的数据环境存在，则返回  这个房间的环境数据errorcode=0；
+     *   （2）若 这个房间的环境数据不存在，则返回 样板间的环境数据。
+     *   {
+     *   sender:     2
+     *   receiver:   0
+     *   ctrolID:1234567
+     *   enviromentState:
+     *     {
+     *      {temprature:25,level:5},
+     *      {lux:300,level:5},
+     *     }     *   
+     *   } 
+     * @throws JSONException 
+     */
+    private void  get_enviroment_state(Message msg){
+		JSONObject json= new JSONObject();
+    	int sender=0;
+		try {
+			if(msg.getJson().has("sender")){
+				   sender=msg.getJson().getInt("sender");
+			}
+			json.put("sender",2);
+			json.put("receiver",sender);
+			int roomID  = msg.getJson().getInt("roomID");
+			int ctrolID = msg.getJson().getInt("ctrolID");		
+    	    String stateStr=this.jedis.hget(ctrolID+"_houseState",roomID+"");
+    	    if(stateStr!=null){
+    	    	JSONObject jo=new JSONObject(stateStr); 
+    	    	json.put("houseState", jo);
+    	    }
+     	} catch (JSONException e1) {
+			e1.printStackTrace();
+			try {
+				json.put("errorCode",JSON_PARSE_ERROR);
+				json.put("errorDescription",e1.getCause().getMessage());
+			} catch (JSONException e2) {
+				e2.printStackTrace();
+			}
+			
+		}
+    	msg.setCommandID(GET_ENVIROMENT_STATE_ACK);
+		msg.setJson(json);
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+    	
+    }
+    
 
-	public static void main(String[] args) {		
+	public static void main(String[] args)  {		
 		Configure cf= new Configure();
 		LogicControl lc= new LogicControl(cf);		
 		System.out.println("lc="+lc);
+		
+
 	}		
 }

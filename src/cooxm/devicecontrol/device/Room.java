@@ -241,7 +241,7 @@ public class Room {
 	 * */
 	public int saveRoomIndexToDB(MySqlClass mysql) throws SQLException{
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    	String sql="insert into "+roomIndexTable
+    	String sql="replace into "+roomIndexTable
 				+" (ctr_id       ," 
 				+" roomid       ," 
 				+"roomtype        ,"

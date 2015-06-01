@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Copyright 2014 Cooxm.com
  * All right reserved.
  * @author Chen Guanghua E-mail: richard@cooxm.com

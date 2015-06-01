@@ -20,7 +20,7 @@ public class MainEntry {
 	
 	static Logger log =Logger.getLogger(MainEntry.class);	
 	private static Configure cf =new Configure();
-	/*** 
+	/***  
 	 * 整个程序包的入口
 	 * @param  Configure 配置文件
 	 * 

@@ -33,6 +33,7 @@ import cooxm.devicecontrol.control.Configure;
 import cooxm.devicecontrol.control.ConnectThread;
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.control.MainEntry;
+import cooxm.devicecontrol.control.TimeOutMap;
 import cooxm.devicecontrol.util.BytesUtil;
 import cooxm.devicecontrol.util.MySqlClass;
 
@@ -530,6 +531,17 @@ public class CtrolSocketServer {
     	Configure cf= new Configure();
     	LogicControl lc=new LogicControl(cf);
     	new CtrolSocketServer(cf,lc).listen(); 
+    	
+		JSONObject json;
+		json = new JSONObject("{\"sender\":0,\"receiver\":2}");
+		Message msg1=new Message((short)0x1635, "1433128078_15", json);
+		Message msg2=new Message((short)0x5635, "1433128078_15", json);
+		TimeOutMap tm=new TimeOutMap();
+		tm.put(msg1.getCookie(), msg1);
+
+		Thread.sleep(10);
+
+		tm.put(msg2.getCookie(), msg2);
 
     }    
 }

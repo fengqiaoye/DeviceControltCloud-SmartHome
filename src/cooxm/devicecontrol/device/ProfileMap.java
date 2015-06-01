@@ -113,9 +113,13 @@ public class ProfileMap extends HashMap<String, Profile>{
 	public Profile put(String key,Profile profile) {
 		if(null==this.mysql)
 			return null;
-		profile.saveToDB(this.mysql)	;
-		super.put(key, profile);
-		return profile;		
+		int x=profile.saveToDB(this.mysql)	;
+		if(x>0){
+			super.put(key, profile);
+			return profile;
+		}else{
+		   return null;	
+		}	
 	}	
 	
 	/**

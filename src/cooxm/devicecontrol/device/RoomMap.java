@@ -108,8 +108,12 @@ public class RoomMap  extends HashMap<String, Room>{
 			e.printStackTrace();
 			return null;
 		}
-		super.put(key, room);
-		return room;		
+		if(x>0){
+			 super.put(key, room);
+			 return room;
+		}else{
+		   return null;	
+		}		
 	}	
 	
 	/**

@@ -1,4 +1,4 @@
-﻿package cooxm.devicecontrol.util;
+package cooxm.devicecontrol.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

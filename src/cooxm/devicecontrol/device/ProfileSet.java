@@ -156,9 +156,13 @@ public class ProfileSet {
 		    JSONArray ja=new JSONArray();
 		    for(Integer profileID: this.profileList){
 		    	//Profile profile=Profile.getFromDBByProfileID(mysql, ctrolID, profileID);//从数据库获取
-		    	Profile profile=LogicControl.profileMap.get(ctrolID+"_"+profileID);
-		    	ja.put(profile.toJsonObj());
 		    	//profileSetJson.accumulate("profileArray", profile.toJsonObj());
+		    	
+		    	// 2015-06-01 和李鹏商定，不再包含情景细节；
+		    	/*Profile profile=LogicControl.profileMap.get(ctrolID+"_"+profileID);
+		    	ja.put(profile.toJsonObj());*/
+		    	ja.put(profileID);
+
 		    }
 		    profileSetJson.put("profileArray", ja);
 		    profileSetJson.put("createTime",sdf.format(this.createTime));

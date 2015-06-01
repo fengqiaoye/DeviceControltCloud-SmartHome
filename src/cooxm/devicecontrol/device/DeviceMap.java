@@ -140,7 +140,8 @@ public class DeviceMap extends HashMap<String, Device> {
 		}
 		int x=device.saveToDB(this.mysql)	;
 		if(x>0){
-		   return super.put(key, device);
+		    super.put(key, device);
+		    return device;
 		}else{
 			return null;
 		}

@@ -181,8 +181,8 @@ public class TriggerMap  extends HashMap<String, Trigger>{
 			return null;
 		int x=trigger.saveToDB(this.mysql)	;
 		if(x>0){
-			super.put(key, trigger);
-			return trigger;	
+			return super.put(key, trigger);
+
 		}else{
 			return null;
 		}
