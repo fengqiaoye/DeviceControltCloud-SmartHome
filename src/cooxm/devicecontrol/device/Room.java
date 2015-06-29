@@ -35,7 +35,12 @@ public class Room {
 	private static final Logger logger = Logger.getLogger("global");
 	
 	static final String roomIndexTable = "info_user_room";
-	
+	public Date getModifyTime() {
+		return modifyTime;
+	}
+	public void setModifyTime(Date modifyTime) {
+		this.modifyTime = modifyTime;
+	}
 
 	public int getRoomID() {
 		return roomID;
@@ -235,7 +240,7 @@ public class Room {
 	
 	/*** 
 	 * Save Profile info to Mysql:
-	 * @param  Mysql:		    MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	 * @param  Mysql:		    MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 	 * @table roomIndexTable :  info_user_room
 	 * @throws SQLException 
 	 * */
@@ -265,7 +270,7 @@ public class Room {
 	
    /*** 
    * 从入MYSQL读取room的 基本情况
-   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
    * @table  info_user_room_st
    * @throws SQLException 
    * @throws IOException 
@@ -275,10 +280,10 @@ public class Room {
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Room room =new Room();
 		String sql2="select  "
-				+" ctr_id        ,"
-				+"roomid        ,"
-				+"roomtype      ,"
-				+"roomname  ,"
+				+" ctr_id,"
+				+"roomid ,"
+				+"roomtype,"
+				+"roomname,"
 				+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
 				+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 				+ "  from "				
@@ -289,7 +294,7 @@ public class Room {
 		//logger.info("query:"+sql2);
 		logger.info("query:"+sql2);
 		String res2=mysql.select(sql2);
-		logger.info("get from mysql:\n"+res2);
+		logger.info("get from mysql:"+res2);
 		if(res2==null|| res2==""){
 			logger.error("ERROR:empty query by : "+sql2);
 			return null;
@@ -329,9 +334,9 @@ public class Room {
 	
 	public static void main(String[] args) throws SQLException, IOException {
 		// TODO Auto-generated method stub
-		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 		Room room =new Room();
-		room=Room.getRoomHeadFromDB(mysql, 12345677, 201);
+		room=Room.getRoomHeadFromDB(mysql, 299792458, 4001);
 		room.roomID++;
 		
 		try {
@@ -343,11 +348,6 @@ public class Room {
 			//logger.error(e.getMessage(),e); 
 		}
 	}
-	public Date getModifyTime() {
-		return modifyTime;
-	}
-	public void setModifyTime(Date modifyTime) {
-		this.modifyTime = modifyTime;
-	}
+
 
 }

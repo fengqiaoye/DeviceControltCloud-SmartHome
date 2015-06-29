@@ -93,7 +93,7 @@ public class TimeRecord{
 	
 	/*** 
 	 * Save Time Record info to Mysql:
-	 * @param  Mysql:				MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	 * @param  Mysql:				MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 	 * @table profileDetailTable :  info_user_room_st_factor
 	 * @throws SQLException
 	 * @returns 0 :保存失败；

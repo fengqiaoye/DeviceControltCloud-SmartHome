@@ -4,6 +4,10 @@ package cooxm.devicecontrol.device;
  * @version Created：27 Jan 2015 14:22:01 
  */
 
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.LineNumberReader;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -224,7 +228,21 @@ public class Factor  extends FactorDict  {
 	}*/	
 
 	public static void main(String[] args){
-		FactorDict fact= new FactorDict();
+		//FactorDict fact= new FactorDict();
+		FileReader f;
+		try {
+			f = new FileReader("log4j.properties");
+			LineNumberReader l=new LineNumberReader(f);
+			l.setLineNumber(10); //跳到第line行
+			String x=l.readLine();
+			System.out.println(x);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		
 
 		
 		

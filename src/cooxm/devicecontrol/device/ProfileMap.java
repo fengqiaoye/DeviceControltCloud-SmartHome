@@ -47,7 +47,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 	
    /*** 
    * 从入MYSQL读取情景模式列表
-   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
     */
@@ -85,8 +85,8 @@ public class ProfileMap extends HashMap<String, Profile>{
 			profile.setProfileID(Integer.parseInt(index[0]));
 			profile.setProfileName(index[1]);	
 			profile.setCtrolID(Integer.parseInt(index[2]) );	
-			//profile.setRoomID(Integer.parseInt(index[3]));	
-			//profile.setRoomType(Integer.parseInt(index[4]));	
+			profile.setRoomID(Integer.parseInt(index[3]));	
+			profile.setRoomType(Integer.parseInt(index[4]));	
 			int roomID=Integer.parseInt(index[3]);
 			int roomType=Integer.parseInt(index[4]);
 			profile.setProfileTemplateID(Integer.parseInt(index[5])); 
@@ -200,7 +200,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 
 	public static void main(String[] args) throws SQLException {
 		
-		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 		ProfileMap pm=new ProfileMap(mysql);
 		System.out.println(pm.size());
 

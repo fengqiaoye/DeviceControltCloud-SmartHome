@@ -1,7 +1,11 @@
 package cooxm.devicecontrol.device;
 
+import java.sql.SQLException;
+
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import cooxm.devicecontrol.util.MySqlClass;
 
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
@@ -15,10 +19,27 @@ public class EnviromentState {
 		public double value;  
 		/** 环境数值所处的等级*/
 		public int level;	
-		State(double value,int level){
+		public State(double value,int level){
 			this.value=value;
 			this.level=level;
 		}
+		
+		public double getValue() {
+			return value;
+		}
+
+		public void setValue(double value) {
+			this.value = value;
+		}
+
+		public int getLevel() {
+			return level;
+		}
+
+		public void setLevel(int level) {
+			this.level = level;
+		}
+
 		public JSONObject toJson() {
 			JSONObject json =new JSONObject();
 			try {
@@ -99,6 +120,15 @@ public class EnviromentState {
 	public void setWaterLeak(State waterLeak) {
 		this.waterLeak = waterLeak;
 	}*/
+	public EnviromentState(){
+		State state=new State(-1, -1);
+		this.lux = state;
+		this.pm25 = state;
+		this.temprature = state;
+		this.moisture = state;
+		this.noise = state;
+		this.harmfulGas = state;		
+	}
 	public EnviromentState(State lux, State pm25, 
 			State temprature, State moisture, State noise, State harmfulGas //,
 			/*State waterLeak,State infrared*/) {
@@ -118,7 +148,7 @@ public class EnviromentState {
 			json.put("lux",lux.toJson());
 			json.put("pm25",pm25.toJson());
 			//json.put("infrared",infrared.toJson());
-			json.put("temprature",temprature.toJson());
+			json.put("temperature",temprature.toJson());
 			json.put("moisture",moisture.toJson());
 			json.put("noise",noise.toJson());
 			json.put("harmfulGas",harmfulGas.toJson());
@@ -142,6 +172,16 @@ public class EnviromentState {
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}		
+	}
+	
+	public static void main(String[] args) throws SQLException {
+		// TODO Auto-generated method stub
+		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
+		ProfileSet p =new ProfileSet();
+		p=ProfileSet.getProfileSetFromDB(mysql, 12345677, 12345);
+		p.profileSetID++;
+		
+		p.saveProfileSetToDB(mysql);
 	}
 	
 }

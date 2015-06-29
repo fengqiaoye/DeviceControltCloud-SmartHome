@@ -2,12 +2,15 @@ package cooxm.devicecontrol.control;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.hp.hpl.sparta.xpath.ThisNodeTest;
 
 import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.socket.Message;
@@ -19,7 +22,7 @@ import cooxm.devicecontrol.socket.Message;
  * Map<cookieID,msg>
  */
 
-public class TimeOutMap extends HashMap<String,Message>{
+public class TimeOutMap extends HashMap<String,Message> implements Runnable {
 	
 	/**
 	 * 
@@ -34,29 +37,33 @@ public class TimeOutMap extends HashMap<String,Message>{
     public TimeOutMap(){
     	Configure cf=MainEntry.getConfig();
     	timeOut          =Integer.parseInt(cf.getValue("msg_timeout"));
-    	new Thread(new TimeOut(this)).start();
+    	//new Thread(new TimeOut(this)).start();
     }
     
 	@Override
 	public Message put(String key, Message msg) {
 		//String cookie=msg.getCookie();
-		if(!this.containsKey(key)){  //不存在，说明这个命令是一个超时命令
-		   msg.setCreateTime(new Date());
-	       return super.put(key, msg);
-		}else{                      //存在，说明这个命令是一个ack
-			Message originMsg=this.get(key);
-			if(originMsg==null){
+		if(!this.containsKey(key)){  //不存在，说明这个命令是一个命令
+			if(!msg.isAck()){        //不是ACK,是原命令
+			   msg.setCreateTime(new Date());
+		       return super.put(key, msg);
+			}else{
 				return null;
 			}
-			if(msg.getCommandID()-originMsg.getCommandID()==0x4000){			
-				int sender=0;
-				if(msg.getJson().has("sender")){
-					   sender=msg.getJson().optInt("sender");
-				}
+		}else{                      //存在，说明这个命令是一个ack
+			Message originMsg=this.get(key);
+			if(originMsg==null){   //说明已经已经超时
+				return null;
+			}
+			if(msg.getCommandID()-originMsg.getCommandID()==0x4000){	//没有超时		
 				JSONObject json=msg.getJson();
 				try {
 					json.put("sender",2);
-					json.put("receiver",sender); 
+					if(originMsg.getJson().has("sender")){
+						 json.put("receiver",originMsg.getJson().getInt("sender")); 
+					}else{
+					     json.put("receiver",1); 
+					}
 				} catch (JSONException e) {
 					e.printStackTrace();
 				}
@@ -66,7 +73,7 @@ public class TimeOutMap extends HashMap<String,Message>{
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				} 
-		    	System.out.println("Success, find the origin msg ---------------------------");
+		    	//System.out.println("Success, find the origin msg ---------------------------");
 		    	return	super.remove(key);  
 			}else{
 				return null;
@@ -74,8 +81,54 @@ public class TimeOutMap extends HashMap<String,Message>{
 		}
 	
 	}
+	
+	@Override
+	public void run() {
+		while(true){
+			//for (Map.Entry<String,Message> entry : this.entrySet()) {  //遍历时删除会有问题
+			Iterator<Map.Entry<String,Message>> it = this.entrySet().iterator(); 
+			while(it.hasNext()){
+			    Map.Entry<String,Message> entry=it.next();  
+				long nowTime=new Date().getTime();
+				long createTime=entry.getValue().getCreateTime().getTime();
+				int  time_diff =(int) ((nowTime-createTime)/(1000));
+				if(time_diff>=timeOut){      //超时，返回超时错误
+                    Message msg=entry.getValue();
+					int sender=0;
+					if(msg.getJson().has("sender")){
+						   sender=msg.getJson().optInt("sender");
+					}
+					JSONObject json=msg.getJson();
+					try {
+						json.put("sender",2);
+						json.put("receiver",sender);
+						json.put("errorCode", LogicControl.TIME_OUT);
+						log.error("Timeout, havn't received ACK for msg: "+msg.toString());
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+					msg.setCommandID((short) (msg.getCommandID()+LogicControl.COMMAND_ACK_OFFSET));
+					msg.setJson(json);						
+			    	try {
+			    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					} 
+					this.remove(entry.getKey());
+					break;
+					//System.out.println("after remove, size="+this.size());
+				}				
+			}
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
     
-   static class TimeOut  implements Runnable{  
+ /*  static class TimeOut  implements Runnable{  
 	   TimeOutMap timeOutMap;
 	   
 
@@ -101,7 +154,7 @@ public class TimeOutMap extends HashMap<String,Message>{
 							json.put("sender",2);
 							json.put("receiver",sender);
 							json.put("errorCode", LogicControl.TIME_OUT);
-							System.out.println("Timeout, can't find the origin msg ---------------------------");
+							//System.out.println("Timeout, hav't received ACK ---------------------------");
 						} catch (JSONException e) {
 							e.printStackTrace();
 						}
@@ -112,6 +165,7 @@ public class TimeOutMap extends HashMap<String,Message>{
 							e.printStackTrace();
 						} 
 						this.timeOutMap.remove(entry.getKey());
+						//System.out.println("after remove, size="+timeOutMap.size());
 					}				
 				}
 				try {
@@ -122,7 +176,7 @@ public class TimeOutMap extends HashMap<String,Message>{
 			}
 		}
 
-   }
+   }*/
     
 
 
@@ -135,11 +189,16 @@ public class TimeOutMap extends HashMap<String,Message>{
 		Message msg1=new Message((short)0x1635, "1433128078_15", json);
 		Message msg2=new Message((short)0x5635, "1433128078_15", json);
 		TimeOutMap tm=new TimeOutMap();
+		new Thread(tm).start();
+		
 		tm.put(msg1.getCookie(), msg1);
+		System.out.println("insert origin");
+		System.out.println("size of map="+tm.size());
 
-		//Thread.sleep(10);
+		Thread.sleep(20);
 
 		tm.put(msg2.getCookie(), msg2);
+		System.out.println("size of map="+tm.size());
 		
 		
 

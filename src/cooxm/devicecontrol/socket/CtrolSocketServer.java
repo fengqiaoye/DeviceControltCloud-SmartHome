@@ -106,9 +106,10 @@ public class CtrolSocketServer {
         msgRt.serverID=4;
         msgRt.start(); 
    		WriteThread msgWr=new  WriteThread(this.msgSock.sock);
-   		msgWr.start();   		
-   		ProcessThread msgPt= new  ProcessThread();
-   		msgPt.start();
+   		msgWr.start(); 
+   		
+   		ProcessThread pt= new  ProcessThread();
+   		pt.start();
 
     	
         while(true)
@@ -124,10 +125,9 @@ public class CtrolSocketServer {
        		WriteThread wr=new  WriteThread(sock);
        		wr.start();
        		
-       		ProcessThread pt= new  ProcessThread();
-       		pt.start();
-       		Thread.sleep(10);
-       		
+//       		ProcessThread pt= new  ProcessThread();
+//       		pt.start();
+       		Thread.sleep(10);       		
        		
         }
 	}
@@ -211,8 +211,7 @@ public class CtrolSocketServer {
 						}
 						break;
 					}
-	            }else{   //socket关闭
-	            	
+	            }else{   //socket关闭     	
 	            	
 	            	try {
 	            		if(serverID>0){
@@ -221,8 +220,13 @@ public class CtrolSocketServer {
 							sockMap.remove(this.serverID);
 							severMap.remove(this.serverID);	
 	            		}
+	            		Thread.sleep(10);
 						this.socket.close();
+						this.socket=null;						
+						return;
 					} catch (IOException e) {
+						e.printStackTrace();
+					} catch (InterruptedException e) {
 						e.printStackTrace();
 					}
 	            }
@@ -274,6 +278,7 @@ public class CtrolSocketServer {
 						}
 					} catch (InterruptedException e) {
 						e.printStackTrace();
+						return;
 					} 				
 		    	}
 	    	}
@@ -281,7 +286,11 @@ public class CtrolSocketServer {
 	} 
 	
 	public class ProcessThread extends Thread
-	{		
+	{	
+//		Socket sock;
+//		public ProcessThread(Socket client)
+//	    {this.sock = client;}	
+		
 		public void run()
 		{
 			while(true){
@@ -309,7 +318,12 @@ public class CtrolSocketServer {
 		}					
 		Header header=Message.getOneHeaer((short)CMD__Identity_REQ);
 		String jsonStr="{\"uiClusterID\":"+clusterID+",\"usServerType\":"+serverType+",\"uiServerID\":"+serverID+"}";
-		Message authMsg=new Message(header, "", jsonStr);
+		Message authMsg=null;
+		try {
+			authMsg = new Message(header, "", jsonStr);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 		authMsg.writeBytesToSock2(sock);
 		log.info("Send Auth "+sock.getRemoteSocketAddress().toString()+":"+authMsg.toString());		
 	}
@@ -460,20 +474,19 @@ public class CtrolSocketServer {
 		InputStream in=null;
 		try {
 			in = clientRequest.getInputStream();
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-		if (in==null) {
-			return null;
-		}
-		byte[] b23=new byte[23]; 
-		Header head=new Header();
-		Message msg=new Message();
-		int offset=0;
-    	try {
+			if (in==null) {
+				log.warn("InputStream is null for socket:"+clientRequest.getRemoteSocketAddress().toString());
+				return null;
+			}
+			byte[] b23=new byte[23]; 
+			Header head=new Header();
+			Message msg=new Message();
+			int offset=0;
+
     		while(offset<23){
     			int len = in.read(b23,offset,23-offset);
     			if(len<0){
+    				log.warn("read failed from socket:"+clientRequest.getRemoteSocketAddress().toString());
     				return null;
     			}else{
     				offset=offset+len;
@@ -487,41 +500,44 @@ public class CtrolSocketServer {
     			log.error("Input stream can't be recognized,message must be started with \"#XRPC#\",socket closed. ");
     			return null;
     		}
-			//head.printHeader();
+			//head.printHeader();  
+    		
+	    	byte[] cookie=new byte[head.cookieLen];
+	    	try {
+				clientRequest.getInputStream().read(cookie,0,head.cookieLen);
+			} catch (IOException e) {			
+				e.printStackTrace();
+				
+			}
+	    	String cookieStr=new String(cookie);
+	    	//System.out.println(" cookie: "+cookieStr);    
+	    	
+	    	byte[] commnad=new byte[head.msgLen-head.cookieLen];
+			clientRequest.getInputStream().read(commnad,0,head.msgLen-head.cookieLen);
+	    	String comString=new String(commnad);
+	    	//System.out.println(comString);
+	    	if(comString.length()==0){
+	    		return null;
+	    	}else{
+	    		try {
+					msg=new Message(head, cookieStr, comString);
+				} catch (JSONException e) {
+					log.error("Json parse error,json="+comString);
+					e.printStackTrace();
+				}
+	    	}
+	    	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	    	//if(msg.isAuth() && msg.commandID!=SocketClient.CMD__HEARTBEAT_REQ){
+	    		System.out.println(sdf.format(new Date())+" Recv frm "+clientRequest.getRemoteSocketAddress().toString()+":"+msg.toString());
+	    	//}
+	        return msg;
 		} catch (IOException e) {
-			log.error("IOException socket:"+clientRequest.getRemoteSocketAddress()+" , socket will be closed.");
+			log.error("IOException socket:"+clientRequest.getRemoteSocketAddress().toString()+" , socket will be closed.");
+//			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress()); 
+//			CtrolSocketServer.severMap.remove();
 			e.printStackTrace();
 			return null;			
-		}    	
-    	
-    	byte[] cookie=new byte[head.cookieLen];
-    	try {
-			clientRequest.getInputStream().read(cookie,0,head.cookieLen);
-		} catch (IOException e) {			
-			e.printStackTrace();
-			CtrolSocketServer.sockMap.remove(clientRequest.getInetAddress().getHostAddress()); 
-		}
-    	String cookieStr=new String(cookie);
-    	//System.out.println(" cookie: "+cookieStr);    
-    	
-    	byte[] commnad=new byte[head.msgLen-head.cookieLen];
-    	try {
-			clientRequest.getInputStream().read(commnad,0,head.msgLen-head.cookieLen);
-		} catch (IOException e) {
-			e.printStackTrace();
 		}  
-    	String comString=new String(commnad);
-    	//System.out.println(comString);
-    	if(comString.length()==0){
-    		return null;
-    	}else{
-    		msg=new Message(head, cookieStr, comString);
-    	}
-    	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    	//if(msg.isAuth() && msg.commandID!=SocketClient.CMD__HEARTBEAT_REQ){
-    		System.out.println(sdf.format(new Date())+" Recv frm "+clientRequest.getRemoteSocketAddress().toString()+":"+msg.toString());
-    	//}
-        return msg; 
     } 
 	
 
@@ -532,7 +548,7 @@ public class CtrolSocketServer {
     	LogicControl lc=new LogicControl(cf);
     	new CtrolSocketServer(cf,lc).listen(); 
     	
-		JSONObject json;
+    	/*JSONObject json;
 		json = new JSONObject("{\"sender\":0,\"receiver\":2}");
 		Message msg1=new Message((short)0x1635, "1433128078_15", json);
 		Message msg2=new Message((short)0x5635, "1433128078_15", json);
@@ -541,7 +557,8 @@ public class CtrolSocketServer {
 
 		Thread.sleep(10);
 
-		tm.put(msg2.getCookie(), msg2);
+		tm.put(msg2.getCookie(), msg2);*/
+
 
     }    
 }

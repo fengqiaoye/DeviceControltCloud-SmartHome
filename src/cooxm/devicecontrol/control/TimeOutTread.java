@@ -102,6 +102,7 @@ public class TimeOutTread extends Thread {
             try {          	
 				JSONObject json=new JSONObject();
             	json.put("errorCode",LogicControl.TIME_OUT);
+            	json.put("sender", 2);
             	if(msg.getJson().has("sender")){
             		json.put("receiver",msg.getJson().getInt("sender"));     				
             	}else{

@@ -37,7 +37,7 @@ public class Configure extends Properties {
             if(!pps.containsKey("server_port"))   	{pps.setProperty("server_port", "20190"); } 
             if(!pps.containsKey("mysql_ip"))   		{pps.setProperty("mysql_ip", "172.16.35.170");  }
             if(!pps.containsKey("mysql_port")) 		{pps.setProperty("mysql_port", "3306");  }
-            if(!pps.containsKey("mysql_user")) 		{pps.setProperty("mysql_user", "root");  }
+            if(!pps.containsKey("mysql_user")) 		{pps.setProperty("mysql_user", "cooxm");  }
             if(!pps.containsKey("mysql_password"))	{pps.setProperty("mysql_password", "cooxm");  }
             if(!pps.containsKey("mysql_database"))	{pps.setProperty("mysql_database", "cooxm_device_control"); }
             if(!pps.containsKey("mysql_database_main"))	{pps.setProperty("mysql_database_main", "cooxm_main"); }

@@ -33,8 +33,8 @@ public class Profile  {
 	private int profileID;
 	private String profileName;
 	private int ctrolID;
-	//private int roomID;
-	//private int roomType;
+	private int roomID;
+	private int roomType;
 	private int profileTemplateID;
 	private int profileSetID;
 	private List<Factor> factorList;
@@ -88,11 +88,19 @@ public class Profile  {
 	}
 	
 	public int getRoomID(){
-		return this.factorList.get(0).getRoomID();		
+		return this.roomID;		
+	}
+	
+	public void setRoomID(int roomID){
+		this.roomID = roomID;		
 	}
 	
 	public int getRoomType(){
-		return this.factorList.get(0).getRoomType()	;
+		return this.roomType	;
+	}
+	
+	public void setRoomType(int roomType){
+		this.roomType = roomType;
 	}
 		
 	public int getProfileType(){
@@ -115,8 +123,8 @@ public class Profile  {
 			this.profileID=profileJson.getInt("profileID");
 			this.profileName=profileJson.getString("profileName");
 			this.ctrolID=profileJson.getInt("ctrolID");
-			//this.roomID=profileJson.getInt("roomID");
-			//this.roomType=profileJson.getInt("roomType");
+			this.roomID=profileJson.getInt("roomID");
+			this.roomType=profileJson.getInt("roomType");
 			this.profileTemplateID=profileJson.getInt("profileTemplateID");
 			this.profileSetID=profileJson.getInt("profileSetID");
 			JSONArray factorListJSON= profileJson.getJSONArray("factorList");
@@ -185,17 +193,21 @@ public class Profile  {
 		    profileJson.put("profileID",this.profileID);
 		    profileJson.put("profileName",this.profileName);
 		    profileJson.put("ctrolID",this.ctrolID); 
-		    //profileJson.put("roomID",this.getRoomID());
-		    //profileJson.put("roomType",this.getRoomType());
+		    profileJson.put("roomID",this.getRoomID());
+		    profileJson.put("roomType",this.getRoomType());
 		    profileJson.put("profileTemplateID",getProfileTemplateID());
 		    profileJson.put("profileSetID",this.profileSetID);
 		    JSONArray ja=new JSONArray();
-		    for(Factor factor: getFactorList()){
-		    	factorJson= new JSONObject(); 
-		    	factorJson=factor.toProfileJson();
-		    	ja.put(factorJson);
-		    	//profileJson.accumulate("factorList",factorJson); 
-		    }
+		    List<Factor> factors = getFactorList();
+		    if (null != factors) {
+		    	for(Factor factor: factors){
+			    	factorJson= new JSONObject(); 
+			    	factorJson=factor.toProfileJson();
+			    	ja.put(factorJson);
+			    	//profileJson.accumulate("factorList",factorJson); 
+			    }
+			}
+		    
 		    profileJson.put("factorList",ja); 
 		    profileJson.put("createTime",sdf.format(getCreateTime()));
 		    profileJson.put("modifyTime",sdf.format(getModifyTime()));
@@ -218,7 +230,7 @@ public class Profile  {
 	
 	
 	public boolean isEmpty(){
-		if(getFactorList()==null||getCreateTime()==null){			
+		if(this.factorList==null||this.factorList.size()==0 ||getCreateTime()==null){			
 			return true;
 		}		
 		return false;		
@@ -232,7 +244,7 @@ public class Profile  {
 	
 	/*** 
 	 * Save Profile info to Mysql:
-	 * @param  Mysql:				MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "XXXX");
+	 * @param  Mysql:				MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "XXXX");
 	 * @table profileDetailTable :  info_user_room_st_factor
 	 * @table profileIndexTable  :	info_user_room_st
 	 * @throws SQLException
@@ -241,8 +253,8 @@ public class Profile  {
 	 * */
 	public int saveToDB(MySqlClass mysql){
 		if(this.isEmpty()){
-			System.out.println("ERROR:object is empty,can't save to mysql");
-			return 0;
+			log.error("ERROR:object is empty,can't save to mysql,ctrilID="+this.ctrolID+",profileID="+this.profileID);
+			return -1;
 		}
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		List<Factor> factorList=getFactorList();
@@ -312,8 +324,8 @@ public class Profile  {
 				+this.profileID+",'"	
 				+this.profileName+"',"	
 				+this.ctrolID+","
-				+factorList.get(0).getRoomID()+","
-				+factorList.get(0).getRoomType()+","
+				+this.roomID+","
+				+this.roomType+","
 				+getProfileTemplateID()+","
 				+this.profileSetID+",'"
 				+sdf.format(getCreateTime())+"','"
@@ -338,7 +350,7 @@ public class Profile  {
 
    /*** 
    * 从入MYSQL读取profile
-   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
@@ -460,7 +472,7 @@ public class Profile  {
 	
 	   /*** 
 	   * 从入MYSQL读取profile
-	   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 	   * 根据模板ID获取对应的profile 
 	   */
 		public	static Profile getFromDBByTemplateID(MySqlClass mysql,int ctrolID,int roomID,int templateID) throws SQLException
@@ -574,7 +586,7 @@ public class Profile  {
 	
    /*** 
    * 从入MYSQL读取profile
-   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
@@ -623,7 +635,7 @@ public class Profile  {
 	
    /*** 
    * 从入MYSQL读取profile的 情景详情
-   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
@@ -699,7 +711,7 @@ public class Profile  {
 	
 	   /*** 
 	   * 从入MYSQL读取profile的 基本情况
-	   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 	   * @table  info_user_room_st
 	   * @throws SQLException 
 	    */
@@ -762,7 +774,7 @@ public class Profile  {
 
 	
 	public static void main(String[] args) throws SQLException, JSONException {
-		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 		Profile p =new Profile();
 		p=Profile.getFromDBByProfileID(mysql, 12345679, 123456790);
 		p.ctrolID=p.ctrolID+1;

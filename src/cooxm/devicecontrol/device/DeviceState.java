@@ -11,6 +11,7 @@ import org.json.JSONObject;
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
  * @version Created：Apr 21, 2015 10:49:36 AM 
+ * 空调状态 描述专用类
  */
 
 public class DeviceState {
@@ -25,14 +26,16 @@ public class DeviceState {
 	/** 温度 16-30度分别是：  0=16 ,1=17。。。。 14=30*/
 	int tempreature;
 	
+	// 2015-06-29更改 DeviceState 只保留空调的特征字段，电视、DVD等家电切换，采用keyType描述
 	/**频道的值 */
-	int channel;
+	//int channel;
 	/** 音量的值 */
-	int volumn;
+	//int volumn;
 	/** 屏幕亮度值 */
-	int brightness;	
+	//int brightness;	
 	
 	Date modifyTime;
+	
 	public int getOnOff() {
 		return onOff;
 	}
@@ -73,7 +76,7 @@ public class DeviceState {
 		this.tempreature = tempreature;
 	}
 
-	public int getChannel() {
+	/*public int getChannel() {
 		return channel;
 	}
 
@@ -95,7 +98,7 @@ public class DeviceState {
 
 	public void setBrightness(int brightness) {
 		this.brightness = brightness;
-	}
+	}*/
 	
 
 	public Date getModifyTime() {
@@ -112,30 +115,30 @@ public class DeviceState {
 		this.windSpeed = -1;
 		this.windDirection =-1;
 		this.tempreature = -1;
-		this.channel = -1;
+		/*this.channel = -1;
 		this.volumn = -1;
-		this.brightness = -1;
+		this.brightness = -1;*/
 		this.modifyTime=new Date();
 	}
 	/** <pre> 开关   0：打开状态；  1：关闭状态 ; -1:未知 
-模式  0=自动； 1=制冷； 2=除湿， 3=送风， 4=制热; -1:未知 
-风速  0=自动，1=风速1，2=风速2，3=风速3
-风向  0=自动，1=风向1，2=风向2，3=风向3，4=风向4
-温度 16-30度分别是：  0=16 ,1=17。。。。 14=30
-
-频道的值 
-音量的值 
- 屏幕亮度值 */
+	模式  0=自动； 1=制冷； 2=除湿， 3=送风， 4=制热; -1:未知 
+	风速  0=自动，1=风速1，2=风速2，3=风速3
+	风向  0=自动，1=风向1，2=风向2，3=风向3，4=风向4
+	温度 16-30度分别是：  0=16 ,1=17。。。。 14=30
+	
+	频道的值 
+	音量的值 
+	 屏幕亮度值 */
 	public DeviceState(int onOff, int mode, int windSpeed, int windDirection,
-			int tempreature, int channel, int volumn, int brightness) {
+			int tempreature /*, int channel, int volumn, int brightness*/) {
 		this.onOff = onOff;
 		this.mode = mode;
 		this.windSpeed = windSpeed;
 		this.windDirection = windDirection;
 		this.tempreature = tempreature;
-		this.channel = channel;
+		/*this.channel = channel;
 		this.volumn = volumn;
-		this.brightness = brightness;
+		this.brightness = brightness;*/
 		this.modifyTime=new Date();
 	}
 	
@@ -148,9 +151,9 @@ public class DeviceState {
 			json.put("windSpeed", this.windSpeed);
 			json.put("windDirection", this.windDirection);
 			json.put("tempreature", this.tempreature);
-			json.put("channel", this.channel);
+			/*json.put("channel", this.channel);
 			json.put("volumn", this.volumn);
-			json.put("brightness", this.brightness);
+			json.put("brightness", this.brightness);*/
 			json.put("modifyTime", sdf.format(new Date()));
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -167,9 +170,9 @@ public class DeviceState {
 		this.windSpeed=json.optInt("windSpeed");
 		this.windDirection=json.optInt("windDirection");
 		this.tempreature=json.optInt("tempreature");
-		this.channel=json.optInt("channel");
+		/*this.channel=json.optInt("channel");
 		this.volumn=json.optInt("volumn");
-		this.brightness=json.optInt("brightness");
+		this.brightness=json.optInt("brightness");*/
 		/*try {
 			this.modifyTime=sdf.parse(json.getString("modifyTime"));
 		} catch (ParseException e) {

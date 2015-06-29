@@ -121,7 +121,7 @@ public class IRMatch {
 	
 	//智能匹配java源程序
 	public static List<String[]> getID(String dumps){
-		String[][] t_score = new String[500][3];
+		String[][] t_score = new String[1500][3];
 		String[] dump = dumps.split(",");
 		String[][] rds;
 		
@@ -133,6 +133,12 @@ public class IRMatch {
 		int rcnt = rds.length;
 		
 		for(int i=0; i<rds.length; i++){
+			if(rds[i][1]==null || rds[i][1].equals("")){
+			    t_score[i][0] = "0";  //分数
+			    t_score[i][1] = rds[i][0]+"_"+rds[i][3];              //fid
+			    t_score[i][2] = rds[i][2];              //型号
+				continue;
+			}
 			String[] mobsa = rds[i][1].split(",");
 			
 			for(int j=0; j< mobsa.length; j++){
@@ -188,8 +194,8 @@ public class IRMatch {
 		    }while(lens > kcnt);
 		    
 		    t_score[i][0] = String.valueOf(score);  //分数
-		    t_score[i][1] = rds[i][0];               
-		    t_score[i][2] = rds[i][2];
+		    t_score[i][1] = rds[i][0]+"_"+rds[i][3];              //fid           
+		    t_score[i][2] = rds[i][2];              //
 	
 		}
 
@@ -217,7 +223,7 @@ public class IRMatch {
 				 	+ t_score[3][1] + "-" + t_score[3][0] + " - "+ t_score[3][2]+"\r\n"
 				 	+ t_score[4][1] + "-" + t_score[4][0] + " - "+ t_score[4][2]+"\r\n";
 				 	//+ t_score[5][1] + "-" + t_score[5][0] + " - "+ t_score[5][2] ;
-		//log.info("\ngetid rets = \n" + rets);
+		log.info("\ngetid rets = \n" + rets);
 //		return rets;
 		List<String[]> format= new ArrayList<String[]>();
 		format.add( t_score[0]);
@@ -232,8 +238,8 @@ public class IRMatch {
 		
 	public static String[][] getAllMaches(){
 		
-		SQLiteUtil sqlite=new SQLiteUtil("ird3.db");
-		String sql="select id,matchs,format_name from formats;";
+		SQLiteUtil sqlite=new SQLiteUtil("ird4.db");
+		String sql="select fid,matchs,format_name,device_id from formats ;";
 		String rs=sqlite.select(sql);
 		//System.out.println(rs);
 		String[] line=rs.split("\n");
@@ -374,7 +380,7 @@ public class IRMatch {
 	
 	public static List<Set<String>> getModels(List<String[]> fids){
 		List<Set<String>> models=new ArrayList<Set<String>>() ;
-		SQLiteUtil sqlite=new SQLiteUtil("ird2.db");
+		SQLiteUtil sqlite=new SQLiteUtil("ird4.db");
 		for(int i=0;i<fids.size();i++){
 			String sql="select m_search_string from model where m_format_id='"+fids.get(i)[1]+"';";
 			//System.out.println(sql);
@@ -401,10 +407,11 @@ public class IRMatch {
             }  
         }); 
 		
-		SQLiteUtil sqlite=new SQLiteUtil("ird2.db");
+		SQLiteUtil sqlite=new SQLiteUtil("ird4.db");
 		for(int i=0;i<fids.size();i++){
-			String sql="select m_search_string,m_label from model where m_format_id='"+fids.get(i)[1]+"';";
-			//System.out.println(sql);
+			String[] fid=fids.get(i)[1].split("_");
+			String sql="select m_search_string,m_label from model where cast(m_format_id as int)='"+fid[0]+"'  and device_id="+fid[1]+";";
+			System.out.println(sql);
 			String rs=sqlite.select(sql);
 			//System.out.println(rs);
 			String[] line=rs.split("\n");
@@ -448,7 +455,7 @@ public class IRMatch {
 	
 	public static void main(String[] args) {
 		
-		String[] raw=new String[23];
+		String[] raw=new String[32];
 		raw[0]="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
 		raw[1]="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
 		raw[2]="1e,04,00,00,24,00,26,82,a0,02,a0,82,a0,06,86,c1,23,4d,c2,00,11,85,c3,00,23,04,0c,00,50,02,00";
@@ -471,14 +478,28 @@ public class IRMatch {
         raw[19]="33,04,00,00,24,00,26,82,35,02,35,82,35,06,58,C1,11,5E,C2,00,11,5E,C3,00,30,4D,B2,F8,07,1B,E4,C2,00,11,5E,C1,11,5E,C2,00,11,5E,C3,00,30,4D,B2,F8,07,1B,E4,00";
         raw[20]="27,04,00,00,24,00,26,81,FC,01,FC,81,FC,05,F8,C1,0E,1B,C2,00,05,F8,C3,00,70,23,CB,26,01,00,24,8,07,09,00,00,00,00,51,00";
         
-        raw[21]="36,00,00,33,04,00,00,24,00,26,81,AE,02,81,81,AE,06,D4,C1,10,BD,C2,00,11,94,C3,00,30,4D,B2,DE,21,07,F8,C2,00,14,C3,C1,10,BC,C2,00,11,92,C3,00,30,4D,B2,DE,21,07,F8,00";
-        raw[22]="36,00,00,33,04,00,00,24,00,26,81,9F,02,93,81,9F,06,E3,C1,10,AE,C2,00,11,A0,C3,00,30,4D,B2,F8,07,1A,E5,C2,00,14,D4,C1,10,AA,C2,00,11,A4,C3,00,30,4D,B2,F8,07,1A,E5,00";
-		    
-	    for (int k = 21; k < raw.length; k++) {
+        raw[21]="33,04,00,00,24,00,26,81,AE,02,81,81,AE,06,D4,C1,10,BD,C2,00,11,94,C3,00,30,4D,B2,DE,21,07,F8,C2,00,14,C3,C1,10,BC,C2,00,11,92,C3,00,30,4D,B2,DE,21,07,F8,00";
+        raw[22]="33,04,00,00,24,00,26,81,9F,02,93,81,9F,06,E3,C1,10,AE,C2,00,11,A0,C3,00,30,4D,B2,F8,07,1A,E5,C2,00,14,D4,C1,10,AA,C2,00,11,A4,C3,00,30,4D,B2,F8,07,1A,E5,00";
+        raw[22]="33,04,00,00,24,00,26,81,9F,02,93,81,9F,06,E3,C1,10,AE,C2,00,11,A0,C3,00,30,4D,B2,F8,07,1A,E5,C2,00,14,D4,C1,10,AA,C2,00,11,A4,C3,00,30,4D,B2,F8,07,1A,E5,00";
+		raw[23]="33,04,00,00,24,00,26,81,9a,02,96,81,99,06,e8,c1,10,ac,c2,00,11,a5,c3,00,30,4d,b2,f8,07,1b,e4,c2,00,14,d7,c1,10,a9,c2,00,11,a3,c3,00,30,4d,b2,f8,07,1b,e4,00";   
+		raw[24]="29,04,00,00,24,00,26,82,10,02,41,81,f5,06,6f,c1,17,75,c2,00,1c,88,c3,00,5f,ff,00,ff,00,ff,00,f7,08,f6,09,2a,55,c2,00,1d,28,00,";
+	    raw[25]="1e,04,00,00,24,00,26,82,09,02,1e,81,ec,06,a9,c1,23,4f,c2,00,11,98,c3,00,28,c3,02,0c,10,aa,00";
+
+		/* 以下为电视码  */
+	    raw[26]="1d,04,00,00,24,00,26,82,86,01,e3,82,85,06,31,c1,23,4d,c2,00,11,60,c3,00,20,40,bf,12,ed,00";
+	    raw[27]="28,04,00,00,24,00,26,82,6d,01,fb,82,83,06,34,c1,11,b9,c2,00,11,64,c3,00,20,18,18,b,f4,c2,00,be,63,c1,11,b5,c2,00,11,65,00";
+	    /* 以下为机顶盒  */
+	    raw[28]="1d,04,00,00,24,00,26,82,49,02,1f,82,4a,06,6c,c1,23,29,c2,00,11,84,c3,00,20,20,8d,1a,e5,00";
+	    raw[29]="28,04,00,00,24,00,26,82,89,01,df,82,8a,06,2e,c1,23,67,c2,00,11,44,c3,00,20,01,fe,3,fc,c2,00,9b,b3,c1,23,43,c2,00,8,91,00";
+	    /* 以下为DVD  */
+	    raw[30]="1d,04,00,00,24,00,26,82,63,02,04,82,66,06,51,c1,23,46,c2,00,11,66,c3,00,20,49,b6,1a,e5,00";
+	    raw[31]="1d,04,00,00,24,00,26,82,46,02,21,82,45,06,70,c1,23,26,c2,00,11,85,c3,00,20,20,df,b,f4,00";
+	    for (int k = 20; k < raw.length; k++) {
+    		System.out.println(k);
     	    String wave=getIRString(raw[k].toUpperCase());
-    	  //System.out.println("wave = "+wave);
+    	    System.out.println("wave="+wave);
     		String encode=encode(wave.substring(0, wave.length()-1));
-    		//System.out.println("encode = "+encode);
+    		System.out.println("encode="+encode);
     		List<String[]> fids =getID(encode);
     		Map<String, String> models=getModels2(fids);
     		/*List<Set<String>> models=getModels(fids); 
@@ -488,7 +509,7 @@ public class IRMatch {
     				System.out.println("\t"+models.get(i).toArray()[j]);	
     			}			
     		}*/
-    		System.out.println(k);
+
     		for (Map.Entry<String, String> entry:models.entrySet()) {
     			System.out.println(entry.getValue()+" : "+entry.getKey());				
 			}

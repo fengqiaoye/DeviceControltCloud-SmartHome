@@ -47,7 +47,7 @@ public class RoomMap  extends HashMap<String, Room>{
 	
    /*** 
    * 从入MYSQL读取房间列表
-   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
@@ -59,8 +59,8 @@ public class RoomMap  extends HashMap<String, Room>{
 		String sql2="select  "
 		+"ctr_id        ,"
 		+"roomid        ,"
-		+"roomtype      ,"
-		+"roomname  ,"
+		+"roomtype   ,"
+		+"roomname,"
 		+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
 		+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 		+ "  from "				
@@ -126,6 +126,13 @@ public class RoomMap  extends HashMap<String, Room>{
 		Room room =super.get(key);
 		Room.deleteRoomFromDB(mysql, room.ctrolID, room.roomID);
 		return super.remove(key);
+	}
+	
+	public static void main (String[] args) throws SQLException{
+		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
+		HashMap<String, Room> p = getRoomMapFromDB(mysql);
+		
+		System.out.println(p.size());
 	}
 		
 	

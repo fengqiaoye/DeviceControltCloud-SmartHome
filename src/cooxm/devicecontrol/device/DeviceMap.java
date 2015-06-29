@@ -41,7 +41,7 @@ public class DeviceMap extends HashMap<String, Device> {
 
 /*** 
    * 从入MYSQL读取device列表
-   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
@@ -121,7 +121,7 @@ public class DeviceMap extends HashMap<String, Device> {
 	public List<Device> getApplianceByctrolID(int ctrolID){
 		List<Device> deviceList=new ArrayList<Device>();
 		for (Entry<String, Device> entry : this.entrySet()) {
-			if(Integer.parseInt(entry.getKey().split("_")[0])==ctrolID  && entry.getValue().type==0){
+			if(Integer.parseInt(entry.getKey().split("_")[0])==ctrolID  /*&& entry.getValue().type==0*/){
 				deviceList.add(entry.getValue());
 			}			
 		}
@@ -173,7 +173,7 @@ public class DeviceMap extends HashMap<String, Device> {
 	 * @throws 
 	 */
 	public static void main(String[] args) throws SQLException {
-		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 		DeviceMap dm=new DeviceMap(mysql);
 		System.out.println(dm.size());
 		

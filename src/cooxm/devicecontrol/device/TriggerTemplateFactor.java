@@ -78,12 +78,12 @@ public class TriggerTemplateFactor extends FactorTemplate{
 			factor.setMinValue(factorJson.getInt("minValue"));
 			factor.setMaxValue(factorJson.getInt("maxValue"));
 			factor.setMaxValue(factorJson.getInt("accumilateTime"));
-			factor.setIsAbstract(factorJson.getInt("validFlag"));
+			//factor.setIsAbstract(factorJson.getInt("validFlag"));
 			factor.setCreateTime(sdf.parse(factorJson.getString("createTime")));
 			factor.setModifyTime(sdf.parse(factorJson.getString("modifyTime")) );
-		} catch (ParseException e) {
-			e.printStackTrace();
 		} catch (JSONException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
 			e.printStackTrace();
 		}
 		
@@ -101,7 +101,7 @@ public class TriggerTemplateFactor extends FactorTemplate{
         	factorJson.put("minValue", getMinValue());
         	factorJson.put("maxValue", getMaxValue());
         	factorJson.put("accumilateTime", getAccumilateTime());
-        	factorJson.put("validFlag", getIsAbstract());
+        	//factorJson.put("validFlag", getIsAbstract());
         	factorJson.put("createTime", sdf.format(getCreateTime()));
 			factorJson.put("modifyTime", sdf.format(getModifyTime()));
 		} catch (JSONException e) {

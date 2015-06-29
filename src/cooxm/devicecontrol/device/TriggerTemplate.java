@@ -3,6 +3,10 @@ package cooxm.devicecontrol.device;
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
  * @version Created：28 Jan 2015 14:24:17 
+ * 触发规则存数据库时分三部分：
+ *  1.头部，索引
+ *  2.触发规则详情；
+ *  3.响应方式详情
  */
 
 import java.awt.print.Printable;
@@ -18,17 +22,40 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.hp.hpl.sparta.xpath.ThisNodeTest;
+
 import cooxm.devicecontrol.util.MySqlClass;
 
 public class TriggerTemplate {
 
 	//private int ctrolID;
 	private int triggerTemplateID;
+	
+	/** <pre>规则生效所依赖的情景模式，如果在任意模式下生效，则为254。ID如下：
+	1	睡眠模式
+	2	观影模式
+	3	离家模式
+	4	居家模式
+	254  任意情景模式
+    */
 	private int profileTemplateID;
+	
+	/**显示中控上的触发名字 */
+	private String triggerName;
+	private String description;
+	
+	/**是否抽象，1.显示中控->设置->功能设置； 0.在情景模式设置中. */
+	private int isAbstract;
+	
 	private List<TriggerTemplateFactor>  triggerTemplateFactorList;
 	private List<TriggerTemplateReact>   triggerTemplateReactList;
 	
+	private Date	  createTime   ;
+	private Date	  modifyTime   ;
+	
+
 	static String triggerFactorTable="cfg_trigger_template";
+	static String triggerHeaderTable="cfg_trigger_template_header";
 	static String triggerReactTable ="cfg_trigger_template_react";
 	
 
@@ -58,30 +85,108 @@ public class TriggerTemplate {
 			List<TriggerTemplateReact> triggerTemplateReactList) {
 		this.triggerTemplateReactList = triggerTemplateReactList;
 	}
+	
+	public String getTriggerName() {
+		return triggerName;
+	}
+	public void setTriggerName(String triggerName) {
+		this.triggerName = triggerName;
+	}
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	public int getIsAbstract() {
+		return isAbstract;
+	}
+	public void setIsAbstract(int isAbstract) {
+		this.isAbstract = isAbstract;
+	}
+	public Date getCreateTime() {
+		return createTime;
+	}
+	public void setCreateTime(Date createTime) {
+		this.createTime = createTime;
+	}
+	public Date getModifyTime() {
+		return modifyTime;
+	}
+	public void setModifyTime(Date modifyTime) {
+		this.modifyTime = modifyTime;
+	}
 	public TriggerTemplate(){}
 	
-	public TriggerTemplate(TriggerTemplate trigger) {
-		this.triggerTemplateID = trigger.triggerTemplateID;
-		this.profileTemplateID = trigger.profileTemplateID;
-		this.triggerTemplateFactorList = trigger.getTriggerTemplateFactorList();
-		this.triggerTemplateReactList = trigger.getTriggerTemplateReactList();
-	}
 	
-	public TriggerTemplate(int triggerTemplateID,int profileTemplateID,
-			List<TriggerTemplateFactor> triggerFactorList,
-			List<TriggerTemplateReact> triggerReactList) {
+	public TriggerTemplate(int triggerTemplateID, int profileTemplateID,
+			String triggerName, String description, int isAbstract,
+			List<TriggerTemplateFactor> triggerTemplateFactorList,
+			List<TriggerTemplateReact> triggerTemplateReactList,
+			Date createTime, Date modifyTime) {
 		this.triggerTemplateID = triggerTemplateID;
 		this.profileTemplateID = profileTemplateID;
-		this.triggerTemplateFactorList = triggerFactorList;
-		this.triggerTemplateReactList = triggerReactList;
+		this.triggerName = triggerName;
+		this.description = description;
+		this.isAbstract = isAbstract;
+		this.triggerTemplateFactorList = triggerTemplateFactorList;
+		this.triggerTemplateReactList = triggerTemplateReactList;
+		this.createTime = createTime;
+		this.modifyTime = modifyTime;
+	}
+	
+	/**用json初始化TriggerTemplate 索引信息 */
+	public TriggerTemplate  initTriggerTemplateHeader (JSONObject triggerTemplateJson){
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		TriggerTemplate trigger= new TriggerTemplate();
+		try {
+			trigger.triggerTemplateID=triggerTemplateJson.getInt("triggerTemplateID");
+			trigger.profileTemplateID=triggerTemplateJson.getInt("profileTemplateID");
+			trigger.triggerName=triggerTemplateJson.getString("tiggerName");
+			trigger.description=triggerTemplateJson.getString("description");
+			trigger.isAbstract=triggerTemplateJson.getInt("isAbstract");
+			trigger.setCreateTime(sdf.parse(triggerTemplateJson.getString("createTime")));
+			trigger.setModifyTime(sdf.parse(triggerTemplateJson.getString("modifyTime")) );
+			
+		} catch (JSONException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return trigger;
+	}
+	/**TriggerTemplate 头部信息打包成json */
+	public JSONObject toJsonHeader() {		
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		JSONObject triggerJson=new JSONObject();
+    	JSONObject factorJson;
+		try {
+    		triggerJson.put("triggerTemplateID", getTriggerTemplateID());  
+    		triggerJson.put("profileTemplateID", getProfileTemplateID());
+    		triggerJson.put("triggerName", getTriggerName());
+    		triggerJson.put("description", getDescription());
+    		triggerJson.put("isAbstract", getIsAbstract());
+    		triggerJson.put("createTime", sdf.format(getCreateTime()));
+    		triggerJson.put("modifyTime", sdf.format(getModifyTime()));  	
+        	
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}			
+		return triggerJson;		
 	}
 	
 	public  TriggerTemplate (JSONObject triggerTemplateJson){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		TriggerTemplate trigger= new TriggerTemplate();
+		//TriggerTemplate trigger= new TriggerTemplate();
 		try {
 			this.triggerTemplateID=triggerTemplateJson.getInt("triggerTemplateID");
 			this.profileTemplateID=triggerTemplateJson.getInt("profileTemplateID");
+			this.triggerName=triggerTemplateJson.getString("tiggerName");
+			this.description=triggerTemplateJson.getString("description");
+			this.isAbstract=triggerTemplateJson.getInt("isAbstract");
+			this.setCreateTime(sdf.parse(triggerTemplateJson.getString("createTime")));
+			this.setModifyTime(sdf.parse(triggerTemplateJson.getString("modifyTime")) );
+			
 			JSONArray factorListJSON= triggerTemplateJson.getJSONArray("factorList");
 			List<TriggerTemplateFactor> factorList = new ArrayList<TriggerTemplateFactor>() ;
 			for(int i=0;i<factorListJSON.length();i++){
@@ -103,6 +208,8 @@ public class TriggerTemplate {
 			this.setTriggerTemplateReactList(reactList);			
 		} catch (JSONException e) {
 			e.printStackTrace();
+		} catch (ParseException e) {
+			e.printStackTrace();
 		}
 	}
 	
@@ -112,7 +219,13 @@ public class TriggerTemplate {
     	JSONObject factorJson;
 		try {
     		triggerJson.put("triggerTemplateID", getTriggerTemplateID());  
-    		triggerJson.put("profileTemplateID", getProfileTemplateID()); 
+    		triggerJson.put("profileTemplateID", getProfileTemplateID());
+    		triggerJson.put("triggerName", getTriggerName());
+    		triggerJson.put("description", getDescription());
+    		triggerJson.put("isAbstract", getIsAbstract());
+    		triggerJson.put("createTime", sdf.format(getCreateTime()));
+    		triggerJson.put("modifyTime", sdf.format(getModifyTime()));
+			
     		JSONArray ja=new JSONArray();
          	for (TriggerTemplateFactor factor:getTriggerTemplateFactorList()) {
          		ja.put(factor.toJson());		    				
@@ -134,7 +247,7 @@ public class TriggerTemplate {
 	
 	/*** 
 	 * Save  to Mysql:
-	 * @param  Mysql:				MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	 * @param  Mysql:				MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 	 * @table profileDetailTable :  info_user_room_st_factor
 	 * @table profileIndexTable  :	info_user_room_st
 	 * @throws SQLException
@@ -148,6 +261,27 @@ public class TriggerTemplate {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		String sqll="replace into "+triggerHeaderTable
+				+" (triggerid  ,"    
+				+"sttemplateid ,"
+				+"triggername ,"
+				+"description ,"
+				+"isabstract,"
+				+"createtime, "
+				+"modifytime "
+				+ ")"				
+				+"values "
+				+ "("
+				+this.triggerTemplateID+","
+				+this.profileTemplateID+",'"
+				+this.triggerName+"','"
+				+this.description+"',"
+				+this.isAbstract+",'"
+				+sdf.format(this.getCreateTime())+"','"
+				+sdf.format(this.getModifyTime())
+				+"');";
+		int count=mysql.query(sqll);
+		
 		String [] sql=new String[this.triggerTemplateFactorList.size()];
 		int i=0;
 		for (TriggerTemplateFactor ft:this.triggerTemplateFactorList) {
@@ -161,7 +295,7 @@ public class TriggerTemplate {
 					+"min ,"
 					+"max ,"
 					+"accumilatetime   ,"
-					+"isabstract, "
+					//+"isabstract, "
 					+"createtime, "
 					+"modifytime "
 					+ ")"				
@@ -175,13 +309,13 @@ public class TriggerTemplate {
 					+ft.getOperator()+","
 					+ft.getMinValue()+","
 					+ft.getMaxValue()+","
-					+ft.getAccumilateTime()+","
-					+ft.getIsAbstract()+",'"
+					+ft.getAccumilateTime()+",'"
+					//+ft.getIsAbstract()+",'"
 					+sdf.format(ft.getCreateTime())+"','"
 					+sdf.format(ft.getModifyTime())
 					+"');";
 			System.out.println(sql[i]);
-			int count=mysql.query(sql[i]);
+			count=mysql.query(sql[i]);
 			i++;
 			//if(count>0) System.out.println("insert success"); 	
 		}			
@@ -214,7 +348,7 @@ public class TriggerTemplate {
 
    /*** 
    * 从入MYSQL读取profile
-   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
@@ -226,6 +360,34 @@ public class TriggerTemplate {
 			} catch (SQLException e1) {
 				e1.printStackTrace();
 			}
+			TriggerTemplate triggert=new TriggerTemplate();
+			String sql0="select  "
+					+" triggerid ," 
+					+" sttemplateid ," 
+					+"triggername ,"
+					+"description, "	
+					+"isabstract ,"
+					+"createtime,"
+					+"modifytime"
+					+ " from  "	
+					+triggerHeaderTable
+					+" where triggerid="+triggerid
+					+ ";";
+			//System.out.println("query:"+sql0);
+			String res0=mysql.select(sql0);
+			String[] resArray0=res0.split(",");
+			triggert.triggerTemplateID=Integer.parseInt(resArray0[0]);
+			triggert.profileTemplateID=Integer.parseInt(resArray0[1]);
+			triggert.triggerName=resArray0[2];
+			triggert.description=resArray0[3];
+			triggert.isAbstract=Integer.parseInt(resArray0[4]);
+			try {
+				triggert.createTime=sdf.parse(resArray0[5]);
+				triggert.modifyTime=sdf.parse(resArray0[6]);
+			} catch (ParseException e1) {
+				e1.printStackTrace();
+			}			
+			
 			String sql="select "
 					+"triggerid  ,"  
 					+"sttemplateid ,"
@@ -251,7 +413,7 @@ public class TriggerTemplate {
 				return null;
 			}
 			String[] resArray=res.split("\n");
-			TriggerTemplate triggert=new TriggerTemplate();
+
 			List<TriggerTemplateFactor> factorList=new ArrayList<TriggerTemplateFactor>();
 			TriggerTemplateFactor ft=null;
 			String[] cells=null;
@@ -266,7 +428,7 @@ public class TriggerTemplate {
 					ft.setMinValue(Integer.parseInt(cells[6]));
 					ft.setMaxValue(Integer.parseInt(cells[7]));
 					ft.setAccumilateTime(Integer.parseInt(cells[8]));
-					ft.setIsAbstract(Integer.parseInt(cells[9]));
+					//ft.setIsAbstract(Integer.parseInt(cells[9]));
 					try {
 						ft.setCreateTime(sdf.parse(cells[10]));
 						ft.setModifyTime(sdf.parse(cells[11]));
@@ -330,8 +492,8 @@ public class TriggerTemplate {
 	
 	
 	public static void main(String[] args) {
-		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");		
-		TriggerTemplate t=getFromDB(mysql, 1300);
+		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");		
+		TriggerTemplate t=getFromDB(mysql, 107);
 		t.triggerTemplateID++;
 		t.saveToDB(mysql);
 

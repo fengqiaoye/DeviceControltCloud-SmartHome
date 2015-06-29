@@ -40,6 +40,9 @@ public class InterfaceTest {
 	static String setdeviceStr = "{\"deviceType\":541,\"modifyTime\":\"2015-05-08 17:36:59\",\"createTime\":\"2015-06-08 17:36:59\",\"relatedDevType\":0,"
 			+ "\"ctrolID\":123456789,\"type\":0,\"deviceID\":1234567890,\"deviceSN\":\"XJFGOD847X\",\"wall\":1,\"roomID\":2,\"roomType\":101}";
 	static String getDeviceStr="{\"deviceID\":1234567890,\"ctrolID\":123456789}";
+	static String getRoomStr="{\"roomID\":1000,\"ctrolID\":0}";
+	static String getHouseStateStr="{\"roomID\":2000,\"ctrolID\":40008}";
+	
     
 
 	public static void main(String[] args) throws JSONException, InterruptedException   { 
@@ -58,10 +61,10 @@ public class InterfaceTest {
 		json1=new JSONObject(getDeviceStr);
 		json1=new JSONObject(setdeviceStr);
 		
-		System.out.println("successs");
+		//System.out.println("successs");
 		
 		
-		try {
+		/*try {
 			get_room_profile_test();
 		} catch (JSONException | InterruptedException e) {
 			e.printStackTrace();
@@ -92,6 +95,26 @@ public class InterfaceTest {
 		}
 		
 		try {
+			get_one_room_test();
+		} catch (JSONException | InterruptedException e) {
+			e.printStackTrace();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}*/
+		
+		try {
+			get_houseState_test();
+		} catch (JSONException | InterruptedException e) {
+			e.printStackTrace();
+		} catch (UnknownHostException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		/*try {
 			get_one_device_test();
 		} catch (JSONException | InterruptedException e) {
 			e.printStackTrace();
@@ -117,9 +140,9 @@ public class InterfaceTest {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
-		}
+		}*/
 		
-		Thread.sleep(10*1000);
+		Thread.sleep(100*1000);
 		
 	}
     
@@ -129,6 +152,40 @@ public class InterfaceTest {
 		json.put("sender", 1) ; //      "sender":    中控:0 ; 手机:1 ; 设备控制服务器:2;
 		json.put("receiver", 2) ;
 		Message msg1 = new Message((short) 5633, System.currentTimeMillis()
+				/ 1000 % 86400 * 10000 + count + "_15", json);
+		msg1.writeBytesToSock2(sock);
+		System.out.println("Send:"+msg1.toString());
+
+		Message msg = CtrolSocketServer.readFromClient(sock);
+		if (msg != null)
+			//System.out.println("Recv:"+msg.toString());		
+		Thread.sleep(20*1000);
+	}
+	
+	public static void get_houseState_test() throws JSONException, UnknownHostException, IOException, InterruptedException {
+		count++;
+		JSONObject json=new JSONObject(getHouseStateStr);
+		json.put("sender", 1) ; //      "sender":    中控:0 ; 手机:1 ; 设备控制服务器:2;
+		json.put("receiver", 2) ;
+		Message msg1 = new Message((short) 0x1665, System.currentTimeMillis()
+				/ 1000 % 86400 * 10000 + count + "_15", json);
+		msg1.writeBytesToSock2(sock);
+		System.out.println("Send:"+msg1.toString());
+
+		Message msg = CtrolSocketServer.readFromClient(sock);
+		if (msg != null)
+			//System.out.println("Recv:"+msg.toString());		
+		Thread.sleep(20*1000);
+	}
+	
+	
+	
+	public static void get_one_room_test() throws JSONException, UnknownHostException, IOException, InterruptedException {
+		count++;
+		JSONObject json=new JSONObject(getRoomStr);
+		json.put("sender", 1) ; //      "sender":    中控:0 ; 手机:1 ; 设备控制服务器:2;
+		json.put("receiver", 2) ;
+		Message msg1 = new Message((short) 5683, System.currentTimeMillis()
 				/ 1000 % 86400 * 10000 + count + "_15", json);
 		msg1.writeBytesToSock2(sock);
 		System.out.println("Send:"+msg1.toString());
@@ -158,19 +215,24 @@ public class InterfaceTest {
 	
 	public static void switch_room_profile_test() throws JSONException, UnknownHostException, IOException, InterruptedException {
 		count++;
-		JSONObject json=new JSONObject(setProfileStr);
+		//JSONObject json=new JSONObject(setProfileStr);
+		JSONObject json=new JSONObject();
 		json.put("sender", 1) ; //      "sender":    中控:0 ; 手机:1 ; 设备控制服务器:2;
-		json.put("receiver", 1) ;
+		json.put("receiver", 2) ;
+		json.put("ctrolID", 12345677);
+		json.put("profileID", 123456789);
+		
 		//json.put("profile",setProfileStr);
 		Message msg1 = new Message((short) 5636, System.currentTimeMillis()
 				/ 1000 % 86400 * 10000 + count + "_15", json);
 		msg1.writeBytesToSock2(sock);
 		System.out.println("Send:"+msg1.toString());
-
-		Message msg = CtrolSocketServer.readFromClient(sock);
-		if (msg != null)
-			//System.out.println("Recv:"+msg.toString());		
-		Thread.sleep(60*1000);
+        while(true){
+			Message msg = CtrolSocketServer.readFromClient(sock);
+			if (msg != null)
+				System.out.println("Recv:"+msg.toString());	
+        }
+		//Thread.sleep(60*1000);
 	}
 	
 	public static void get_one_device_test() throws JSONException, UnknownHostException, IOException, InterruptedException {

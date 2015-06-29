@@ -337,7 +337,7 @@ public class Device {
 	
 	/*** 
 	 * Save device info to Mysql:
-	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 	 * table Name:info_user_room_bind
 	 */
 	public int saveToDB(MySqlClass mysql){
@@ -378,7 +378,7 @@ public class Device {
 
 	/*** 
 	 * Save device info to Mysql:
-	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 	 * table Name:info_user_room_bind
 	 * */
 	public static Device getOneDeviceFromDB(MySqlClass mysql,int ctrolID,int deviceID ){
@@ -434,7 +434,7 @@ public class Device {
 	
 	/*** 
 	 * Save device info to Mysql:
-	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 	 * table Name:info_user_room_bind
 	 * */
 	public List<Device> getDevicesByctrolID(MySqlClass mysql,int ctrolID ){
@@ -495,7 +495,7 @@ public class Device {
 	
 	/*** 
 	 * Save device info to Mysql:
-	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	 * Mysql:MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 	 * table Name:info_user_room_bind
 	 * */
 	public static int DeleteOneDeviceFromDB(MySqlClass mysql,int ctrolID,int deviceID ){
@@ -575,21 +575,17 @@ public class Device {
 	
 	
 	  public static void main(String[] args) throws SQLException{
-		  MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+		  MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 		  Date date=new Date();
-		  int ctrolID=1256787;
-		  Device dev=new Device(ctrolID , "空调",1256786 , "XJFGOD847X" ,      571 ,    0 ,  2,  101 ,    1, 0,date,date);
+		  int ctrolID=40008;
+		  Device dev=new Device(ctrolID , "电视",1234567891 , "XJFGOD847X" ,      541 ,    0 ,  2,  101 ,    1, 0,date,date);
 		  int count=dev.saveToDB(mysql);
-		  dev.saveToDB(mysql);
-//		  System.out.println("Query OK,  "+count+" row affected.");
+		  dev.saveToDB(mysql);		  
+		  Device d= getOneDeviceFromDB(mysql, 40008, 1234567891);
 		  
-		  Device d= getOneDeviceFromDB(mysql, 2001, 1300);
-		  
-//
-//		  Jedis jedis= new Jedis("120.24.81.226", 6379);
-//
-//
-//		  jedis.hset(ctrolID+"_roomBind", 101+"", dev.toJsonObj().toString());
+
+		  Jedis jedis= new Jedis("172.16.35.170", 6379);
+		  jedis.hset(ctrolID+"_roomBind", 1234567891+"", dev.toJsonObj().toString());
 		  System.out.println("Query OK");
 		  
 		  

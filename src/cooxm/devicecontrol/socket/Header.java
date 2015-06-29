@@ -186,6 +186,15 @@ public class Header{
     return false;
   }
   
+  public boolean isAck() {   
+	  	int commandID=this.commandID;
+	  	if(commandID>=commandMin +LogicControl.COMMAND_ACK_OFFSET && commandID<=commandMax +LogicControl.COMMAND_ACK_OFFSET
+	  		|| commandID>=LogicControl.WARNING_START +LogicControl.COMMAND_ACK_OFFSET && commandID<=LogicControl.WARNING_END +LogicControl.COMMAND_ACK_OFFSET)  {	
+			return true;
+		}
+	    return false;
+	  }
+  
   public boolean isAuth() { 
   	int commandID=this.commandID;
   	if(commandID==SocketClient.CMD__Identity_REQ || commandID==SocketClient.CMD__Identity_ACK
@@ -194,6 +203,8 @@ public class Header{
 	}
     return false;
   }
+  
+  
   
   public static void main(String[] args){
 	  

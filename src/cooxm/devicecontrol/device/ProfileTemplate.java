@@ -241,7 +241,7 @@ public class ProfileTemplate {
 
    /*** 
    * 从入MYSQL读取profile
-   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
@@ -342,7 +342,7 @@ public class ProfileTemplate {
 	
 	   /*** 
 	   * 从入MYSQL读取profile模板列表
-	   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 	   * @table  info_user_room_st_factor
 	   * @throws SQLException 
 	   */
@@ -389,7 +389,7 @@ public class ProfileTemplate {
 						+"roomType   ,"
 						+"min  ,"
 						+"max  ,"
-						+"operator ,"
+						+"operator,"
 						+"valid_flag,"
 						+"createoperator ,"
 						+"modifyoperator ,"					
@@ -472,7 +472,7 @@ public class ProfileTemplate {
 	}
 	
 	public static void main(String[] args) throws SQLException, JSONException {
-		MySqlClass mysql=new  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+		MySqlClass mysql=new  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 		List<ProfileTemplate> a = getAllFromDB(mysql);
 		//new ProfileTemplat().saveToDB(mysql);
 		System.out.println("xx");

@@ -36,20 +36,21 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 	
 	public ProfileSetMap(MySqlClass mysql) throws SQLException{
 		super(getProfileSetMapFromDB(mysql));
+		this.mysql=mysql;
 	}
 
    /*** 
    * 从入MYSQL读取情景模式集列表
-   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
    * @table  info_user_room_st_set
    * @throws SQLException 
     */
-	public static HashMap<String, ProfileSet> getProfileSetMapFromDB(MySqlClass mysql) throws SQLException	
+	public static  HashMap<String, ProfileSet> getProfileSetMapFromDB(MySqlClass mysql) throws SQLException	
 	{   
 		log.info("Start to initialize profileSetMap....");
 		HashMap<String, ProfileSet> profileSetMap=new HashMap<String, ProfileSet>();
 		ProfileSet profileSet=null; 		
-	    List<Integer> profileIDList=new ArrayList<Integer>();
+	    List<Integer> profileIDList;
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String sql2="select "
 				+" ctr_id       ," 
@@ -72,10 +73,18 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 		Integer profileID=null;
 		String[] records=res2.split("\n");
 		for(String line:records){			
-			profileSet =new ProfileSet();
+			
 			String[] cells=line.split(",");			
-			profileSet.ctrolID=Integer.parseInt(cells[0]);
-			profileSet.profileSetID=Integer.parseInt(cells[1]);
+			int ctrolID=Integer.parseInt(cells[0]);
+			int profileSetID=Integer.parseInt(cells[1]);
+			String key=ctrolID+"_"+profileSetID;
+			if(profileSetMap.containsKey(key)){
+				profileSet=profileSetMap.get(key);
+			}else{
+				profileSet =new ProfileSet();
+			}
+			profileSet.ctrolID=ctrolID;
+			profileSet.profileSetID=profileSetID;
 			profileSet.profileSetName=cells[2];
 			profileSet.profileSetTemplateID=Integer.parseInt(cells[3]);
 			profileID=new Integer(Integer.parseInt(cells[4]));	
@@ -84,13 +93,19 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 				profileSet.modifyTime=sdf.parse(cells[6]);
 			} catch (ParseException e) {
 				e.printStackTrace();
-			}				
+			}	
+			profileIDList=profileSet.getProfileList();
+			if(profileIDList==null){
+				profileIDList=new ArrayList<Integer>();
+			}
 			profileIDList.add(profileID);
+			profileSet.profileList=profileIDList;
+			if(!profileSet.isEmpty())
+				profileSetMap.put(profileSet.ctrolID+"_"+profileSet.profileSetID, profileSet);
 		}
-		profileSet.profileList=profileIDList;
 		
-		if(!profileSet.isEmpty())
-		profileSetMap.put(profileSet.ctrolID+"_"+profileSet.profileSetID, profileSet);
+		
+
 		log.info("Initialize profileSetMap finished !");
 		return profileSetMap;
 	}
@@ -101,7 +116,8 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 	public List<ProfileSet> getProfileSetsByctrolID(int ctrolID){	
 		List<ProfileSet> profileList=new ArrayList<ProfileSet>();
 		for (Entry<String, ProfileSet> entry : this.entrySet()) {
-			if(entry.getKey().split("_")[0]==ctrolID+""){
+			String key=entry.getKey().split("_")[0];
+			if(key.equals(ctrolID+"")){
 				profileList.add(entry.getValue());
 			}			
 		}
@@ -113,13 +129,16 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 	 *  */
 	@Override
 	public ProfileSet put(String key,ProfileSet profileSet) {
-		if(null==this.mysql)
+		if(null==this.mysql){
+			log.error("mysql is null,please check your configure file");
 			return null;
+		}
 		int x=profileSet.saveProfileSetToDB(this.mysql)	;
 		if(x>0){
 			 super.put(key, profileSet);
 			 return profileSet;
 		}else{
+			log.error("save ProfileSet to DB failed,ctrolID="+profileSet.getCtrolID()+",profileSetID="+profileSet.getProfileSetID());
 		   return null;	
 		}
 	}	
@@ -130,15 +149,20 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 	@Override
 	public ProfileSet remove(Object ctrolID_profileSetID) {
 		ProfileSet profileSet=this.get(ctrolID_profileSetID);
-		ProfileSet.deleteProfileSetFromDB(mysql, profileSet.ctrolID, profileSet.profileSetID);
-		return super.remove(ctrolID_profileSetID);
+		int x=ProfileSet.deleteProfileSetFromDB(mysql, profileSet.ctrolID, profileSet.profileSetID);
+		if(x>0){
+			super.remove(ctrolID_profileSetID);
+			return profileSet;
+		}else{
+		  return null;
+		}
 		//return profileSet;
 	}
 
 
 
 	public static void main(String[] args) throws SQLException {
-		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 		ProfileSetMap pm=new ProfileSetMap(mysql);
 		System.out.println(pm.size());
 	}

@@ -124,7 +124,7 @@ public class MySqlClass {
    
    public static void main(String[] args) throws SQLException{
 	   
-	   MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_main", "root", "cooxm");
+	   MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_main", "cooxm", "cooxm");
 	   
 	   System.out.println(mysql==null?false:true);  
 	   

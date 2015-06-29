@@ -90,7 +90,7 @@ public class FactorTemplate  extends FactorDict  {
 		this.operator = operator;
 		this.minValue = minValue;
 		this.maxValue = maxValue;
-		this.isAbstract=validFlag;
+		//this.isAbstract=validFlag;
 	}	
 	
 	
@@ -117,7 +117,7 @@ public class FactorTemplate  extends FactorDict  {
         	factorJson.put("minValue", getMinValue());
         	factorJson.put("maxValue", getMaxValue());
         	factorJson.put("operator", getOperator());
-        	factorJson.put("validFlag", getIsAbstract());
+        	//factorJson.put("validFlag", getIsAbstract());
         	factorJson.put("createTime", sdf.format(getCreateTime()));
 			factorJson.put("modifyTime", sdf.format(getModifyTime()));
 		} catch (JSONException e) {

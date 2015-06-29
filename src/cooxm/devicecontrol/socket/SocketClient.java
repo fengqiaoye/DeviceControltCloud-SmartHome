@@ -70,9 +70,14 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 		Header header=Message.getOneHeaer((short)CMD__Identity_REQ);
 		String jsonStr="{\"uiClusterID\":"+clusterID+",\"usServerType\":"+serverType+",\"uiServerID\":"+serverID+"}";
 		String cookie=System.currentTimeMillis()/1000+"_"+serverID;
-		Message authMsg=new Message(header, cookie, jsonStr);
+		Message authMsg=null;
+		try {
+			authMsg = new Message(header, cookie, jsonStr);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 		authMsg.writeBytesToSock2(this.sock);
-		System.out.println("Send Auth "+this.sock.getInetAddress().getHostAddress()+":"+this.sock.getPort()+":"+authMsg.toString());	
+		log.info("Send Auth "+this.sock.getInetAddress().getHostAddress()+":"+this.sock.getPort()+":"+authMsg.toString());	
 		
 		 Message msg=CtrolSocketServer.readFromClient(sock);
 		 if(msg!=null){
@@ -90,19 +95,24 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 		Header header=Message.getOneHeaer((short)CMD__Identity_REQ);
 		String jsonStr="{\"uiClusterID\":"+clusterID+",\"usServerType\":"+serverType+",\"uiServerID\":"+serverID+"}";
 		String cookie=System.currentTimeMillis()/1000+"_"+serverID;
-		Message authMsg=new Message(header, cookie, jsonStr);
+		Message authMsg=null;
+		try {
+			authMsg = new Message(header, cookie, jsonStr);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 		authMsg.writeBytesToSock2(sock);
 		System.out.println("Send Auth "+sock.getRemoteSocketAddress().toString()+":"+authMsg.toString());	
 		
-//		 Message msg=CtrolSocketServer.readFromClient(sock);
-//		 if(msg!=null){
-//			int errorCode= msg.getJson().optInt("errorCode");
-//			if(errorCode==0){
-//				log.info("succefull connect to  message server,IP:"+sock.getRemoteSocketAddress().toString());
-//			}else{
-//				log.info("Auth failed to:"+sock.getRemoteSocketAddress().toString()+"by auth info:"+jsonStr);
-//			}
-//		 }
+		 Message msg=CtrolSocketServer.readFromClient(sock);
+		 if(msg!=null){
+			int errorCode= msg.getJson().optInt("errorCode");
+			if(errorCode==0){
+				log.info("succefull connect to  message server,IP:"+sock.getRemoteSocketAddress().toString());
+			}else{
+				log.info("Auth failed to:"+sock.getRemoteSocketAddress().toString()+"by auth info:"+jsonStr);
+			}
+		 }
 	}
 
 
@@ -226,30 +236,32 @@ public class SocketClient /*extends Socket*/ implements Runnable {
    
     public static void main(String [] args) throws UnknownHostException, IOException, InterruptedException       
     {  
-		SocketClient msgSock= new SocketClient("172.16.35.173", 10790,2,15,201,false);
+		SocketClient msgSock= new SocketClient("172.16.35.173", 20190,1,5,200,false);
 		if(msgSock!=null){
-	    	msgSock.sendAuth(1,5,200);
+	    	//msgSock.sendAuth(1,5,200);
 			new Thread(msgSock).start();
+
+
 		}
 		
 		//Message msg1=new Message(commandID, cookie, json)
 
-//		Message msg=CtrolSocketServer.readFromClient(msgSock.sock);
-//		if(msg!=null)
-//		System.out.println(msg.toString());
-//       Message msg2=Message.getOneMsg();
-//       msg2.writeBytesToSock2(msgSock.sock);
-//       
-//       Thread.sleep(20000);
-//    	
-//    	Socket sock =new Socket("172.16.35.173", 20190);
-//      Message msg3=Message.getOneMsg();
-//      msg3.writeBytesToSock2(msgSock.sock);
+		Message msg=CtrolSocketServer.readFromClient(msgSock.sock);
+		if(msg!=null)
+		System.out.println(msg.toString());
+       Message msg2=Message.getOneMsg();
+       msg2.writeBytesToSock2(msgSock.sock);
+       
+       Thread.sleep(20000);
+    	
+    	Socket sock =new Socket("172.16.35.173", 20190);
+      Message msg3=Message.getOneMsg();
+      msg3.writeBytesToSock2(msgSock.sock);
       
       Thread.sleep(20000);
       
       
-      Socket sock =new Socket("172.16.35.173", 20190);
+//      Socket sock =new Socket("172.16.35.173", 20190);
       
       
     	

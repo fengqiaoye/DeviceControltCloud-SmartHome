@@ -208,7 +208,7 @@ public class Event {
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		mysql.conn.setAutoCommit(false);
 
-			String sql="insert into "+replyTable
+			String sql="replace into "+replyTable
 					+" ("
 				    + "month  ,"  
 					+ "date  ," 
@@ -245,7 +245,7 @@ public class Event {
 	}
 
 	public static void main(String[] args) throws SQLException {
-     MySqlClass msyql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+     MySqlClass msyql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
      new Event(Message.getOneMsg()).toReceiveDB(msyql);
 
 

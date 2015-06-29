@@ -117,15 +117,16 @@ public class ProfileSet {
 			this.profileSetName=profileSetJson.getString("profileSetName");
 			this.profileSetTemplateID=profileSetJson.getInt("profileSetTemplateID");
 			
-			JSONArray profileListJSON= profileSetJson.getJSONArray("profileArray");
+			JSONArray profileArray= profileSetJson.getJSONArray("profileArray");
 			List<Integer> profileList = new ArrayList<Integer>() ;
-			for(int i=0;i<profileListJSON.length();i++){
-				JSONObject profileJson=profileListJSON.getJSONObject(i);
-				Integer profileID= profileJson.getInt("profileID");	
+			for(int i=0;i<profileArray.length();i++){
+				//2015-06-01 和李鹏协商更改
+				//JSONObject profileJson=profileListJSON.getJSONObject(i);
+				//Integer profileID= profileJson.getInt("profileID");
+				//Profile profile=new Profile(profileJson);
+				//LogicControl.profileMap.put(this.ctrolID+"_"+profileID, profile);
+				Integer profileID=profileArray.getInt(i);
 				profileList.add(profileID);		
-				
-				Profile profile=new Profile(profileJson);
-				LogicControl.profileMap.put(this.ctrolID+"_"+profileID, profile);
 			}		
 			this.profileList=profileList;
 			this.createTime=sdf.parse(profileSetJson.getString("createTime"));
@@ -149,7 +150,7 @@ public class ProfileSet {
 	    JSONObject profileSetJson = new JSONObject(); 
         //JSONObject profileJson ; 
 	    try {
-		    profileSetJson.put("deviceSN",        this.ctrolID       );
+		    profileSetJson.put("ctrolID",        this.ctrolID       );
 			profileSetJson.put("profileSetID",         this.profileSetID      );
 		    profileSetJson.put("profileSetName",        this.profileSetName      );
 		    profileSetJson.put("profileSetTemplateID",      this.profileSetTemplateID        );
@@ -175,7 +176,7 @@ public class ProfileSet {
 	}
 	 
 	 
-	 ProfileSet generateProfileSet(List<Integer> profileList){
+	public ProfileSet generateProfileSet(List<Integer> profileList){
 		ProfileSet pc=new  ProfileSet();
 		 pc.profileSetID=(int)Math.random()*65530+4;
 		 pc.profileList=profileList;
@@ -186,7 +187,7 @@ public class ProfileSet {
 	 }
 	
 	 public boolean isEmpty() {
-		if(this.profileList==null||this.createTime==null ||this.modifyTime==null){			
+		if(this.profileList==null||this.profileList.size()  ==0 ||this.createTime==null ||this.modifyTime==null){			
 			return true;
 		}		
 		return false;		
@@ -195,14 +196,14 @@ public class ProfileSet {
 	 
 	/*** 
 	 * Save Profile info to Mysql:
-	 * @param  Mysql:				MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	 * @param  Mysql:				MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 	 * @table profileDetailTable :  info_user_room_st_factor
 	 * @table profileIndexTable  :	info_user_room_st
 	 * @throws SQLException 
 	 * */
 	public int saveProfileSetToDB(MySqlClass mysql) {
 		if(this.isEmpty()){
-			System.out.println("ERROR:object is empty,can't save to mysql");
+			System.out.println("ERROR:object is empty,can't save to mysql"+this.ctrolID+",profileID="+this.profileSetID);
 			return -1;
 		}
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -234,6 +235,8 @@ public class ProfileSet {
 				+"')";
 		//System.out.println(sql);		
 		resultCount+=mysql.query(sql);
+	
+	}
 		try {
 			mysql.conn.commit();
 		} catch (SQLException e) {
@@ -243,8 +246,7 @@ public class ProfileSet {
 			} catch (SQLException e1) {
 				e1.printStackTrace();
 			}
-		}	
-	}
+		}
 	
 		
 		return resultCount;	
@@ -252,7 +254,7 @@ public class ProfileSet {
 
    /*** 
    * 从入MYSQL读取profile
-   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
@@ -272,10 +274,10 @@ public class ProfileSet {
 					+" where ctr_id="+ctrolID
 					+" and userstsetid="+profileSetID
 					+ ";";
-			System.out.println("query:"+sql);
+			//System.out.println("query:"+sql);
 			String res=mysql.select(sql);
 			System.out.println("get from mysql:\n"+res);
-			if(res==""||res.length()==0) {
+			if(res==null||res.length()==0) {
 				System.err.println("ERROR:query result is empty: "+sql);
 				return null;
 			}
@@ -312,7 +314,7 @@ public class ProfileSet {
 	
 	   /*** 
 	   * 根据 模板ID 来查找 情景集
-	   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+	   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 	   * @table  info_user_room_st_factor
 	   * @throws SQLException 
 	   */
@@ -369,7 +371,7 @@ public class ProfileSet {
 	
   /*** 
    * 从入MYSQL删除一个profile
-   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
@@ -380,7 +382,7 @@ public class ProfileSet {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		String sql="delte *  "
+		String sql="delete   "
 				+ "  from  "				
 				+profileSetTable
 				+" where ctr_id="+ctrolID
@@ -397,13 +399,13 @@ public class ProfileSet {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		return 1;
+		return res;
 	}
 		
 			
 	public static void main(String[] args) throws SQLException {
 		// TODO Auto-generated method stub
-		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "root", "cooxm");
+		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 		ProfileSet p =new ProfileSet();
 		p=ProfileSet.getProfileSetFromDB(mysql, 12345677, 12345);
 		p.profileSetID++;

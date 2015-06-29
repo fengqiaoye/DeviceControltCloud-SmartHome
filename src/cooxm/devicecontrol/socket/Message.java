@@ -107,14 +107,12 @@ public class Message extends Header {
 		}
 	}
 	
-	public Message(Header header,String cookie, String command) {
+	public Message(Header header,String cookie, String command) throws JSONException {
 		super(header);	
 		this.cookie=cookie;
-		try {
-			this.json=new JSONObject(command);
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+
+	    this.json=new JSONObject(command);
+
     	super.cookieLen=(short) cookie.length();
 		//2015-05-25 richard备注：如果json字符串含有中文会导致计算长度错误；
     	//super.msgLen=(short) ((short) cookie.length()+command.length());
@@ -275,7 +273,7 @@ public class Message extends Header {
 			// 2015-05-04
 			//dataout.close();
 		} catch (IOException e) {
-			e.printStackTrace();
+			e.printStackTrace();		
 		}    	
     }
     
@@ -368,7 +366,7 @@ public class Message extends Header {
         return length;            
     }  
 	    
-	public static void main(String[] args)  {
+	public static void main(String[] args)   {
 //		JSONObject jo;
 //		try {
 //			jo = new JSONObject("{\"key\":\"value\"}");
@@ -384,10 +382,13 @@ public class Message extends Header {
 //		System.out.println("jspn="+new String(y));
 //		Message msg2=new Message(msg.toBytesSmallEnd());
 //		System.out.println(msg2.toString());
-		String str="{\"profileName\":\"未知情景1\",\"factorList\":{\"factorID\":20,\"minValue\":25,\"modifyTime\":\"2014-12-13 14:15:16\","
+		
+		/*String str="{\"profileName\":\"未知情景1\",\"factorList\":{\"factorID\":20,\"minValue\":25,\"modifyTime\":\"2014-12-13 14:15:16\","
 				+ "\"validFlag\":1,\"createTime\":\"2014-12-13 14:15:16\",\"maxValue\":28,\"roomID\":203,\"roomType\":2,\"operator\":0},\"profileTemplateID\":0,"
 				+ "\"modifyTime\":\"2014-12-13 14:15:17\",\"createTime\":\"2014-12-13 14:15:16\",\"profileID\":123456789,\"profileSetID\":12345,\"ctrolID\":12345677,\"roomID\":203,\"roomType\":2}";
-		System.out.println(getWordCount(str));
+		System.out.println(getWordCount(str));*/
+
+		
 		
 	}
 }

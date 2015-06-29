@@ -17,20 +17,21 @@ import cooxm.devicecontrol.util.MySqlClass;
  * @version Created：2 Feb 2015 10:23:02 
  */
 
-/**  < ctrolID_triggerID,Trigger > */
-public class TriggerMap  extends HashMap<String, Trigger>{
+/**  < triggerTemplateID,TriggerTemplate > */
+public class TriggerTemplateMap  extends HashMap<Integer, TriggerTemplate>{
+
 
 	private static final long serialVersionUID = 1L;
 	private MySqlClass mysql;
 	
 	
-	public TriggerMap(){}
-	public TriggerMap(Map<String, Trigger> TriggerMap){
-		super(TriggerMap);		
+	public TriggerTemplateMap(){}
+	public TriggerTemplateMap(Map<Integer, TriggerTemplate> TriggerTemplateMap){
+		super(TriggerTemplateMap);		
 	}
 	
-	public TriggerMap(MySqlClass mysql) {
-		super(getTriggerMapFromDB(mysql));
+	public TriggerTemplateMap(MySqlClass mysql) {
+		super(getTriggerTemplateMapFromDB(mysql));
 		this.mysql=mysql;
 	}
 	
@@ -40,31 +41,30 @@ public class TriggerMap  extends HashMap<String, Trigger>{
    * @table  info_trigger
    * @throws SQLException 
     */
-	public static HashMap<String, Trigger> getTriggerMapFromDB(MySqlClass mysql) 
+	public static HashMap<Integer, TriggerTemplate> getTriggerTemplateMapFromDB(MySqlClass mysql) 
 	{   
-		HashMap<String, Trigger> triggerMap=new HashMap<String, Trigger>();
+		HashMap<Integer, TriggerTemplate> triggerMap=new HashMap<Integer, TriggerTemplate>();
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		try {
 			mysql.conn.setAutoCommit(false);
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		}
-		String sql="select "
-				+"ctrolid  ,"    			
-				+"triggerid  ,"     
+		String sql="select "		
+				+"triggerid  ,"   
+				+"sttemplateid ,"
 				+"logicalrelation ,"
-				+"roomtype ,"
-				+"roomid ,"					
+				+"roomtype ,"		
 				+"factorid ,"
 				+"operator ,"
 				+"min ,"
 				+"max ,"
 				+"accumilatetime   ,"
-				+"validflag, "
+				+"isabstract, "
 				+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
 				+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 				+ "  from  "				
-				+Trigger.triggerFactorInfoTable
+				+TriggerTemplate.triggerFactorTable
 				//+" where triggerid="+triggerid
 				//+" and ctrolid="+ctrolID
 				+ ";";
@@ -74,62 +74,60 @@ public class TriggerMap  extends HashMap<String, Trigger>{
 			System.err.println("ERROR:query result is empty: "+sql);
 			return null;
 		}
-		Trigger trigger=null;
-		List<TriggerFactor> factorList=null;
+		TriggerTemplate trigger=null;
+		List<TriggerTemplateFactor> factorList=null;
 		List<TriggerTemplateReact> triggerReactList=null;
 		
 		String[] resArray=res.split("\n");
 		for(String line:resArray){
 			String[] cells=line.split(",");
 			if(cells.length>0){	
-				String key=cells[0]+"_"+cells[1];
+				int key=Integer.parseInt(cells[0]);//+"_"+cells[1];
 				if(triggerMap.containsKey(key)){
 					trigger=triggerMap.get(key);
-					factorList=trigger.getTriggerFactorList();				
+					factorList=trigger.getTriggerTemplateFactorList();				
 				}else{
-					trigger=new Trigger();
-					factorList=new ArrayList<TriggerFactor>();
+					trigger=new TriggerTemplate();
+					factorList=new ArrayList<TriggerTemplateFactor>();
 					//triggerReactList=new ArrayList<TriggerTemplateReact>();
 				}
-				TriggerFactor ft=new TriggerFactor();					
+				TriggerTemplateFactor ft=new TriggerTemplateFactor();					
 				ft.setLogicalRelation(cells[2]);					
 				ft.setRoomType(Integer.parseInt(cells[3]));
-				ft.setRoomType(Integer.parseInt(cells[4]));
-				ft.setFactorID(Integer.parseInt(cells[5]));
-				ft.setOperator(Integer.parseInt(cells[6]));
-				ft.setMinValue(Integer.parseInt(cells[7]));
-				ft.setMaxValue(Integer.parseInt(cells[8]));
-				ft.setAccumilateTime(Integer.parseInt(cells[9]));
-				ft.setValidFlag(Integer.parseInt(cells[10]));
+				ft.setFactorID(Integer.parseInt(cells[4]));
+				ft.setOperator(Integer.parseInt(cells[5]));
+				ft.setMinValue(Integer.parseInt(cells[6]));
+				ft.setMaxValue(Integer.parseInt(cells[7]));
+				ft.setAccumilateTime(Integer.parseInt(cells[8]));
+				//ft.setValidFlag(Integer.parseInt(cells[10]));
+				ft.setIsAbstract(Integer.parseInt(cells[9]));
 				try {
-					ft.setCreateTime(sdf.parse(cells[11]));
-					ft.setModifyTime(sdf.parse(cells[12]));
+					ft.setCreateTime(sdf.parse(cells[10]));
+					ft.setModifyTime(sdf.parse(cells[11]));
 				} catch (ParseException e) {
 					e.printStackTrace();
 				}
 				
 				factorList.add(ft);
-				trigger.setTriggerFactorList(factorList);
-				trigger.setCtrolID(Integer.parseInt(cells[0]));
-				trigger.setTriggerID(Integer.parseInt(cells[1]));
+				trigger.setTriggerTemplateFactorList(factorList);
+				trigger.setTriggerTemplateID(Integer.parseInt(cells[0]));
+				trigger.setProfileTemplateID(Integer.parseInt(cells[1]));
 				triggerMap.put(key, trigger);
 			}else {
-				System.out.println("ERROR:Columns mismatch between class Profile  and table  "+ Trigger.triggerFactorInfoTable);
+				System.out.println("ERROR:Columns mismatch between class Profile  and table  "+ TriggerTemplate.triggerFactorTable);
 				return null;				
 			}
 			
 		}			
 		
-//new ArrayList<TriggerTemplateReact>();
-		
 		String sql2="select  "
-				+"ctrolid  ,"    			
+				//+"ctrolid  ,"    			
  				+" triggerid ," 
 				+" reacttype ," 
 				+"targetid ,"
 				+"reactway "	
 				+ " from  "	
-				+Trigger.triggerReactInfoTable
+				+TriggerTemplate.triggerReactTable
 				//+" where triggerid="+triggerid
 				+ ";";
 
@@ -142,26 +140,27 @@ public class TriggerMap  extends HashMap<String, Trigger>{
 		for(String line:resArray2){		
 			String [] array=line.split(",");
 			
-			String key=array[0]+"_"+array[1];
+			int key=Integer.parseInt(array[0]);//+"_"+array[1];
 			if(triggerMap.containsKey(key)){
 				trigger=triggerMap.get(key);
-				triggerReactList=trigger.getTriggerReactList();	
+				triggerReactList=trigger.getTriggerTemplateReactList();	
 				if(null==triggerReactList){
 					triggerReactList=new ArrayList<TriggerTemplateReact>();
+					trigger.setTriggerTemplateReactList(triggerReactList);
 				}
+				
 			}else{
-				trigger=new Trigger();
+				trigger=new TriggerTemplate();
 				triggerReactList=new ArrayList<TriggerTemplateReact>();
-				//factorList=new ArrayList<TriggerFactor>();
+				trigger.setTriggerTemplateReactList(triggerReactList);
 			}
 			TriggerTemplateReact react=new TriggerTemplateReact();
-			react.setReactType(Integer.parseInt(array[2]));
-			react.setTargetID(Integer.parseInt(array[3]));
-			react.setReactWay(Integer.parseInt(array[4]));
+			react.setReactType(Integer.parseInt(array[1]));
+			react.setTargetID(Integer.parseInt(array[2]));
+			react.setReactWay(Integer.parseInt(array[3]));
 			triggerReactList.add(react);
-			trigger.setTriggerReactList(triggerReactList);
 		}	
-		trigger.setTriggerReactList(triggerReactList);
+		trigger.setTriggerTemplateReactList(triggerReactList);
 		try {
 			mysql.conn.commit();
 		} catch (SQLException e) {
@@ -176,38 +175,34 @@ public class TriggerMap  extends HashMap<String, Trigger>{
 	 *重写父类的方法，当向这个map添加一个情景模式时，自动把这个情景模式写入数据库
 	 *  */
 	@Override
-	public Trigger put(String key,Trigger trigger) {
+	public TriggerTemplate put(Integer key,TriggerTemplate trigger) {
 		if(null==this.mysql)
 			return null;
-		int x=trigger.saveToDB(this.mysql)	;
-		if(x>0){
-			return super.put(key, trigger);
-
-		}else{
-			return null;
-		}
+		trigger.saveToDB(this.mysql)	;
+		super.put(key, trigger);
+		return trigger;		
 	}	
 	
 	/**
 	 *重写父类的方法，当向这个map删除一个情景模式时，自动把这个情景模式从数据库删除
 	 *  */
-	@Override
-	public Trigger remove(Object key) {
-		Trigger trigger = super.get(key);
-		Trigger.deleteFromDB(mysql, trigger.getCtrolID(), trigger.getTriggerID());
+	/*@Override
+	public TriggerTemplate remove(Object key) {
+		TriggerTemplate trigger = super.get(key);
+		TriggerTemplate.deleteFromDB(mysql, trigger.getTriggerTemplateID(), trigger.getTriggerTemplateID());
 		return super.remove(key);
 
-	}
+	}*/
 	
 
 	/*** 获取一个家庭所有情景模式
 	 * @param ctrolID
-	 * @return  List < Trigger > 情景模式列表	 * 
+	 * @return  List < TriggerTemplate > 情景模式列表	 * 
 	 * */
-	public List<Trigger> getTriggersByctrolID(int ctrolID){	
-		List<Trigger> triggerList=new ArrayList<Trigger>();
-		for (Entry<String, Trigger> entry : this.entrySet()) {
-			if(entry.getKey().split("_")[0]==ctrolID+""){
+	public List<TriggerTemplate> getTriggerTemplatesByProfileID(int profileID){	
+		List<TriggerTemplate> triggerList=new ArrayList<TriggerTemplate>();
+		for (Entry<Integer, TriggerTemplate> entry : this.entrySet()) {
+			if(entry.getValue().getProfileTemplateID()==profileID){
 				triggerList.add(entry.getValue());
 			}			
 		}
@@ -219,12 +214,12 @@ public class TriggerMap  extends HashMap<String, Trigger>{
 	 * @param: roomID
 	 * @param: ctrolID 
 	 * */
-	public List<Trigger> getTriggersByRoomID(int roomID){	
-		List<Trigger> triggerList=new ArrayList<Trigger>();
-		for (Entry<String, Trigger> entry : this.entrySet()) {
-			Trigger trigger=entry.getValue();
-			for (Factor factor : trigger.getTriggerFactorList()) {
-				if(factor.getRoomID()==roomID){
+	public List<TriggerTemplate> getTriggerTemplatesByRoomType(int roomType){	
+		List<TriggerTemplate> triggerList=new ArrayList<TriggerTemplate>();
+		for (Entry<Integer, TriggerTemplate> entry : this.entrySet()) {
+			TriggerTemplate trigger=entry.getValue();
+			for (TriggerTemplateFactor factor : trigger.getTriggerTemplateFactorList()) {
+				if(factor.getRoomType()==roomType){
 					triggerList.add(trigger);
 					break;
 				}				
@@ -237,7 +232,7 @@ public class TriggerMap  extends HashMap<String, Trigger>{
 
 	public static void main(String[] args) {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
-		TriggerMap rm=new TriggerMap(mysql);
+		TriggerTemplateMap rm=new TriggerTemplateMap(mysql);
 		System.out.println(rm.size());
 
 	}
