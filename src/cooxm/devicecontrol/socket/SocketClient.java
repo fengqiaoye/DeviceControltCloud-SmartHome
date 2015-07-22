@@ -31,7 +31,7 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 	static final short CMD__HEARTBEAT_ACK 		= CMD__HEARTBEAT_REQ  + ACK_OFFSET;  //心跳请求
 		
     
-    public static Logger log = Logger.getLogger(CtrolSocketServer.class);  
+    public static Logger log = Logger.getLogger(SocketClient.class);  
 	/**用户连接的通信套接字*/  
     public Socket sock=null;
     BufferedReader input;
@@ -136,10 +136,8 @@ public class SocketClient /*extends Socket*/ implements Runnable {
         while(true){        	
     		try {
     			if(this.sock==null ||this.sock.isClosed()|| !this.sock.isConnected()){
-
     				this.sock=new Socket(IP,port);
-    				sendAuth(this.clusterID, this.serverID, this.serverType);
-    				
+    				sendAuth(this.clusterID, this.serverID, this.serverType);    				
     			}
     		} catch (UnknownHostException e) {
     			e.printStackTrace();

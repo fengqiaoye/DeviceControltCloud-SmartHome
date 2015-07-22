@@ -20,16 +20,26 @@ public class MySqlClass {
    
    /**初始化Mysql连接 */
    public MySqlClass(String host, String port,String databaseName,String userName,String password){
+
        try{
            Class.forName("com.mysql.jdbc.Driver").newInstance();
 	       //conn=DriverManager.getConnection("jdbc:mysql://"+host+":"+port+"/"+databaseName,userName,password);
-	       conn=DriverManager.getConnection("jdbc:mysql://"+host+":"+port+"/"+databaseName+"?useUnicode=true&characterEncoding=utf8",userName,password);
-		   st=conn.createStatement();  		   
-       }catch(Exception e){
-           System.out.println("ERROR:"+e.toString());
-           logger.fatal(e.getMessage(),e);          
-       }       
-   }
+	       conn=DriverManager.getConnection("jdbc:mysql://"+host+":"+port+"/"+databaseName+"?useUnicode=true&characterEncoding=utf8&autoReconnect=true",userName,password);
+		   st=conn.createStatement(); 
+       }catch(SQLException  sqlEx){
+	       System.out.println("ERROR:"+sqlEx.toString());
+	       logger.fatal(sqlEx.getMessage(),sqlEx);   
+    
+   
+        } catch (InstantiationException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+
    
    public MySqlClass(String dbNanme){
 	    try {
@@ -53,7 +63,7 @@ public class MySqlClass {
    }
    
   
-   public String select(String sqlStatement){
+   public synchronized String select(String sqlStatement){
        String result=new String();
        int size=0;
        try{
@@ -62,14 +72,14 @@ public class MySqlClass {
            
            while(rs!=null && rs.next()){
         	   for(int i=0;i<size;i++){
-        		   result=result+rs.getString(i+1);//+",";
+        		   result=result+rs.getString(i+1);
         		   if(i!=size-1){
         			   result=result+",";
         		   }
         	   }
         	   result=result+"\n";
            }           
-           rs.close();
+           //rs.close();
            if(result.length()>=1){
         	   return result.substring(0, result.length()-1);
            }else{
@@ -78,6 +88,7 @@ public class MySqlClass {
            
        }catch(Exception e){
            //System.out.println("ERROR:"+e.toString());
+    	   e.printStackTrace();
     	   logger.error(e.toString(),e);
            return null;
        }

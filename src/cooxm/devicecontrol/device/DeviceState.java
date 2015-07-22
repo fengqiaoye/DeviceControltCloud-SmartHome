@@ -163,7 +163,7 @@ public class DeviceState {
 		
 	}
 	
-	public DeviceState (JSONObject json){
+	public DeviceState (JSONObject json) throws ParseException, JSONException{
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		this.onOff=json.optInt("onOff");
 		this.mode=json.optInt("mode");
@@ -180,7 +180,7 @@ public class DeviceState {
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}*/
-		this.modifyTime=new Date();
+		this.modifyTime=sdf.parse(json.getString("modifyTime"));
 	}
 
 	public static void main(String[] args) {

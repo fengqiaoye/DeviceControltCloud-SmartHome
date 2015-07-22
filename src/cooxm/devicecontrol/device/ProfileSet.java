@@ -9,8 +9,10 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Date;
+import java.util.Map;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -21,6 +23,8 @@ import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.control.MainEntry;
 import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.util.MySqlClass;
+import cooxm.devicecontrol.util.RedisClient;
+import redis.clients.jedis.Jedis;
 
 
 /***情景模式集：
@@ -36,7 +40,7 @@ public class ProfileSet {
 	List<Integer> profileList;	
 	Date createTime;
 	Date modifyTime;
-	//ProfileSet currProfileSet;
+
 	static final String  profileSetTable="info_user_st_set";	
 	
 	public int getCtrolID() {
@@ -94,9 +98,7 @@ public class ProfileSet {
 	public void setModifyTime(Date modifyTime) {
 		this.modifyTime = modifyTime;
 	}
-
-
-
+	
 	ProfileSet(){}
 	
 	 ProfileSet(ProfileSet pc){
@@ -109,32 +111,28 @@ public class ProfileSet {
 		 this.modifyTime=pc.modifyTime;		 
 	 }
 	 
-	public ProfileSet (JSONObject profileSetJson){
+	public ProfileSet (JSONObject profileSetJson) throws JSONException, ParseException{
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		try {
-			this.ctrolID=profileSetJson.getInt("ctrolID");
-			this.profileSetID=profileSetJson.getInt("profileSetID");
-			this.profileSetName=profileSetJson.getString("profileSetName");
-			this.profileSetTemplateID=profileSetJson.getInt("profileSetTemplateID");
-			
-			JSONArray profileArray= profileSetJson.getJSONArray("profileArray");
-			List<Integer> profileList = new ArrayList<Integer>() ;
-			for(int i=0;i<profileArray.length();i++){
-				//2015-06-01 和李鹏协商更改
-				//JSONObject profileJson=profileListJSON.getJSONObject(i);
-				//Integer profileID= profileJson.getInt("profileID");
-				//Profile profile=new Profile(profileJson);
-				//LogicControl.profileMap.put(this.ctrolID+"_"+profileID, profile);
-				Integer profileID=profileArray.getInt(i);
-				profileList.add(profileID);		
-			}		
-			this.profileList=profileList;
-			this.createTime=sdf.parse(profileSetJson.getString("createTime"));
-			this.modifyTime=sdf.parse(profileSetJson.getString("createTime"));	
-		} catch (JSONException | ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		this.ctrolID=profileSetJson.getInt("ctrolID");
+		this.profileSetID=profileSetJson.getInt("profileSetID");
+		this.profileSetName=profileSetJson.getString("profileSetName");
+		this.profileSetTemplateID=profileSetJson.getInt("profileSetTemplateID");
+		
+		JSONArray profileArray= profileSetJson.getJSONArray("profileArray");
+		List<Integer> profileList = new ArrayList<Integer>() ;
+		for(int i=0;i<profileArray.length();i++){
+			//2015-06-01 和李鹏协商更改
+			//JSONObject profileJson=profileListJSON.getJSONObject(i);
+			//Integer profileID= profileJson.getInt("profileID");
+			//Profile profile=new Profile(profileJson);
+			//LogicControl.profileMap.put(this.ctrolID+"_"+profileID, profile);
+			Integer profileID=profileArray.getInt(i);
+			profileList.add(profileID);		
+		}		
+		this.profileList=profileList;
+		this.createTime=sdf.parse(profileSetJson.getString("createTime"));
+		this.modifyTime=sdf.parse(profileSetJson.getString("createTime"));	
+
 	}
 	 
 	public JSONObject toJsonObj(){
@@ -203,8 +201,9 @@ public class ProfileSet {
 	 * */
 	public int saveProfileSetToDB(MySqlClass mysql) {
 		if(this.isEmpty()){
-			System.out.println("ERROR:object is empty,can't save to mysql"+this.ctrolID+",profileID="+this.profileSetID);
-			return -1;
+			//System.out.println("ERROR:object is empty,can't save to mysql"+this.ctrolID+",profileID="+this.profileSetID);
+			//return -1;
+			this.profileList.add(-1);  //因为info_user_st_set表中userstid是主键，不能为空
 		}
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		int resultCount=0;
@@ -212,7 +211,10 @@ public class ProfileSet {
 			mysql.conn.setAutoCommit(false);
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}		
+		}	
+		
+		deleteProfileSetFromDB(mysql, this.ctrolID, this.profileSetID); //先清空原有数据
+		
 		for (Integer profileID:this.profileList) {
 		String sql="replace into "+profileSetTable
 				+" (ctr_id       ," 
@@ -246,8 +248,7 @@ public class ProfileSet {
 			} catch (SQLException e1) {
 				e1.printStackTrace();
 			}
-		}
-	
+		}	
 		
 		return resultCount;	
 	}
@@ -276,7 +277,7 @@ public class ProfileSet {
 					+ ";";
 			//System.out.println("query:"+sql);
 			String res=mysql.select(sql);
-			System.out.println("get from mysql:\n"+res);
+			//System.out.println("get from mysql:\n"+res);
 			if(res==null||res.length()==0) {
 				System.err.println("ERROR:query result is empty: "+sql);
 				return null;
@@ -288,8 +289,10 @@ public class ProfileSet {
 			String[] cells=null;
 			for(String line:resArray){
 				cells=line.split(",");
-				profileID=new Integer(Integer.parseInt(cells[4]));				
-				profileIDList.add(profileID);
+				profileID=new Integer(Integer.parseInt(cells[4]));	
+				if(profileID!=-1){  //因为info_user_st_set表中 userstid=-1是人为添加，不是真正的profile；
+				    profileIDList.add(profileID);
+				}
 			}
 			profileSet.profileList=profileIDList;
 			
@@ -304,11 +307,7 @@ public class ProfileSet {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			try {
-				mysql.conn.commit();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+
 			return profileSet;
 		}
 	
@@ -335,9 +334,9 @@ public class ProfileSet {
 				+" where ctr_id="+ctrolID
 				+" and settemplateid="+templateID
 				+ ";";
-		System.out.println("query:"+sql);
+		//System.out.println("query:"+sql);
 		String res=mysql.select(sql);
-		System.out.println("get from mysql:\n"+res);
+		//System.out.println("get from mysql:\n"+res);
 		if(res==""||res.length()==0) {
 			System.err.println("ERROR:query result is empty: "+sql);
 			return null;
@@ -349,8 +348,10 @@ public class ProfileSet {
 		String[] cells=null;
 		for(String line:resArray){
 			cells=line.split(",");
-			profileID=new Integer(Integer.parseInt(cells[4]));				
-			profileIDList.add(profileID);
+			profileID=new Integer(Integer.parseInt(cells[4]));	
+			if(profileID!=-1){  //因为info_user_st_set表中 userstid=-1是人为添加，不是真正的profile；
+				profileIDList.add(profileID);
+			}
 		}
 		profileSet.profileList=profileIDList;
 		
@@ -370,7 +371,7 @@ public class ProfileSet {
 	}
 	
   /*** 
-   * 从入MYSQL删除一个profile
+   * 从入MYSQL删除一个profileSet
    * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
    * @table  info_user_room_st_factor
    * @throws SQLException 
@@ -388,10 +389,10 @@ public class ProfileSet {
 				+" where ctr_id="+ctrolID
 				+" and userstsetid="+profileSetID
 				+ ";";
-		System.out.println("query:"+sql);
+		//System.out.println("query:"+sql);
 		int res=mysql.query(sql);
 		if(res<=0) {
-			System.out.println("ERROR:query result is empty: "+sql);
+			//System.out.println("ERROR:query result is empty: "+sql);
 			return 0;
 		}				
 		try {
@@ -401,6 +402,57 @@ public class ProfileSet {
 		}
 		return res;
 	}
+	
+	  /*** 
+	   * 从入MYSQL删除profileSet说包含的一个情景ID
+	   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
+	   * @table  info_user_room_st_factor
+	   * @throws SQLException 
+	   */
+		public static int deleteProfileSetDetail(MySqlClass mysql,int ctrolID,int profileSetID,int profileID) 
+		{
+			try {
+				mysql.conn.setAutoCommit(false);
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			String sql="delete   "
+					+ "  from  "				
+					+profileSetTable
+					+" where ctr_id="+ctrolID
+					+" and userstsetid="+profileSetID
+					+" and userstid=" +profileID
+					+ ";";
+			//System.out.println("query:"+sql);
+			int res=mysql.query(sql);
+			if(res<=0) {
+				System.out.println("ERROR:query result is empty: "+sql);
+				return 0;
+			}				
+			try {
+				mysql.conn.commit();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			return res;
+		}
+		
+	public static void deleteProfileSetByRoomIDFromRedis(Jedis jedis,int ctrolID,int roomID) throws JSONException, ParseException{
+		Map<String, String> profileSetMap = jedis.hgetAll(LogicControl.currentProfileSet+ctrolID);
+		for (Map.Entry<String, String> entry:profileSetMap.entrySet()) {
+			ProfileSet p=new ProfileSet(new JSONObject(entry.getValue()));
+			for (int i = 0; i < p.getProfileList().size(); i++) {
+				int profileID=p.getProfileList().get(i);
+				Profile profile=LogicControl.profileMap.get(ctrolID+"_"+profileID);
+				if(profile!=null && profile.getRoomID()==roomID){
+					p.getProfileList().remove((Object)profileID);
+					jedis.hset(LogicControl.currentProfileSet+ctrolID, p.getProfileSetID()+"", p.toJsonObj().toString());
+				}				
+			}
+			
+		}
+		
+	}
 		
 			
 	public static void main(String[] args) throws SQLException {
@@ -408,7 +460,7 @@ public class ProfileSet {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 		ProfileSet p =new ProfileSet();
 		p=ProfileSet.getProfileSetFromDB(mysql, 12345677, 12345);
-		p.profileSetID++;
+		//p.profileSetID++;
 		
 		p.saveProfileSetToDB(mysql);
 	}

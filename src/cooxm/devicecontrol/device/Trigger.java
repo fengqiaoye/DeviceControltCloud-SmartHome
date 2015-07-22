@@ -117,8 +117,25 @@ public class Trigger {
 	public void setValidFlag(int validFlag) {
 		this.validFlag = validFlag;
 	}
+	
+	public Date getModifyTime() {
+		return modifyTime;
+	}
 	public Trigger(){}
 
+	public Trigger(Trigger trigger) {
+		this.ctrolID = trigger.ctrolID;
+		this.triggerID = trigger.triggerID;
+		this.profileID = trigger.profileID;
+		this.triggerName = trigger.triggerName;
+		this.description = trigger.description;
+		this.isAbstract = trigger.isAbstract;
+		this.validFlag = trigger.validFlag;
+		this.createTime = trigger.createTime;
+		this.modifyTime = trigger.modifyTime;
+		this.triggerFactorList = trigger.triggerFactorList;
+		this.triggerReactList = trigger.triggerReactList;
+	}
 
 	
 
@@ -156,7 +173,7 @@ public class Trigger {
 				+"triggername ,"
 				+"description ,"
 				+"isabstract,"
-				+"validflag, "
+				+"valid_flag, "
 				+"createtime, "
 				+"modifytime "
 				+ ")"				
@@ -164,14 +181,15 @@ public class Trigger {
 				+ "("
 				+this.ctrolID+","
 				+this.triggerID+","
-				+this.profileID+","
+				+this.profileID+",'"
 				+this.triggerName+"','"
 				+this.description+"',"
-				+this.isAbstract+
+				+this.isAbstract+","
 				+this.getValidFlag()+",'"
 				+sdf.format(this.getCreateTime())+"','"
 				+sdf.format(this.getModifyTime())
-				+"')";
+				+"');";
+		//System.out.println(sql0);
 		int count0=mysql.query(sql0);
 		try {
 			mysql.conn.commit();
@@ -256,7 +274,7 @@ public class Trigger {
 					+sdf.format(ft.getCreateTime())+"','"
 					+sdf.format(ft.getModifyTime())
 					+"')";
-			System.out.println(sql);
+			//System.out.println(sql);
 			int count=mysql.query(sql);
 			//if(count>0) System.out.println("insert success"); 
 			try {
@@ -322,9 +340,13 @@ public class Trigger {
 				+ "  from  "				
 				+triggerHeaderInfoTable
 				+" where triggerid="+triggerid
-				+" and ctrolid="+ctrolID
+				+" and ctr_id="+ctrolID
 				+ ";";
+		System.out.println(sql);
 		String res=mysql.select(sql);
+		if(res==null ||res==""){
+			return null;
+		}
 		String[] cells=res.split(",");
 		trigger.setCtrolID(Integer.parseInt(cells[0]));	
 		trigger.setTriggerID(Integer.parseInt(cells[1]));	
@@ -504,7 +526,7 @@ public class Trigger {
 			this.triggerID=TriggerJson.getInt("triggerID");
 			this.ctrolID=TriggerJson.getInt("ctrolID");
 			this.profileID=TriggerJson.getInt("profileID");
-			this.triggerName=TriggerJson.getString("tiggerName");
+			this.triggerName=TriggerJson.getString("triggerName");
 			this.description=TriggerJson.getString("description");
 			this.isAbstract=TriggerJson.getInt("isAbstract");
 			this.validFlag=TriggerJson.getInt("validflag");
@@ -579,17 +601,17 @@ public class Trigger {
 	}
 	
 	/**用json初始化Trigger 索引信息 */
-	public Trigger  initTriggerHeader (JSONObject json){
+	public static Trigger  initTriggerHeader (JSONObject json){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Trigger trigger= new Trigger();
 		try {
 			trigger.ctrolID=json.getInt("ctrolID");
 			trigger.triggerID=json.getInt("triggerID");
 			trigger.profileID=json.getInt("profileID");
-			trigger.triggerName=json.getString("tiggerName");
+			trigger.triggerName=json.getString("triggerName");
 			trigger.description=json.getString("description");
 			trigger.isAbstract=json.getInt("isAbstract");
-			trigger.validFlag=json.getInt("validflag");
+			trigger.validFlag=json.getInt("validFlag");
 			trigger.setCreateTime(sdf.parse(json.getString("createTime")));
 			trigger.setModifyTime(sdf.parse(json.getString("modifyTime")) );
 			
@@ -621,7 +643,7 @@ public class Trigger {
 		return triggerJson;		
 	}
 	
-	public Date getModifyTime() {
+	/*public Date getModifyTime() {
 		Date modifyTime=new Date(0);
      	for (TriggerFactor factor:getTriggerFactorList()) {
 		   Date  factorModifyTime=factor.getModifyTime();
@@ -630,17 +652,21 @@ public class Trigger {
 		   }
 		}		
 		return modifyTime;
-	}
+	}*/
 	
 
 	
 	public static void main(String[] args) {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 		
-		Trigger T=getFromDB(mysql, 1234567,1025);
-		T.saveToDB(mysql);
+//		Trigger T=getFromDB(mysql, 1234567,1025);
+//		T.saveToDB(mysql);
+//		
+//		deleteFromDB(mysql, 1234567, 1025);
 		
-		deleteFromDB(mysql, 1234567, 1025);
+		Trigger T=getHeaderFromDB(mysql, 40004,102);
+		
+		T.saveHeaderToDB(mysql);
 
 	}
 

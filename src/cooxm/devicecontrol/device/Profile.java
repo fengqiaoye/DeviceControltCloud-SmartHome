@@ -8,7 +8,9 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -17,9 +19,11 @@ import org.json.JSONObject;
 
 import com.mysql.jdbc.log.Log;
 
-import redis.clients.jedis.Jedis;
+import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.control.MainEntry;
+import cooxm.devicecontrol.synchronize.IRMatch2;
 import cooxm.devicecontrol.util.MySqlClass;
+import redis.clients.jedis.Jedis;
 
 
 /***
@@ -117,38 +121,7 @@ public class Profile  {
 	}
 	public Profile (){}
 
-	public Profile (JSONObject profileJson){
-		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		try {
-			this.profileID=profileJson.getInt("profileID");
-			this.profileName=profileJson.getString("profileName");
-			this.ctrolID=profileJson.getInt("ctrolID");
-			this.roomID=profileJson.getInt("roomID");
-			this.roomType=profileJson.getInt("roomType");
-			this.profileTemplateID=profileJson.getInt("profileTemplateID");
-			this.profileSetID=profileJson.getInt("profileSetID");
-			JSONArray factorListJSON= profileJson.getJSONArray("factorList");
-			List<Factor> factorList = new ArrayList<Factor>() ;
-			for(int i=0;i<factorListJSON.length();i++){
-				JSONObject factorJson=factorListJSON.getJSONObject(i);
-				Factor factor= new Factor();
-			  /*factor.factorID=factorJson.getInt("factorID");
-				factor.minValue=factorJson.getInt("minValue");
-				factor.maxValue=factorJson.getInt("maxValue");
-				factor.operator=factorJson.getInt("operator");
-				factor.validFlag=factorJson.getInt("validFlag");
-				factor.setCreateTime(sdf.parse(factorJson.getString("createTime")) );
-				factor.setModifyTime(sdf.parse(factorJson.getString("modifyTime")) );	*/
-				factor=Factor.fromProfileJson(factorJson);
-				factorList.add(factor);		
-			}		
-			setFactorList(factorList);
-			setCreateTime(sdf.parse(profileJson.optString("createTime")));
-			setModifyTime(sdf.parse(profileJson.optString("modifyTime")));	
-		} catch (JSONException | ParseException e) {
-			e.printStackTrace();
-		}
-	}
+
 	
 	public Profile(ProfileTemplate ptemp,int ctrolID){
 		this.profileID = ptemp.getProfileTemplateID()+100;
@@ -216,6 +189,35 @@ public class Profile  {
 		}  		
 		return profileJson;
 	}
+	public Profile (JSONObject profileJson) throws JSONException, ParseException{
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			this.profileID=profileJson.getInt("profileID");
+			this.profileName=profileJson.getString("profileName");
+			this.ctrolID=profileJson.getInt("ctrolID");
+			this.roomID=profileJson.getInt("roomID");
+			this.roomType=profileJson.getInt("roomType");
+			this.profileTemplateID=profileJson.getInt("profileTemplateID");
+			this.profileSetID=profileJson.getInt("profileSetID");
+			JSONArray factorListJSON= profileJson.getJSONArray("factorList");
+			List<Factor> factorList = new ArrayList<Factor>() ;
+			for(int i=0;i<factorListJSON.length();i++){
+				JSONObject factorJson=factorListJSON.getJSONObject(i);
+				Factor factor= new Factor();
+			  /*factor.factorID=factorJson.getInt("factorID");
+				factor.minValue=factorJson.getInt("minValue");
+				factor.maxValue=factorJson.getInt("maxValue");
+				factor.operator=factorJson.getInt("operator");
+				factor.validFlag=factorJson.getInt("validFlag");
+				factor.setCreateTime(sdf.parse(factorJson.getString("createTime")) );
+				factor.setModifyTime(sdf.parse(factorJson.getString("modifyTime")) );	*/
+				factor=Factor.fromProfileJson(factorJson);
+				factorList.add(factor);		
+			}		
+			setFactorList(factorList);
+			setCreateTime(sdf.parse(profileJson.optString("createTime")));
+			setModifyTime(sdf.parse(profileJson.optString("modifyTime")));	
+
+	}
 	
 
 	public Factor getFactor(int factorID){	
@@ -228,7 +230,7 @@ public class Profile  {
 		return null;
 	}
 	
-	
+	/**情景列表为空，返回ture； */
 	public boolean isEmpty(){
 		if(this.factorList==null||this.factorList.size()==0 ||getCreateTime()==null){			
 			return true;
@@ -252,10 +254,6 @@ public class Profile  {
 	 * 			1   ：保存成功
 	 * */
 	public int saveToDB(MySqlClass mysql){
-		if(this.isEmpty()){
-			log.error("ERROR:object is empty,can't save to mysql,ctrilID="+this.ctrolID+",profileID="+this.profileID);
-			return -1;
-		}
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		List<Factor> factorList=getFactorList();
 		try {
@@ -263,12 +261,16 @@ public class Profile  {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		String sql0="delete from "+profileDetailTable+" where userroomstid= " +this.profileID +" and ctr_id="+this.ctrolID+";";
+         mysql.query(sql0);
+         
 		String[] sql=new String[factorList.size()];
 		int i=0;
 		for (Factor ft:factorList) {
 			sql[i]="replace into "+profileDetailTable
 					+" (userroomstid  ,"     
 					+"ctr_id ,"
+					+" deviceid,"
 					+"factorid ,"
 					+"lower ,"
 					+"upper ,"
@@ -281,6 +283,7 @@ public class Profile  {
 					+ "("
 					+this.profileID+","
 					+this.ctrolID+","
+					+ft.getDeviceID()+","
 					+ft.getFactorID()+","
 					+ft.getMinValue()+","
 					+ft.getMaxValue()+","
@@ -291,20 +294,7 @@ public class Profile  {
 					+"')";
 			int count=mysql.query(sql[i]);
 			//System.out.println(sql[i]);
-			i++;
-
-
-//			try {
-//				mysql.conn.commit();
-//			} catch (SQLException e) {
-//				e.printStackTrace();
-//				try {
-//					mysql.conn.rollback();
-//				} catch (SQLException e1) {
-//					e1.printStackTrace();
-//				} 
-//			} 
-			//if(count>0) System.out.println("insert success"); 	
+			i++;	
 		}		
 		
 		
@@ -332,7 +322,7 @@ public class Profile  {
 				+sdf.format(getModifyTime())
 				+"')";
 		//System.out.println(sql2);	
-		mysql.query(sql2);
+		int count=mysql.query(sql2);
 		try {
 			mysql.conn.commit();
 		} catch (SQLException e) {
@@ -345,7 +335,7 @@ public class Profile  {
 		}	
 
 		
-		return 1;	
+		return count;	
 	}
 
    /*** 
@@ -382,11 +372,11 @@ public class Profile  {
 			+" where ctr_id="+ctrolID
 			+" and userroomstid="+profileID
 			+ ";";
-			System.out.println("query:"+sql2);
+			//System.out.println("query:"+sql2);
 			String res2=mysql.select(sql2);
-			System.out.println("get from mysql:\n"+res2);
+			//System.out.println("get from mysql:\n"+res2);
 			if(res2==null|| res2==""){
-				System.err.println("ERROR:empty query by : "+sql2);
+				log.error("ERROR:empty query by : "+sql2);
 				return null;
 			} else if(res2.split("\n").length!=1){
 				log.error("ERROR:Multi profile retrieved from mysql. ");
@@ -394,8 +384,8 @@ public class Profile  {
 			}else{
 				String[] index=res2.split(",");
 				profile.profileName=index[1];	
-				roomID=Integer.parseInt(index[3]);	
-				roomType=Integer.parseInt(index[4]);	
+				profile.roomID=Integer.parseInt(index[3]);	
+				profile.roomType=Integer.parseInt(index[4]);	
 				profile.setProfileTemplateID(Integer.parseInt(index[5])); 
 				profile.profileSetID=Integer.parseInt(index[6]);
 				try {
@@ -409,6 +399,7 @@ public class Profile  {
 			String sql="select "
 					+"userroomstid," 
 					+"ctr_id,"
+					+"deviceid,"
 					+"factorid,"
 					+"lower,"
 					+"upper,"
@@ -421,46 +412,49 @@ public class Profile  {
 					+" where ctr_id="+ctrolID
 					+" and userroomstid="+profileID
 					+ ";";
-			System.out.println("query:"+sql);
+			//System.out.println("query:"+sql);
 			String res=mysql.select(sql);
-			System.out.println("get from mysql:\n"+res);
-			if(res==null || res=="" ) {
-				System.err.println("ERROR:query result is empty: "+sql);
-				return null;
-			}
-			String[] resArray=res.split("\n");
-
+			//System.out.println("get from mysql:"+res);
+			
 			List<Factor> factorList=new ArrayList<Factor>();
+			if(res==null || res=="" ) {
+				//System.err.println("ERROR:query result is empty: "+sql);
+				profile.setFactorList(factorList);				
+				return profile;
+			}			
+
+			String[] resArray=res.split("\n");
 			Factor ft=null;
 			String[] cells=null;
 			for(String line:resArray){
 				cells=line.split(",");
 				if(cells.length>0){				
-					ft=new Factor();	
-					ft.setRoomID(roomID);
-					ft.setRoomType(roomType);
-					ft.setFactorID(Integer.parseInt(cells[2]));
-					ft.setMinValue(Integer.parseInt(cells[3]));
-					ft.setMaxValue(Integer.parseInt(cells[4]));
-					ft.setOperator(Integer.parseInt(cells[5]));
-					ft.setValidFlag(Integer.parseInt(cells[6]));
+					ft=new Factor();
+					
+					ft.setRoomID(profile.roomID);
+					ft.setRoomType(profile.roomType);
+					ft.setDeviceID(Integer.parseInt(cells[2]));
+					ft.setFactorID(Integer.parseInt(cells[3]));
+					ft.setMinValue(Integer.parseInt(cells[4]));
+					ft.setMaxValue(Integer.parseInt(cells[5]));
+					ft.setOperator(Integer.parseInt(cells[6]));
+					ft.setValidFlag(Integer.parseInt(cells[7]));
 					try {
-						ft.setCreateTime(sdf.parse(cells[7]));
-						ft.setModifyTime(sdf.parse(cells[8]));
+						ft.setCreateTime(sdf.parse(cells[8]));
+						ft.setModifyTime(sdf.parse(cells[9]));
 					} catch (ParseException e) {
 						e.printStackTrace();
 					}
 										
 					factorList.add(ft);
-					profile.setFactorList(factorList);
-					profile.profileID=Integer.parseInt(cells[0]);
-					profile.ctrolID=Integer.parseInt(cells[1]);		
-				}else {
-					System.out.println("ERROR:Columns mismatch between class Profile  and table  "+ profileDetailTable);
-					return null;				
-				}
-			}
-			
+				profile.setFactorList(factorList);
+				profile.profileID=Integer.parseInt(cells[0]);
+				profile.ctrolID=Integer.parseInt(cells[1]);		
+			}/*else {
+				System.out.println("ERROR:Columns mismatch between class Profile  and table  "+ profileDetailTable);
+				return null;				
+			}*/
+		}	
 		
 	try {
 		mysql.conn.commit();
@@ -500,9 +494,9 @@ public class Profile  {
 				+" and sttemplateid="+templateID
 				+" and roomid= "+roomID
 				+ ";";
-				System.out.println("query:"+sql2);
+				//System.out.println("query:"+sql2);
 				String res2=mysql.select(sql2);
-				System.out.println("get from mysql:\n"+res2);
+				//System.out.println("get from mysql:\n"+res2);
 				if(res2==null|| res2==""){
 					System.err.println("ERROR:empty query by : "+sql2);
 					return null;
@@ -527,6 +521,7 @@ public class Profile  {
 				String sql="select "
 						+"userroomstid," 
 						+"ctr_id,"
+						+"deviceid,"
 						+"factorid,"
 						+"lower,"
 						+"upper,"
@@ -557,18 +552,18 @@ public class Profile  {
 						ft=new Factor();	
 						ft.setRoomID(roomID);
 						ft.setRoomType(roomType);
-						ft.setFactorID(Integer.parseInt(cells[2]));
-						ft.setMinValue(Integer.parseInt(cells[3]));
-						ft.setMaxValue(Integer.parseInt(cells[4]));
-						ft.setOperator(Integer.parseInt(cells[5]));
-						ft.setValidFlag(Integer.parseInt(cells[6]));
+						ft.setDeviceID(Integer.parseInt(cells[2]));
+						ft.setFactorID(Integer.parseInt(cells[3]));
+						ft.setMinValue(Integer.parseInt(cells[4]));
+						ft.setMaxValue(Integer.parseInt(cells[5]));
+						ft.setOperator(Integer.parseInt(cells[6]));
+						ft.setValidFlag(Integer.parseInt(cells[7]));
 						try {
-							ft.setCreateTime(sdf.parse(cells[7]));
-							ft.setModifyTime(sdf.parse(cells[8]));
+							ft.setCreateTime(sdf.parse(cells[8]));
+							ft.setModifyTime(sdf.parse(cells[9]));
 						} catch (ParseException e) {
 							e.printStackTrace();
-						}
-											
+						}											
 						factorList.add(ft);
 						profile.setFactorList(factorList);
 						profile.profileID=Integer.parseInt(cells[0]);
@@ -607,7 +602,7 @@ public class Profile  {
 			int res=mysql.query(sql);
 			System.out.println("deleted "+ res + " rows of records from table:"+profileDetailTable);
 			if(res<=0 ) {
-				System.err.println("ERROR: empty result: "+sql);
+				//System.err.println("ERROR: empty result: "+sql);
 				return 0;
 			}
 			
@@ -632,6 +627,77 @@ public class Profile  {
 		return 1;			
 	}
 	
+	   /*** 
+	   * 删除一个用户家里所有profile
+	   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
+	   * @table  info_user_room_st_factor
+	   * @throws SQLException 
+	   */
+		public	static int deleteProfileListByctrolID(MySqlClass mysql,int ctrolID) 
+			{
+				try {
+					mysql.conn.setAutoCommit(false);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+				String sql="delete "
+						+ "  from  "				
+						+profileDetailTable
+						+" where ctr_id="+ctrolID
+						+ ";";
+				System.out.println("query:"+sql);
+				int res=mysql.query(sql);
+				System.out.println("deleted "+ res + " rows of records from table:"+profileDetailTable);
+				if(res<=0 ) {
+					System.err.println("ERROR: empty result: "+sql);
+					return 0;
+				}
+				
+				String sql2="delete   "
+				+ "  from "				
+				+profileIndexTable
+				+" where ctr_id="+ctrolID
+				+ ";";
+				System.out.println("query:"+sql2);
+				int res2=mysql.query(sql2);
+				System.out.println("deleted "+ res + " rows of records from table:"+profileIndexTable);
+				if(res2<0){
+					log.error("ERROR:exception happened: "+sql2);
+					return 0;
+				} 
+			try {
+				mysql.conn.commit();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}			
+			return 1;			
+		}
+		
+		public static void deleteProfileByRoomIDFromRedis(Jedis jedis,int ctrolID,int roomID) throws JSONException, ParseException{
+			Map<String, String> profileMap = jedis.hgetAll(LogicControl.currentProfile+ctrolID);
+			for (Map.Entry<String, String> entry:profileMap.entrySet()) {
+				Profile p=new Profile(new JSONObject(entry.getValue()));
+				if(p!=null &&p.getRoomID()==roomID){
+					jedis.hdel(LogicControl.currentProfile+ctrolID,roomID+"");
+				}				
+			}
+			
+		}
+		
+		public static void deleteFactorByDeviceIDFromRedis(Jedis jedis,int ctrolID,int deviceID) throws JSONException, ParseException{
+			Map<String, String> profileMap = jedis.hgetAll(LogicControl.currentProfile+ctrolID);
+			for (Map.Entry<String, String> entry:profileMap.entrySet()) {
+				Profile p=new Profile(new JSONObject(entry.getValue()));
+				for (Iterator<Factor> iterator = p.getFactorList().iterator(); iterator.hasNext();) {
+					Factor factor = (Factor) iterator.next();
+					if(factor.getDeviceID()==deviceID){
+						iterator.remove();						
+					}
+				}
+				jedis.hset(LogicControl.currentProfile+ctrolID, p.getRoomID()+"", p.toJsonObj().toString());
+			}
+			
+		}
 	
    /*** 
    * 从入MYSQL读取profile的 情景详情
@@ -650,6 +716,7 @@ public class Profile  {
 			String sql="select "
 					+"userroomstid," 
 					+"ctr_id,"
+					+"deviceid,"
 					+"factorid,"
 					+"lower,"
 					+"upper,"
@@ -665,12 +732,8 @@ public class Profile  {
 			//System.out.println("query:"+sql);
 			String res=mysql.select(sql);
 			//System.out.println("get from mysql:\n"+res);
-			if(res==null ) {
-				System.err.println("ERROR:exception happened: "+sql);
-				return null;
-			}else if(res=="") {
-				System.err.println("ERROR:query result is empty: "+sql);
-				return null;
+			if(res==null  || res=="") {
+				return new ArrayList<Factor>();
 			}
 			String[] resArray=res.split("\n");
 			List<Factor> factorList=null;//new ArrayList<Factor>();
@@ -678,18 +741,19 @@ public class Profile  {
 			String[] cells=null;
 			for(String line:resArray){
 				cells=line.split(",");
-				if(cells.length==9){				
+				if(cells.length==10){				
 					ft=new Factor();	
 					ft.setRoomID(roomID);
 					ft.setRoomType(roomType);
+					ft.setDeviceID(Integer.parseInt(cells[2]));
 					ft.setFactorID(Integer.parseInt(cells[3]));
-					ft.setMinValue(Integer.parseInt(cells[3]));
-					ft.setMaxValue(Integer.parseInt(cells[4]));
-					ft.setOperator(Integer.parseInt(cells[5]));
-					ft.setValidFlag(Integer.parseInt(cells[6]));
+					ft.setMinValue(Integer.parseInt(cells[4]));
+					ft.setMaxValue(Integer.parseInt(cells[5]));
+					ft.setOperator(Integer.parseInt(cells[6]));
+					ft.setValidFlag(Integer.parseInt(cells[7]));
 					try {
-						ft.setCreateTime(sdf.parse(cells[7]));
-						ft.setModifyTime(sdf.parse(cells[8]));
+						ft.setCreateTime(sdf.parse(cells[8]));
+						ft.setModifyTime(sdf.parse(cells[9]));
 					} catch (ParseException e) {
 						e.printStackTrace();
 					}
@@ -776,19 +840,17 @@ public class Profile  {
 	public static void main(String[] args) throws SQLException, JSONException {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 		Profile p =new Profile();
-		p=Profile.getFromDBByProfileID(mysql, 12345679, 123456790);
-		p.ctrolID=p.ctrolID+1;
+		p=Profile.getFromDBByProfileID(mysql, 12345677, 123456789);
+		p.getFactorList().remove(0);
+		p.setProfileName("离家模式111");
 		p.saveToDB(mysql);
 		
-//		System.out.println(p.toJsonObj().toString());
-//	    //JSONObject jo=p.toJsonObj();		
-//		
-//		Jedis jedis=new Jedis("172.16.35.170", 6379);
-//		jedis.set(p.profileID+"",p.toJsonObj().toString());
-//		System.out.println(jedis.get(p.profileID+""));
-//		jedis.hgetAll("key");
-//		//p.profileID+=2;		
-//		//p.saveToDB(mysql);		
+		System.out.println(p.toJsonObj().toString());
+	    //JSONObject jo=p.toJsonObj();		
+
+	
+		
+//		IRMatch2.saveUnknownCode(mysql, 0, 501, "TV", "3e,04,00,00,24,00,26,81,ea,03,f5,81,eb,07,d8,c1,0f,98,c2,00,0f,a0,c3,00,18,cf,01,e3,c2,00,21,0c,c1,0f,95,c2,00,0f,9d,c3,00,18,cf,01,e3,c2,00,21,0e,c1,0f,96,c2,00,0f,9d,c3,00,18,cf,01,e3,00,");
 	}
 
 }

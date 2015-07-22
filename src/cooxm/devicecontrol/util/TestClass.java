@@ -410,6 +410,7 @@ public class TestClass {
 	public static void main(String[] args) throws UnknownHostException, IOException {
 //		String str1="{\"student\":[{\"name\":\"leilei\",\"age\":23},{\"name\":\"leilei02\",\"age\":23}]}";
 //		Jedis jedis=new Jedis("172.16.35.170", 6379,200);
+//		jedis.select(9);
 //		 writeObj( jedis,"student",str1);
 //		 getObj(jedis,"student");
 		 
@@ -430,8 +431,8 @@ public class TestClass {
 //		btye2str();
 		
 
-		testRefrence();
-
+	//	testRefrence();
+		
 
 
 	

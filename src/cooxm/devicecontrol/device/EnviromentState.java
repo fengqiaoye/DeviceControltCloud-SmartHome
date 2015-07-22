@@ -14,53 +14,53 @@ import cooxm.devicecontrol.util.MySqlClass;
 
 public class EnviromentState {
 	
-	public class State{
-		/** 环境数值*/
-		public double value;  
-		/** 环境数值所处的等级*/
-		public int level;	
-		public State(double value,int level){
-			this.value=value;
-			this.level=level;
-		}
-		
-		public double getValue() {
-			return value;
-		}
-
-		public void setValue(double value) {
-			this.value = value;
-		}
-
-		public int getLevel() {
-			return level;
-		}
-
-		public void setLevel(int level) {
-			this.level = level;
-		}
-
-		public JSONObject toJson() {
-			JSONObject json =new JSONObject();
-			try {
-				json.put("value", value);
-				json.put("level", level);
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}
-			return json;			
-		}
-		
-		public State(JSONObject json) {
-
-			try {
-				this.value=json.getDouble("value");
-				this.level=json.getInt("level");
-			} catch (JSONException e) {
-				e.printStackTrace();
-			}			
-		}
-	}
+//	public  class State{
+//		/** 环境数值*/
+//		public double value;  
+//		/** 环境数值所处的等级*/
+//		public int level;	
+//		public State(double value,int level){
+//			this.value=value;
+//			this.level=level;
+//		}
+//		
+//		public double getValue() {
+//			return value;
+//		}
+//
+//		public void setValue(double value) {
+//			this.value = value;
+//		}
+//
+//		public int getLevel() {
+//			return level;
+//		}
+//
+//		public void setLevel(int level) {
+//			this.level = level;
+//		}
+//
+//		public JSONObject toJson() {
+//			JSONObject json =new JSONObject();
+//			try {
+//				json.put("value", value);
+//				json.put("level", level);
+//			} catch (JSONException e) {
+//				e.printStackTrace();
+//			}
+//			return json;			
+//		}
+//		
+//		public State(JSONObject json) {
+//
+//			try {
+//				this.value=json.getDouble("value");
+//				this.level=json.getInt("level");
+//			} catch (JSONException e) {
+//				e.printStackTrace();
+//			}			
+//		}
+//	}
 	
 	State lux;
 	State pm25;

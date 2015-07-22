@@ -23,6 +23,7 @@ import cooxm.devicecontrol.util.MySqlClass;
 /*** 情景模式所包含的情景因素*/
 public class Factor  extends FactorDict  { 
 
+	private int deviceID;
 	private int roomID;
 	private int roomType;
 	/**<pre>
@@ -43,9 +44,18 @@ public class Factor  extends FactorDict  {
 	private int minValue;
 	private int maxValue;
 
-	/**0：无效； 
-	   1：有效 */
+	/**0：无效；     手动模式
+	   1：有效         云智能
+	    */
 	private int validFlag;
+	
+	
+	public int getDeviceID() {
+		return deviceID;
+	}
+	public void setDeviceID(int deviceID) {
+		this.deviceID = deviceID;
+	}
 	public int getRoomID() {
 		return roomID;
 	}
@@ -94,11 +104,12 @@ public class Factor  extends FactorDict  {
 
 	public Factor() {	}
 
-	public Factor(int factorid, int roomType,int roomID,int operator, int minValue, int maxValue,
+	public Factor(int deviceID,int factorid, int roomType,int roomID,int operator, int minValue, int maxValue,
 			int validFlag) {
 		super(factorid);
+		this.deviceID =deviceID;
 		this.roomType = roomType;
-		this.roomID=roomID;
+		this.roomID   =roomID;
 		this.operator = operator;
 		this.minValue = minValue;
 		this.maxValue = maxValue;
@@ -116,34 +127,50 @@ public class Factor  extends FactorDict  {
 		this.setModifyTime(ft.getModifyTime());
 	}
 	
+	
     /**情景的factor初始化 */
-	public Factor(int factorID, int createOperator, int modifyOperator,
+	public Factor(int deviceID,int factorID, int createOperator, int modifyOperator,
 			Date createTime, Date modifyTime, int roomID,int roomType, int operator,
 			int minValue, int maxValue, int validFlag) {
 		super(factorID, createOperator, modifyOperator, createTime, modifyTime);
-		this.roomID=roomID;
+		this.deviceID =deviceID;
+		this.roomID	  =roomID;
 		this.roomType = roomType;
 		this.operator = operator;
 		this.minValue = minValue;
 		this.maxValue = maxValue;
 		this.validFlag = validFlag;
 	}
-	
-	
-
 	public Factor(int factorID, int createOperator, int modifyOperator,
 			Date createTime, Date modifyTime, int roomType, int operator,
 			int minValue, int maxValue, int validFlag) {
+		super(factorID, createOperator, modifyOperator, createTime, modifyTime);
 		this.roomType = roomType;
 		this.operator = operator;
 		this.minValue = minValue;
 		this.maxValue = maxValue;
 		this.validFlag = validFlag;		
 	}
+	
+	
+
+	public Factor(int deviceID,int factorID, int createOperator, int modifyOperator,
+			Date createTime, Date modifyTime, int roomType, int operator,
+			int minValue, int maxValue, int validFlag) {
+		this.deviceID=deviceID;
+		this.roomType = roomType;
+		this.operator = operator;
+		this.minValue = minValue;
+		this.maxValue = maxValue;
+		this.validFlag = validFlag;		
+	}
+	
+
 	public  JSONObject toProfileJson(){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		JSONObject factorJson=new JSONObject();
     	try {
+    		factorJson.put("deviceID", getDeviceID());
         	factorJson.put("factorID", getFactorID());
         	factorJson.put("roomID", getRoomID());
         	factorJson.put("roomType", getRoomType());
@@ -161,24 +188,20 @@ public class Factor  extends FactorDict  {
 	}
 	
 	
-	public static Factor fromProfileJson(JSONObject factorJson) {
+	public static Factor fromProfileJson(JSONObject factorJson) throws JSONException, ParseException {
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Factor factor= new Factor();
-		try {
-			factor.setFactorID(factorJson.getInt("factorID"));
-			factor.roomID=factorJson.getInt("roomID");
-			factor.roomType=factorJson.getInt("roomType");
-			factor.setMinValue(factorJson.getInt("minValue"));
-			factor.setMaxValue(factorJson.getInt("maxValue"));
-			factor.operator=factorJson.getInt("operator");
-			factor.validFlag=factorJson.getInt("validFlag");
-			factor.setCreateTime(sdf.parse(factorJson.getString("createTime")) );
-			factor.setModifyTime(sdf.parse(factorJson.getString("modifyTime")) );
-		} catch (ParseException e) {
-			e.printStackTrace();
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+		factor.setDeviceID(factorJson.getInt("deviceID"));
+		factor.setFactorID(factorJson.getInt("factorID"));
+		factor.roomID=factorJson.getInt("roomID");
+		factor.roomType=factorJson.getInt("roomType");
+		factor.setMinValue(factorJson.getInt("minValue"));
+		factor.setMaxValue(factorJson.getInt("maxValue"));
+		factor.operator=factorJson.getInt("operator");
+		factor.validFlag=factorJson.getInt("validFlag");
+		factor.setCreateTime(sdf.parse(factorJson.getString("createTime")) );
+		factor.setModifyTime(sdf.parse(factorJson.getString("modifyTime")) );
+
 		
 		return factor;		
 	}

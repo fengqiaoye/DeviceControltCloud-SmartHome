@@ -38,7 +38,7 @@ public class FactorTemplate  extends FactorDict  {
 	private int minValue;
 	private int maxValue;
 
-	/**0：无效； 
+	/**是否抽象的，0：无效； 
 	   1：有效 */
 	private int isAbstract;
 	
@@ -90,7 +90,7 @@ public class FactorTemplate  extends FactorDict  {
 		this.operator = operator;
 		this.minValue = minValue;
 		this.maxValue = maxValue;
-		//this.isAbstract=validFlag;
+		this.isAbstract=validFlag;
 	}	
 	
 	
@@ -103,6 +103,7 @@ public class FactorTemplate  extends FactorDict  {
 		this.operator = operator;
 		this.minValue = minValue;
 		this.maxValue = maxValue;
+		this.isAbstract=validFlag;
 	}
 	
 	
@@ -117,9 +118,9 @@ public class FactorTemplate  extends FactorDict  {
         	factorJson.put("minValue", getMinValue());
         	factorJson.put("maxValue", getMaxValue());
         	factorJson.put("operator", getOperator());
-        	//factorJson.put("validFlag", getIsAbstract());
-        	factorJson.put("createTime", sdf.format(getCreateTime()));
-			factorJson.put("modifyTime", sdf.format(getModifyTime()));
+        	factorJson.put("validFlag", getIsAbstract());
+        	//factorJson.put("createTime", sdf.format(getCreateTime()));
+			//factorJson.put("modifyTime", sdf.format(getModifyTime()));
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}	
@@ -139,10 +140,8 @@ public class FactorTemplate  extends FactorDict  {
 			factor.setMaxValue(factorJson.getInt("maxValue"));
 			factor.operator=factorJson.getInt("operator");
 			factor.isAbstract=factorJson.getInt("validFlag");
-			factor.setCreateTime(sdf.parse(factorJson.getString("createTime")) );
-			factor.setModifyTime(sdf.parse(factorJson.getString("modifyTime")) );
-		} catch (ParseException e) {
-			e.printStackTrace();
+			/*factor.setCreateTime(sdf.parse(factorJson.getString("createTime")) );
+			factor.setModifyTime(sdf.parse(factorJson.getString("modifyTime")) );*/
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}

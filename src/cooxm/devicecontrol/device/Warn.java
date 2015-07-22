@@ -28,13 +28,29 @@ public class Warn {
 	
 	/**告警产生系统:1：中控系统；2：安防系统;3：云端*/
 	int    madeFrom;
-	/**告警类型:1：有害气体过高；2：PM2.5指标严重；3：温度过高 ；4：火警；5：入侵告警；6：防盗大门未关；7：台风告警；8：暴雨告警*/	
+	/**旧的告警类型:1：有害气体过高；2：PM2.5指标严重；3：温度过高 ；4：火警；5：入侵告警；6：防盗大门未关；7：台风告警；8：暴雨告警*/	
+	/**告警类型:1：有害气体告警；2：火警；3：漏水告警；4：闯入告警； */	
 	int  warnType;
+	
+	/**操作类型：打开还是关闭，1 打开，0  关闭 */
 	int  severity;
-	/**告警内容 中文UTF-8*/
+	
+	/**1,打开； 0，关闭 ; -1,默认值，没有意义*/
+	int operationType;	
+	
+	/**告警内容 中文UTF-8*/	
 	String msgContent; 
 
 	
+	
+	public int getOperationType() {
+		return operationType;
+	}
+
+	public void setOperationType(int operationType) {
+		this.operationType = operationType;
+	}
+
 	public int getctrolID() {
 		return ctrolID;
 	}
@@ -134,8 +150,15 @@ public class Warn {
 
 	public Warn(){	}
 	
+	/**<pre>
+	 * channel: 1:网络推送；2:SMS 3:Both	
+	target 推送目标: 1:移动终端；2：中控器终端；3：两者都推送
+	timeOut	消息超时时间，0表示永远不超时
+	createTime	产生时间
+	madeFrom	告警产生系统:1：中控系统；2：安防系统;3：云端
+	wanrType:	告警类型:1：有害气体过高；2：PM2.5指标严重；3：温度过高 ；4：火警；5：入侵告警；6：防盗大门未关；7：台风告警；8：暴雨告警*/
 	public Warn(int ctrolID, int channel, int target, int timeOut,
-			Date createTime, int madeFrom, int warnType, int severity) {
+			Date createTime, int madeFrom, int warnType, int severity,int operationType) {
 		this.ctrolID = ctrolID;
 		this.channel = channel;
 		this.target = target;
@@ -144,6 +167,7 @@ public class Warn {
 		this.madeFrom = madeFrom;
 		this.warnType = warnType;
 		this.severity=severity;
+		this.operationType=operationType;
 	}
 	
 	public Warn(JSONObject warnJson) {
@@ -153,10 +177,11 @@ public class Warn {
 			this.channel=warnJson.getInt("channel");
 			this.target=warnJson.getInt("target");
 			this.timeOut=warnJson.getInt("timeOut");
-			this.createTime=sdf.parse(warnJson.getString("createTime")); 
+			this.createTime=sdf.parse(warnJson.getString("createTime"));
 			this.madeFrom=warnJson.getInt("madeFrom");
 			this.warnType=warnJson.getInt("warnType");
-			this.severity=warnJson.optInt("severity");
+			this.severity=warnJson.optInt("severity");	
+			this.operationType=warnJson.optInt("operationType");
 		} catch (JSONException e) {
 			e.printStackTrace();
 		} catch (ParseException e) {
@@ -172,17 +197,23 @@ public class Warn {
 		    warnJson.put("channel",        this.channel      );
 		    warnJson.put("target",         this.target    );
 		    warnJson.put("timeOut",        this.timeOut    );	
-		    warnJson.put("createTime",     sdf.format(this.createTime  )  );
+		    //warnJson.put("createTime",     sdf.format(this.createTime  )  );
+		    warnJson.put("createTime",     this.createTime.getTime()/1000)  ;
 		    warnJson.put("madeFrom",       this.madeFrom    );		    
 		    warnJson.put("warnType",       this.warnType        );
 		    warnJson.put("severity",    this.severity       );
+		    warnJson.put("opType",    this.operationType    );
+		    warnJson.put("msgContent",    "warn"       );		    
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}	    
 	    return warnJson;
 	}
 
-	public static void main(String[] args) {	
+	public static void main(String[] args) {
+		
+		Warn warn =new Warn(40008, 1, 2, 0, new Date(), 1, 2, 3,0);
+		System.out.println(warn.toJsonObject().toString());
 
 	}
 

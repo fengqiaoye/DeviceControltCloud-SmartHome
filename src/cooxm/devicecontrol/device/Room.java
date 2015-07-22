@@ -244,7 +244,7 @@ public class Room {
 	 * @table roomIndexTable :  info_user_room
 	 * @throws SQLException 
 	 * */
-	public int saveRoomIndexToDB(MySqlClass mysql) throws SQLException{
+	public int saveRoomToDB(MySqlClass mysql) throws SQLException{
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	String sql="replace into "+roomIndexTable
 				+" (ctr_id       ," 
@@ -263,10 +263,11 @@ public class Room {
 				+sdf.format(this.createTime)+"','"
 				+sdf.format(this.getModifyTime())
 				+"');";
-		logger.info(sql);
+		//logger.info(sql);
 		return mysql.query(sql);
-
 	}
+	
+
 	
    /*** 
    * 从入MYSQL读取room的 基本情况
@@ -332,6 +333,17 @@ public class Room {
 		return mysql.query(sql2);		
 	}
 	
+	/**删除一个用户家中所有房间 */
+	public static int deleteRoomList(MySqlClass mysql, int ctrolID, int roomID){
+		String sql2="delete   "
+				+ "  from "				
+				+roomIndexTable
+				+" where ctr_id="+ctrolID
+				+ ";";
+		System.out.println("query:"+sql2);
+		return mysql.query(sql2);		
+	}
+	
 	public static void main(String[] args) throws SQLException, IOException {
 		// TODO Auto-generated method stub
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
@@ -340,7 +352,7 @@ public class Room {
 		room.roomID++;
 		
 		try {
-			room.saveRoomIndexToDB(mysql);
+			room.saveRoomToDB(mysql);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

@@ -7,6 +7,8 @@ import org.apache.log4j.Logger;
 
 import cooxm.devicecontrol.socket.SocketClient;
 
+
+
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
  * @version Created：Feb 12, 2015 5:32:19 PM 

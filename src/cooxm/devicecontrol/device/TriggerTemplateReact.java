@@ -9,10 +9,10 @@ import java.util.Set;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import redis.clients.jedis.Jedis;
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.socket.Message;
 import cooxm.devicecontrol.util.MySqlClass;
+import redis.clients.jedis.Jedis;
 
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
@@ -187,14 +187,15 @@ public class TriggerTemplateReact {
 	
 
 	 public static void main(String [] args) {
-		 long a=System.currentTimeMillis()/1000;
+		 //long a=System.currentTimeMillis()/1000;
 		 //System.out.println(a);
 		 
-		 Jedis jedis =new Jedis("120.24.81.226", 6379);
-		 String b = jedis.hget("1256791_currentProfile", 203+"");
+		 Jedis jedis =new Jedis("172.16.35.170", 6379);//("120.24.81.226", 6379);
+		 jedis.select(9);
+		 String b = jedis.hget("currentProfile:40008", 3000+"");
 		 System.out.println(b);
 		 
-		 String c = jedis.hget("1256789_roomBind", 203+"");
+		 Long c = jedis.hset("roomBind:40006", 3000+"",b);
 		 System.out.println(c);
 		 
 		 

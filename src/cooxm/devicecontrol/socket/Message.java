@@ -77,6 +77,36 @@ public class Message extends Header {
 		this.json=json;
 	}
 	
+
+    
+    public Message(short commandID, String cookie, String str) throws JSONException {
+		this.headTag="#XRPC#";
+		this.mainVersion=1;
+		this.subVersion=1;
+		//this.msgLen=(short) (json.toString().length()+cookie.length());
+		//2015-05-25 richard备注：如果json字符串含有中文会导致计算长度错误；
+		int a=getWordCount(str.toString());
+		int b= getWordCount(cookie) ;
+		this.msgLen=(short) (a+b);
+		this.commandID=commandID;
+		this.sequeeceNo=(int) (System.currentTimeMillis()/1000);
+		this.encType=1; 
+		this.cookieLen=(short) cookie.length();
+		this.reserve=-1;
+		this.cookie=cookie;
+		this.json=new JSONObject(str);
+ 	   
+ 	}
+    
+    public Message(Header head, String cookie, JSONObject json2) {
+    	super(head);
+    	this.cookie=cookie;
+    	this.json=json2;
+    	super.cookieLen=(short) cookie.length();
+    	//super.msgLen=(short) ((short) cookie.length()+json2.toString().length());
+    	super.msgLen=(short) (getWordCount(json.toString())+ getWordCount(cookie) );
+	}
+	
 	public Message(Message msg){
 		this.headTag=msg.headTag;
 		this.mainVersion=msg.mainVersion;
@@ -124,7 +154,7 @@ public class Message extends Header {
 	 *  of cookie
 	 * @throws UnsupportedEncodingException 
 	 *  */
-    Message(byte[] msg) {    
+    public Message(byte[] msg) {    
 	     byte[] headTag     ={msg[0],msg[1],msg[2],msg[3],msg[4],msg[5]};	
 		 byte mainVersion	=msg[6];
 		 byte subVersion	=msg[7];
@@ -171,19 +201,14 @@ public class Message extends Header {
 		}
 	}
     
-    public Message(Header head, String cookie, JSONObject json2) {
-    	super(head);
-    	this.cookie=cookie;
-    	this.json=json2;
-    	super.cookieLen=(short) cookie.length();
-    	//super.msgLen=(short) ((short) cookie.length()+json2.toString().length());
-    	super.msgLen=(short) (getWordCount(json.toString())+ getWordCount(cookie) );
-	}
+
+
 	/*public boolean isValid() {   
 		return this.isValid();
 	}*/
     
-   public String toString(){
+
+public String toString(){
 	   String out=new String();
 	   DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	   out+=  		this.headTag		+",";
@@ -319,9 +344,7 @@ public class Message extends Header {
 	}
     
    
-    public static Message getOneMsg() {
-    	
-    	
+    public static Message getOneMsg() {    	
     	String headTag="#XRPC#";			
     	byte mainVersion=1;
     	byte subVersion=2;
@@ -346,6 +369,31 @@ public class Message extends Header {
     	
     	Header head= new Header(headTag, mainVersion, subVersion, msgLen, commandID, sequeeceNo, encType, cookieLen, reserve);
 
+    	Message msg= new Message(head,String.valueOf(timeStamp),json);
+    	return msg;
+	}
+    
+    public static Message getEmptyMsg() {    	
+    	String headTag="#XRPC#";			
+    	byte mainVersion=1;
+    	byte subVersion=1;
+    	short msgLen=15;
+    	short commandID=LogicControl.DO_NOTHING;
+    	int sequeeceNo=(int) (System.currentTimeMillis()/1000);
+    	byte encType=1;
+    	
+    	int reserve=0;
+    	int timeStamp=(int) (System.currentTimeMillis()/1000);
+    	short cookieLen=(short) String.valueOf(timeStamp).length();
+    	
+    	JSONObject json=new JSONObject();
+    	try {
+	    	json.put("errorCode", 0);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+    	
+    	Header head= new Header(headTag, mainVersion, subVersion, msgLen, commandID, sequeeceNo, encType, cookieLen, reserve);
     	Message msg= new Message(head,String.valueOf(timeStamp),json);
     	return msg;
 	}

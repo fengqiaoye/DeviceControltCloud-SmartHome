@@ -12,13 +12,16 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.json.JSONException;
 
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.MySqlClass;
+import redis.clients.jedis.Jedis;
 
 /*** Map< ctrolID_deviceID,Device >*/
 public class DeviceMap extends HashMap<String, Device> {
@@ -28,15 +31,18 @@ public class DeviceMap extends HashMap<String, Device> {
 
 	private static final long serialVersionUID = 1L;
 	private MySqlClass mysql;
+	Jedis jedis;
 	
 	public DeviceMap(){}
 	public DeviceMap(Map<String, Device> profileSetMap){
 		super(profileSetMap);	
 	}
 	
-	public DeviceMap(MySqlClass mysql) throws SQLException{
+	public DeviceMap(MySqlClass mysql,Jedis jedis) throws SQLException{
 		super(getDeviceMapFromDB(mysql));
 		this.mysql=mysql;
+		this.jedis=jedis;
+		this.jedis.select(9);
 	}
 
 /*** 
@@ -114,6 +120,35 @@ public class DeviceMap extends HashMap<String, Device> {
 		return deviceList;
 	}
 	
+	/*** 获取 该家庭所有设备，包含加电和 传感器
+	 * 
+	 * */
+	public List<Device> getDevicesByroomID(int ctrolID,int roomID){
+		List<Device> deviceList= new ArrayList<Device>();
+		for (Entry<String, Device> entry : this.entrySet()) {
+			if(entry.getValue().getRoomID()==roomID && entry.getValue().getCtrolID()==ctrolID){
+				deviceList.add(entry.getValue());
+			}			
+		}
+		return deviceList;
+	}
+	
+	
+	/*** 删除 该家庭所有设备，包含加电和 传感器
+	 * 
+	 * */
+	public void deleteDevicesByroomID(int ctrolID,int roomID){
+		Iterator<Map.Entry<String, Device>> it = this.entrySet().iterator();  
+        while(it.hasNext()){  
+            Map.Entry<String, Device> entry=it.next();  
+			if(entry.getValue().getRoomID()==roomID && entry.getValue().getCtrolID()==ctrolID){
+				it.remove();
+				Device.DeleteOneDeviceFromDB(mysql, ctrolID, entry.getValue().getDeviceID());
+			}			
+		}
+	}
+	
+	
 	/*** 获取 该家庭所有设备，只包含加电
 	 *   <pre> device.type=0;
 	 **/
@@ -121,12 +156,15 @@ public class DeviceMap extends HashMap<String, Device> {
 	public List<Device> getApplianceByctrolID(int ctrolID){
 		List<Device> deviceList=new ArrayList<Device>();
 		for (Entry<String, Device> entry : this.entrySet()) {
-			if(Integer.parseInt(entry.getKey().split("_")[0])==ctrolID  /*&& entry.getValue().type==0*/){
+			if(Integer.parseInt(entry.getKey().split("_")[0])==ctrolID  && entry.getValue().type==0){
 				deviceList.add(entry.getValue());
 			}			
 		}
 		return deviceList;
 	}
+	
+	
+	
 	
 	/**
 	 *重写父类的方法，当向这个map添加一个情景模式时，自动把这个情景模式写入数据库
@@ -156,6 +194,11 @@ public class DeviceMap extends HashMap<String, Device> {
 			return null;
 		Device device = super.get(ctrolID_deviceID);		
 		int x=Device.DeleteOneDeviceFromDB(mysql, device.ctrolID, device.deviceID);
+		try {
+			Profile.deleteFactorByDeviceIDFromRedis(jedis, device.ctrolID, device.deviceID);
+		} catch (JSONException | ParseException e) {
+			e.printStackTrace();			
+		}
 		if(x>0){
 			return super.remove(ctrolID_deviceID);
 		}else{
@@ -174,8 +217,15 @@ public class DeviceMap extends HashMap<String, Device> {
 	 */
 	public static void main(String[] args) throws SQLException {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
-		DeviceMap dm=new DeviceMap(mysql);
+		Jedis jedis=new Jedis("172.16.35.170", 6379);
+		jedis.select(9);
+		DeviceMap dm=new DeviceMap(mysql,jedis);
 		System.out.println(dm.size());
+		
+		//dm.deleteDevicesByroomID(40006,3000);
+		List<Device> x = dm.getDevicesByctrolID(40007);
+		List<Device> x2 = dm.getApplianceByctrolID(40007);
+		System.out.println(x.size());
 		
 
 		

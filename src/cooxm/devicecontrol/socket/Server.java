@@ -193,7 +193,7 @@ public class Server {
 		//System.err.println(res);System.err.println(res);
 		String[]  cells=res.split(",");
 		Server server=new Server(cells[1], Integer.parseInt(cells[2]), Integer.parseInt(cells[3]), Integer.parseInt(cells[4]),serverID);
-		mysql.close();	
+		//mysql.close();	
 		return server;
 	}
 	

@@ -6,12 +6,18 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.mysql.jdbc.log.Log;
+
+import cooxm.devicecontrol.control.MainEntry;
 import cooxm.devicecontrol.util.MySqlClass;
 
 /** 
@@ -20,6 +26,7 @@ import cooxm.devicecontrol.util.MySqlClass;
  */
 
 public class ProfileTemplate {
+	static Logger log =Logger.getLogger(ProfileTemplate.class);	
 	/**
 	  睡眠模式
 	  离家模式
@@ -202,7 +209,7 @@ public class ProfileTemplate {
 				+sdf.format(factor.getCreateTime())+"','"
 				+sdf.format(factor.getModifyTime())
 				+"')";
-		System.out.println(sql);		
+		//System.out.println(sql[i]);		
 		mysql.query(sql[i]);
 		i++;
 
@@ -224,7 +231,7 @@ public class ProfileTemplate {
 				+sdf.format(this.getCreateTime())+"','"
 				+sdf.format(this.getModifyTime())
 				+ "');";
-		System.out.println("query:"+sql2);
+		//System.out.println("query:"+sql2);
 		resultCount+=mysql.query(sql2);
 		try {
 			mysql.conn.commit();
@@ -269,9 +276,9 @@ public class ProfileTemplate {
 					+profileTemplatDetailTable
 					+" where sttemplateid="+profileTemplateID
 					+ ";";
-			System.out.println("query:"+sql);
+			//System.out.println("query:"+sql);
 			String res=mysql.select(sql);
-			System.out.println("get from mysql:\n"+res);
+			//System.out.println("get from mysql:\n"+res);
 			if(res==null||res.equals("")||res.length()==0) {
 				//System.err.println("ERROR:query result is empty: "+sql);
 				return null;
@@ -319,7 +326,7 @@ public class ProfileTemplate {
 					+ ";";
 			System.out.println("query:"+sql2);
 			String res2=mysql.select(sql2);
-			System.out.println("get from mysql:\n"+res2);
+			//System.out.println("get from mysql:\n"+res2);
 			String[] cells2=res2.split(",");
 			profileTemp.setProfileTemplateName(cells2[1]);
 			profileTemp.setCreateOperator(Integer.parseInt(cells2[2]));
@@ -346,11 +353,11 @@ public class ProfileTemplate {
 	   * @table  info_user_room_st_factor
 	   * @throws SQLException 
 	   */
-		public	static List<ProfileTemplate> getAllFromDB(MySqlClass mysql) throws SQLException
+		public	static Map<Integer,ProfileTemplate> getAllFromDB(MySqlClass mysql) throws SQLException
 		{
-		 List<ProfileTemplate> pList=new ArrayList<ProfileTemplate>();				 
+			Map<Integer,ProfileTemplate> pList=new HashMap<Integer,ProfileTemplate>();				 
 			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-			ProfileTemplate profileTemp=new ProfileTemplate();
+			
 			mysql.conn.setAutoCommit(false);
 			String sql2="select  "
 					+" templateid       ,"
@@ -363,12 +370,16 @@ public class ProfileTemplate {
 					+profileTemplatIndexTable
 					//+" where templateid="+profileTemplateID
 					+ ";";
-			System.out.println("query:"+sql2);
+			//System.out.println("query:"+sql2);
 			String res2=mysql.select(sql2);
-			System.out.println("get from mysql:\n"+res2);
+			//System.out.println("get from mysql:\n"+res2);
+			if(res2==null || res2==""){
+				log.error("select result empty,can't  get profile Template list");
+				return null;
+			}
 			String[] line2=res2.split("\n");
 			for (int i = 0; i < line2.length; i++) {	
-	
+				ProfileTemplate profileTemp=new ProfileTemplate();
 				String[] cells2=line2[i].split(",");
 				profileTemp.profileTemplateID=Integer.parseInt(cells2[0]);
 				profileTemp.setProfileTemplateName(cells2[1]);
@@ -379,36 +390,31 @@ public class ProfileTemplate {
 					profileTemp.setModifyTime(sdf.parse(cells2[5]));
 				} catch (ParseException e1) {
 					e1.printStackTrace();
-				}
-
-
-	
-				String sql="select "
-						+" sttemplateid ," 
-						+" factorid     ," 
-						+"roomType   ,"
-						+"min  ,"
-						+"max  ,"
-						+"operator,"
-						+"valid_flag,"
-						+"createoperator ,"
-						+"modifyoperator ,"					
-						+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
-						+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
-						+ "  from  "				
-						+profileTemplatDetailTable
-						+" where sttemplateid="+profileTemp.profileTemplateID
-						+ ";";
-				System.out.println("query:"+sql);
-				String res=mysql.select(sql);
-				System.out.println("get from mysql:\n"+res);
-				if(res==""||res.length()==0) {
-					//System.err.println("ERROR:query result is empty: "+sql);
-					return null;
-				}
-				String[] resArray=res.split("\n");
-	
+				}	
 				List<FactorTemplate> factorList=new ArrayList<FactorTemplate>();
+				profileTemp.setFactorTemplateTempList(factorList);
+				pList.put(profileTemp.profileTemplateID, profileTemp);
+			}
+			
+			String sql="select "
+					+" sttemplateid ," 
+					+" factorid     ," 
+					+"roomType   ,"
+					+"min  ,"
+					+"max  ,"
+					+"operator,"
+					+"valid_flag,"
+					+"createoperator ,"
+					+"modifyoperator ,"					
+					+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
+					+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
+					+ "  from  "				
+					+profileTemplatDetailTable
+					+ ";";
+			String res=mysql.select(sql);
+
+			if(res!=null && res!=""  && res.length()>0){
+				String[] resArray=res.split("\n");					
 				FactorTemplate factor=null;
 				String[] cells=null;
 				
@@ -429,10 +435,13 @@ public class ProfileTemplate {
 					} catch (ParseException e) {
 						e.printStackTrace();
 					}
+					ProfileTemplate profileTemp2 = pList.get(Integer.parseInt(cells[0]));
+					List<FactorTemplate> factorList = profileTemp2.getFactorTemplateTempList();
 					factorList.add(factor);
+					profileTemp2.setFactorTemplateTempList(factorList);
+					pList.put(profileTemp2.profileTemplateID, profileTemp2);
 				}	
-				profileTemp.setFactorTemplateTempList(factorList);
-				pList.add(profileTemp);
+				
 			}
 			mysql.conn.commit();
 			return pList;
@@ -446,7 +455,11 @@ public class ProfileTemplate {
         JSONObject factorJson ; //= new JSONObject();  
         try {
         	profileTemplateJson.put("profileTemplateID",this.profileTemplateID);
-        	//profileTemplateJson.put("roomType", this.roomType);
+        	profileTemplateJson.put("profileTemplateName",this.profileTemplateName);
+        	profileTemplateJson.put("createOperator", createOperator);
+        	profileTemplateJson.put("modifyOperator", modifyOperator);
+        	profileTemplateJson.put("createTime", sdf.format(createTime));
+        	profileTemplateJson.put("modifyTime", sdf.format(modifyTime));
         	JSONArray ja=new JSONArray();
 		    for(FactorTemplate factor: this.factorTempList){
 		    	factorJson= new JSONObject(); 
@@ -473,11 +486,16 @@ public class ProfileTemplate {
 	
 	public static void main(String[] args) throws SQLException, JSONException {
 		MySqlClass mysql=new  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
-		List<ProfileTemplate> a = getAllFromDB(mysql);
-		//new ProfileTemplat().saveToDB(mysql);
-		System.out.println("xx");
-		
-		a.get(0).saveToDB(mysql);
+		Map<Integer, ProfileTemplate>a=null;
+		for (int i = 0; i < 100; i++) {
+			  a = getAllFromDB(mysql);
+			//new ProfileTemplat().saveToDB(mysql);
+			System.out.println("size="+a.size());
+			
+			//a.get(0).saveToDB(mysql);
+			a=null;
+		}
+
 		
 	}
 

@@ -118,6 +118,17 @@ public class TriggerTemplate {
 	}
 	public TriggerTemplate(){}
 	
+	public TriggerTemplate(TriggerTemplate trigger) {
+		this.triggerTemplateID = trigger.triggerTemplateID;
+		this.profileTemplateID =  trigger.profileTemplateID;
+		this.triggerName =  trigger.triggerName;
+		this.description =  trigger.description;
+		this.isAbstract =  trigger.isAbstract;
+		this.triggerTemplateFactorList =  trigger.triggerTemplateFactorList;
+		this.triggerTemplateReactList =  trigger.triggerTemplateReactList;
+		this.createTime =  trigger.createTime;
+		this.modifyTime =  trigger.modifyTime;
+	}
 	
 	public TriggerTemplate(int triggerTemplateID, int profileTemplateID,
 			String triggerName, String description, int isAbstract,

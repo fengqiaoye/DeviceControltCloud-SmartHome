@@ -12,8 +12,7 @@ import org.apache.log4j.Logger;
 import cooxm.devicecontrol.control.Configure;
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.socket.CtrolSocketServer;
-import cooxm.devicecontrol.socket.Message;
-import cooxm.devicecontrol.socket.ProcessThread;
+
 
 
 public class MainEntry {
@@ -28,19 +27,17 @@ public class MainEntry {
 	 * */
 	public static void main(String[] args)  {
 		log.info("Starting from main entry...");		
-		//cf = new Configure();	
-		LogicControl lcontrol=new LogicControl(cf);
+		//LogicControl lcontrol=new LogicControl(cf);
 
 			try {
-				new CtrolSocketServer(cf,lcontrol).listen();
+				new CtrolSocketServer(cf).listen();
 			} catch (IOException e) {
-				log.error(e);				
-			} catch (Exception e) {
 				log.error(e);	
+				e.printStackTrace();
+			} catch (Exception e) {
+				log.error(e.getMessage());	
+				e.printStackTrace();
 			}
-			
-//      		ProcessThread pt= new  ProcessThread(lcontrol);
-//       		pt.start();
 
 	}
 	

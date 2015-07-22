@@ -50,6 +50,48 @@ public class TriggerTemplateMap  extends HashMap<Integer, TriggerTemplate>{
 		} catch (SQLException e1) {
 			e1.printStackTrace();
 		}
+		TriggerTemplate trigger=null;
+		List<TriggerTemplateFactor> factorList=null;
+		List<TriggerTemplateReact> triggerReactList=null;
+		
+		//TriggerTemplate triggert=new TriggerTemplate();
+		String sql0="select  "
+				+" triggerid ," 
+				+" sttemplateid ," 
+				+"triggername ,"
+				+"description, "	
+				+"isabstract ,"
+				+"createtime,"
+				+"modifytime"
+				+ " from  "	
+				+TriggerTemplate.triggerHeaderTable
+				//+" where triggerid="+triggerid
+				+ ";";
+		//System.out.println("query:"+sql0);
+		String res3=mysql.select(sql0);
+		String[] resArray3= res3.split("\n");
+		for (int i = 0; i < resArray3.length; i++) {
+			trigger=new TriggerTemplate();
+			String[] resArray0=resArray3[i].split(",");
+			trigger.setTriggerTemplateID(Integer.parseInt(resArray0[0]));
+			trigger.setProfileTemplateID(Integer.parseInt(resArray0[1]));
+			trigger.setTriggerName(resArray0[2]);
+			trigger.setDescription(resArray0[3]);
+			trigger.setIsAbstract(Integer.parseInt(resArray0[4]));
+			try {
+				trigger.setCreateTime(sdf.parse(resArray0[5]));
+				trigger.setModifyTime(sdf.parse(resArray0[6]));
+			} catch (ParseException e1) {
+				e1.printStackTrace();
+			}
+			factorList=new ArrayList<TriggerTemplateFactor>();
+			triggerReactList=new ArrayList<>();
+			trigger.setTriggerTemplateFactorList(factorList);
+			trigger.setTriggerTemplateReactList(triggerReactList);
+			triggerMap.put(trigger.getTriggerTemplateID(), trigger);
+		}
+
+		
 		String sql="select "		
 				+"triggerid  ,"   
 				+"sttemplateid ,"
@@ -60,9 +102,9 @@ public class TriggerTemplateMap  extends HashMap<Integer, TriggerTemplate>{
 				+"min ,"
 				+"max ,"
 				+"accumilatetime   ,"
-				+"isabstract, "
-				+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
-				+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
+				+"isabstract "
+				//+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
+				//+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 				+ "  from  "				
 				+TriggerTemplate.triggerFactorTable
 				//+" where triggerid="+triggerid
@@ -74,9 +116,8 @@ public class TriggerTemplateMap  extends HashMap<Integer, TriggerTemplate>{
 			System.err.println("ERROR:query result is empty: "+sql);
 			return null;
 		}
-		TriggerTemplate trigger=null;
-		List<TriggerTemplateFactor> factorList=null;
-		List<TriggerTemplateReact> triggerReactList=null;
+
+
 		
 		String[] resArray=res.split("\n");
 		for(String line:resArray){
@@ -101,12 +142,12 @@ public class TriggerTemplateMap  extends HashMap<Integer, TriggerTemplate>{
 				ft.setAccumilateTime(Integer.parseInt(cells[8]));
 				//ft.setValidFlag(Integer.parseInt(cells[10]));
 				ft.setIsAbstract(Integer.parseInt(cells[9]));
-				try {
-					ft.setCreateTime(sdf.parse(cells[10]));
-					ft.setModifyTime(sdf.parse(cells[11]));
-				} catch (ParseException e) {
-					e.printStackTrace();
-				}
+//				try {
+//					ft.setCreateTime(sdf.parse(cells[10]));
+//					ft.setModifyTime(sdf.parse(cells[11]));
+//				} catch (ParseException e) {
+//					e.printStackTrace();
+//				}
 				
 				factorList.add(ft);
 				trigger.setTriggerTemplateFactorList(factorList);

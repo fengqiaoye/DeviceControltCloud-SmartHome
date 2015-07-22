@@ -12,9 +12,12 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import org.apache.log4j.Logger;
 
@@ -123,6 +126,8 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 		}
 		return profileList;
 	}
+	
+
 
 	/**
 	 *重写父类的方法，当向这个map添加一个情景模式时，自动把这个情景模式写入数据库
@@ -159,12 +164,34 @@ public class ProfileSetMap extends HashMap<String, ProfileSet> {
 		//return profileSet;
 	}
 
+	
+	/**
+	 *删除情景集所包含的情景ID
+	 *  */
+	public int deleteProfileByRoomID(int ctrolID,int roomID ) {
+		 Iterator<Map.Entry<String, ProfileSet>> it = this.entrySet().iterator();  
+	     while(it.hasNext()){  
+		    Map.Entry<String, ProfileSet> entry=it.next();  
+			ProfileSet profileSet=entry.getValue();
+			for (int i = 0; i < profileSet.getProfileList().size(); i++) {
+				int profileID=profileSet.getProfileList().get(i);	
+				Profile profile=LogicControl.profileMap.get(ctrolID+"_"+profileID);
+				if(profile!=null && profile.getRoomID()==roomID){
+					entry.getValue().getProfileList().remove((Object)profileID);
+					ProfileSet.deleteProfileSetDetail(mysql, ctrolID, profileSet.getProfileSetID(), profileID);
+				}
+			}
+	     }
+	     return 1;
+	}
 
 
 	public static void main(String[] args) throws SQLException {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 		ProfileSetMap pm=new ProfileSetMap(mysql);
 		System.out.println(pm.size());
+		int count=pm.deleteProfileByRoomID(40006, 2000);
+		
 	}
 	
 	

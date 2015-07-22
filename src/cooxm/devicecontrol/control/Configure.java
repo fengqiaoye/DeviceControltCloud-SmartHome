@@ -14,6 +14,8 @@ import org.apache.log4j.Logger;
 
 import cooxm.devicecontrol.util.MySqlClass;
 
+
+
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
  * @version Created：24 Dec 2014 14:22:48 

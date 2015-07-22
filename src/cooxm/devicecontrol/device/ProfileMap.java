@@ -12,6 +12,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -55,7 +56,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 	{   
 		log.info("Start to initialize profileMap....");
 		HashMap<String, Profile> profileMap=new HashMap<String, Profile>();
-		Profile profile= null;//new Profile();
+		Profile profile= null;
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		String sql2="select  "
 		+" userroomstid       ,"
@@ -68,14 +69,12 @@ public class ProfileMap extends HashMap<String, Profile>{
 		+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 		+ "  from "				
 		+Profile.profileIndexTable
-		//+" where ctr_id="+ctrolID
-		//+" and userroomstid="+profileID
 		+ ";";
-		//System.out.println("query:"+sql2);
+		log.debug("query:"+sql2);
 		String res2=mysql.select(sql2);
 		//System.out.println("get from mysql:\n"+res2);
 		if(res2==null|| res2==""){
-			System.err.println("ERROR:empty query by : "+sql2);
+			log.debug("ERROR:empty query by : "+sql2);
 			return null;
 		} 
 		String[] records=res2.split("\n");
@@ -97,7 +96,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 				e.printStackTrace();
 			}			
 			profile.setFactorList(Profile.getProFactorsFromDB(mysql, profile.getCtrolID(), profile.getProfileID(),roomID,roomType ));
-			if(!profile.isEmpty())
+			//if(!profile.isEmpty())
 			profileMap.put(profile.getCtrolID()+"_"+profile.getProfileID(), profile);		
 		}
 		log.info("Initialize profileMap finished !");
@@ -158,19 +157,30 @@ public class ProfileMap extends HashMap<String, Profile>{
 		List<Profile> profileList=new ArrayList<Profile>();
 		for (Entry<String, Profile> entry : this.entrySet()) {
 			Profile profile=entry.getValue();
-			if(profile.getCtrolID()==ctrolID){
-				for (Factor factor : profile.getFactorList()) {
-					if(factor.getRoomID()==roomID){
-						profileList.add(profile);
-						break;
-					}				
-				}
+			if(profile.getCtrolID()==ctrolID && profile.getRoomID()==roomID){
+				profileList.add(profile);
+				break;
 			}else {
 				continue;
-			}
-		
+			}		
 		}
 		return profileList;
+	}
+	
+	/*** 删除一个房间所有情景模式，成功返回1，失败返回-1
+	 * @param: roomID
+	 * @param: ctrolID 
+	 * */
+	public void deleteProfilesByRoomID(int ctrolID,int roomID){			
+		Iterator<Map.Entry<String, Profile>> it = this.entrySet().iterator();  
+        while(it.hasNext()){  
+            Map.Entry<String, Profile> entry=it.next();  
+			Profile profile=entry.getValue();
+			if(profile.getCtrolID()==ctrolID && profile.getRoomID()==roomID){
+				it.remove();
+				Profile.deleteFromDB(mysql, ctrolID, profile.getProfileID());
+			}	
+		}
 	}
 	
 	/*** 获取一个房间一个情景模式
@@ -181,19 +191,29 @@ public class ProfileMap extends HashMap<String, Profile>{
 		List<Profile> profileList=new ArrayList<Profile>();
 		for (Entry<String, Profile> entry : this.entrySet()) {
 			Profile profile=entry.getValue();
-			if(profile.getCtrolID()==ctrolID){
-				for (Factor factor : profile.getFactorList()) {
-					if(factor.getRoomID()==roomID){
-						profileList.add(profile);
-						break;
-					}				
-				}
-			}else {
-				continue;
+			if(profile.getCtrolID()==ctrolID && profile.getRoomID()==roomID){
+					profileList.add(profile);			
 			}
-		
 		}
 		return profileList;
+	}
+	
+	/*** 获取全家所有同一类型的情景模式集
+	 * @param: templateID
+	 * */
+	public List<Profile> getProfileSetByTemplateID(int ctrolID,int templateID){	
+		List<Profile> profileList=new ArrayList<Profile>();
+		for (Entry<String, Profile> entry : this.entrySet()) {
+			Profile profile=entry.getValue();
+			if(profile.getCtrolID()==ctrolID && profile.getProfileTemplateID()==templateID){
+				profileList.add(profile);
+			}
+		}
+		if( profileList.size()>0){
+			return profileList;
+		}else{
+			return null;
+		}
 	}
 	
 
@@ -203,7 +223,11 @@ public class ProfileMap extends HashMap<String, Profile>{
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 		ProfileMap pm=new ProfileMap(mysql);
 		System.out.println(pm.size());
-
+		int count=1;
+		for (Map.Entry<String, Profile> entry : pm.entrySet() ) {			
+			System.out.println(count+":"+entry.getKey()+","+entry.getValue().getRoomID()+","+entry.getValue().getProfileName());
+			count++;
+		}
 		
 //		ProfileMap pm=new ProfileMap();
 //		Profile p =new Profile();

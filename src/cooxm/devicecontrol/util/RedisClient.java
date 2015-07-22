@@ -1,7 +1,13 @@
 ﻿package cooxm.devicecontrol.util;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import cooxm.devicecontrol.control.LogicControl;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
@@ -105,12 +111,82 @@ public class RedisClient {
     	jedis.get("richard");        
         jedis.hset("hashs", "key001", "value001");
     }
+    
+    /** 删除 key*/
+    public static void reConstructRedis(){
+    	Jedis jedis= new Jedis("120.24.81.226", 6379,200);
+    	Set<String> keys = jedis.keys("*");
+    	for (Iterator iterator = keys.iterator(); iterator.hasNext();) {
+			String key = (String) iterator.next();
+			String[] keyArr=key.split("_");
+			if(keyArr.length==2 && isNumeric(keyArr[0] )){
+				System.out.println(key);
+				Map<String, String> map = jedis.hgetAll(key);
+				String newKey=keyArr[1]+":"+keyArr[0];
+				/*for (Iterator iterator2 = keys.iterator(); iterator2.hasNext();) {
+					String string = (String) iterator2.next();
+					
+				}*/
+				String ok=jedis.hmset(newKey, map);
+				if(ok.equals("OK")){
+					jedis.del(key);
+				}
+			}			
+		}
+    }
+    
+    /** 
+     *  */
+    public static void reConstructRedis2(){
+    	Jedis jedis= new Jedis("120.24.81.226", 6379,2000);
+    	jedis.select(9);
+    	Set<String> keys = jedis.keys("*");
+    	for (Iterator iterator = keys.iterator(); iterator.hasNext();) {
+			String key = (String) iterator.next();
+			String key2=new String(key);
+			String key3=key2;
+			jedis.select(9);
+			if( key.contains(":4000")  ){
+				jedis.del(key);
+			/*Map<String, String> map = jedis.hgetAll(key);
+				for (Entry<String, String> entry : map.entrySet()) {
+					key3=key2.replace("40006", "10002");
+					entry.getValue().replace("40006", "10002");
+					key3=key2.replace("40004", "10005");
+					entry.getValue().replace("40004", "10005");
+					key3=key2.replace("40008", "10000");
+					entry.getValue().replace("40008", "10000");	
+					System.out.println(key+"  "+entry.getKey());
+				}
+				jedis.select(9);
+				String ok=jedis.hmset(key3, map);
+				
+				if(ok.equals("OK") ){
+					jedis.select(9);
+					jedis.del(key);
+				}*/
+			}
+		}
+    }
+    
+    public static boolean isNumeric(String str){
+    	  for (int i = str.length();--i>=0;){   
+    	   if (!Character.isDigit(str.charAt(i))){
+    	    return false;
+    	   }
+    	  }
+    	  return true;
+    	 }
 
     public static void main(String[] args) {  
     	
    	Jedis jedis= new Jedis("172.16.35.170", 6379,200);
+   	jedis.select(9);
+//   	String x=jedis.hget(LogicControl.currentProfile, 15662+"");
+//   	System.out.println(x);
 
-        JedisPubSub jedisPubSub=new JedisPubSub() {
+   	reConstructRedis2();
+        /*JedisPubSub jedisPubSub=new JedisPubSub() {
 			
 			@Override
 			public void onUnsubscribe(String arg0, int arg1) {
@@ -151,7 +227,7 @@ public class RedisClient {
 			}
 		};
         //jedis.publish("msg", "201451");
-        jedis.subscribe(jedisPubSub, "msg");
+        jedis.subscribe(jedisPubSub, "msg");*/
 
     	    	
     }

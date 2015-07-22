@@ -13,8 +13,9 @@ import java.util.*;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import redis.clients.jedis.Jedis;
+import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.*;
+import redis.clients.jedis.Jedis;
 
 
 /** 
@@ -216,9 +217,8 @@ public class Device {
 	
 
 	
-	public Device (JSONObject deviceJson){
+	public Device (JSONObject deviceJson) throws JSONException, ParseException{
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		try {
 			this.deviceID=deviceJson.getInt("deviceID");
 			this.deviceSN=deviceJson.getString("deviceSN");
 			this.deviceName=deviceJson.getString("deviceName");
@@ -231,10 +231,6 @@ public class Device {
 			this.relatedDevType=deviceJson.getInt("relatedDevType");
 			this.createTime=sdf.parse(deviceJson.getString("createTime"));
 			this.modifyTime=sdf.parse(deviceJson.getString("modifyTime"));	
-		} catch (JSONException | ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 	
 	public JSONObject toJsonObj(){
@@ -372,7 +368,7 @@ public class Device {
 				+sdf.format(createTime)+"','"
 				+sdf.format(createTime)
 				+"')";
-		System.out.println(sql);
+		//System.out.println(sql);
 		return mysql.query(sql);		
 	}
 
@@ -405,7 +401,7 @@ public class Device {
 		String res2=mysql.select(sql);
 		//System.out.println("get from mysql:\n"+res2);
 		if(res2==null|| res2==""){
-			System.err.println("ERROR:empty query by : "+sql);
+			//System.err.println("ERROR:empty query by : "+sql);
 			return null;
 		} else if(res2.split("\n").length!=1){
 			System.err.println("ERROR:Multi device retrieved from mysql. ");
@@ -459,9 +455,9 @@ public class Device {
 				+" where ctr_id="+ctrolID
 //				+" and deviceid="+deviceID
 				+ ";";
-		System.out.println("query:"+sql);
+		//System.out.println("query:"+sql);
 		String res2=mysql.select(sql);
-		System.out.println("get from mysql:\n"+res2);
+		//System.out.println("get from mysql:\n"+res2);
 		if(res2==null|| res2==""){
 			System.err.println("ERROR:empty query by : "+sql);
 			return null;
@@ -505,14 +501,25 @@ public class Device {
 				+" where ctr_id="+ctrolID
 				+" and devid="+deviceID
 				+ ";";
-		System.out.println("query:"+sql);
+		//System.out.println("query:"+sql);
 		int res2=mysql.query(sql);
-		System.out.println("deleted "+ res2 + "rows of recodes");
+		//System.out.println("deleted "+ res2 + " rows of recodes");
 		if(res2<=0){
 			System.err.println("ERROR:  "+sql);
 			return 0;
 		} 
 		return 1;
+	}
+	
+	public static void deleteProfileByRoomIDFromRedis(Jedis jedis,int ctrolID,int roomID) throws JSONException, ParseException{
+		Map<String, String> DeviceMap = jedis.hgetAll(LogicControl.roomBind+ctrolID);
+		for (Map.Entry<String, String> entry:DeviceMap.entrySet()) {
+			Device p=new Device(new JSONObject(entry.getValue()));
+			if(p.getRoomID()==roomID && p.getCtrolID()==ctrolID){
+				jedis.del(LogicControl.roomBind+ctrolID);
+			}				
+		}
+		
 	}
 	
 	
@@ -576,7 +583,10 @@ public class Device {
 	
 	  public static void main(String[] args) throws SQLException{
 		  MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
-		  Date date=new Date();
+		  Jedis jedis= new Jedis("172.16.35.170", 6379);
+		  jedis.select(9);
+		  
+		  /*Date date=new Date();
 		  int ctrolID=40008;
 		  Device dev=new Device(ctrolID , "电视",1234567891 , "XJFGOD847X" ,      541 ,    0 ,  2,  101 ,    1, 0,date,date);
 		  int count=dev.saveToDB(mysql);
@@ -584,9 +594,25 @@ public class Device {
 		  Device d= getOneDeviceFromDB(mysql, 40008, 1234567891);
 		  
 
-		  Jedis jedis= new Jedis("172.16.35.170", 6379);
-		  jedis.hset(ctrolID+"_roomBind", 1234567891+"", dev.toJsonObj().toString());
-		  System.out.println("Query OK");
+
+		  jedis.hset(LogicControl.roomBind+ctrolID, 1234567891+"", dev.toJsonObj().toString());
+		  System.out.println("Query OK");*/
+		  
+		  
+			String x="{\"modifyTime\":\"2015-06-30 17:56:28\",\"createTime\":\"2015-06-30 17:56:28\",\"ctrolID\":40004,\"roomID\":3000,\"roomName\":\"客厅\",\"roomType\":2}";
+	        JSONObject j=null;
+			try {
+				j = new JSONObject(x);
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+			Device d=null;
+			try {
+				d = new Device(j);
+			} catch (JSONException | ParseException e) {
+				e.printStackTrace();
+			}
+			System.out.println(d.getRoomID());
 		  
 		  
 
