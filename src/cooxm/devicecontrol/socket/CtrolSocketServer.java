@@ -227,7 +227,7 @@ public class CtrolSocketServer {
 	            	try {
 	            		if(serverID>0){
 							log.info("socket hase been closed :"+this.socket.getRemoteSocketAddress().toString()
-									+",serverID: "+serverID+",serverType: "+severMap.get(serverID).getServerType());
+									+",serverID: "+serverID);
 							sockMap.remove(this.serverID);
 							severMap.remove(this.serverID);	
 	            		}

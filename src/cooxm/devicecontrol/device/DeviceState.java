@@ -180,7 +180,11 @@ public class DeviceState {
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}*/
-		this.modifyTime=sdf.parse(json.getString("modifyTime"));
+		if(json.has("modifyTime")){
+			this.modifyTime=sdf.parse(json.getString("modifyTime"));
+		}else{
+			this.modifyTime=new Date();
+		}
 	}
 
 	public static void main(String[] args) {

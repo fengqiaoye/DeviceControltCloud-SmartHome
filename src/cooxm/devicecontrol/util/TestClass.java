@@ -400,6 +400,10 @@ public class TestClass {
 		
 	}
 	
+	public static void test(){
+		double x=Math.log10(2088/0.1)*20;
+		System.out.println(x);
+	}
 	public static void changeA3(A sa,Map<Integer, A> map ){
 		sa.b="aaaaaaaaaaaaaaa";
 		System.out.println(map.get(1).b);
@@ -432,6 +436,8 @@ public class TestClass {
 		
 
 	//	testRefrence();
+		
+		test();
 		
 
 

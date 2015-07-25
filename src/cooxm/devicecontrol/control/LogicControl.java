@@ -44,6 +44,7 @@ import cooxm.devicecontrol.device.TriggerMap;
 import cooxm.devicecontrol.device.TriggerTemplate;
 import cooxm.devicecontrol.device.TriggerTemplateMap;
 import cooxm.devicecontrol.device.Warn;
+import cooxm.devicecontrol.encyco.TuringCatAesCrypto;
 import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.socket.Message;
 import cooxm.devicecontrol.socket.SocketClient;
@@ -67,7 +68,6 @@ public class LogicControl {
 	private static final short GET_ROOM_PROFILE					=	COMMAND_START+1;	
     /*** 请求 情景模式的回复    @see get_room_profile_ack() */
 	private static final short GET_ROOM_PROFILE_ACK     		=   COMMAND_START+1 + COMMAND_ACK_OFFSET;	
-	
     /*** 设置 情景模式   @see set_room_profile()  */
 	private static final short SET_ROOM_PROFILE					=	COMMAND_START+2;	
     /*** 设置 情景模式的回复   @see set_room_profile_ack()  */
@@ -2532,6 +2532,7 @@ public class LogicControl {
 	 * @throws JSONException 
 	 * @throws SQLException */
 	public void switch_device_state(Message msg) {
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		JSONObject json=new JSONObject();
 		Message replyMsg=new Message(msg);
     	Device device=null;
@@ -2551,6 +2552,9 @@ public class LogicControl {
 	    	String key=ctrolID+"_"+deviceID;
 	    	if((device= deviceMap.get(key))!=null /*|| (device=Device.getOneDeviceFromDB(mysql, ctrolID, deviceID))!=null*/){
 	    		String key2=currentDeviceState+ctrolID;
+        		JSONObject stateJson=new JSONObject();
+        		stateJson.put("time", sdf.format(new Date()));
+        		stateJson.put("sender", sender);
 	        	if(msg.getJson().has("state")){    //air conditional
 	        		state=new DeviceState(msg.getJson().getJSONObject("state"));
 	        		if(deviceType==541){  //空调默认值
@@ -2563,8 +2567,9 @@ public class LogicControl {
 		        		if(state.getTempreature()==-1){
 		        			state.setTempreature(23);
 		        		}
-	        		}	    	    	
-	        		jedis.hset(key2, deviceID+"", state.toJson().toString());
+	        		}	
+	        		stateJson.put("state", state.toJson());
+	        		jedis.hset(key2, deviceID+"", stateJson.toString());
 	        		if(sender==0){
 	        			json.put("errorCode",SUCCESS);   		
 	        		}else {
@@ -2577,10 +2582,8 @@ public class LogicControl {
 	        		}
 	        	}else if(msg.getJson().has("keyType")){    //TV,DVD,FAN,IPTV,STB,ACL
 	        		int keyType=msg.getJson().getInt("keyType");
-
-	        		JSONObject jsonKey=new JSONObject();
-	        		jsonKey.put("keyType", keyType);
-	        		jedis.hset(key2, deviceID+"",jsonKey.toString());
+	        		stateJson.put("keyType", keyType);
+	        		jedis.hset(key2, deviceID+"",stateJson.toString());
   
 	        		if(sender==0){
 	        			json.put("errorCode",SUCCESS);   		
@@ -3303,7 +3306,7 @@ public class LogicControl {
 	public void warning_msg(final Message msg){
 		//if(this.msgSock!=null &&  !this.msgSock.sock.isOutputShutdown()  && !this.msgSock.sock.isClosed()){
 		//msg.writeBytesToSock2(this.msgSock.sock);	
-		JSONObject json=msg.getJson();
+		JSONObject json=msg.getJson();		
 			try {
 				if(msg.getJson().has("sender")){
 					int senderRole=msg.getJson().getInt("sender");
@@ -3321,6 +3324,7 @@ public class LogicControl {
 					e1.printStackTrace();
 				}
 			}
+			
 			try {
 				CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 			} catch (InterruptedException e) {
@@ -3345,36 +3349,48 @@ public class LogicControl {
 	  */
 	public void cancel_warning_msg(final Message msg){
 		JSONObject json=msg.getJson();
+		Message replyMsg=new Message(msg);
+		JSONObject replyjson=new JSONObject();	
+		replyMsg.setCommandID(CANCEL_WARNING_MSG_ACK);
+		try {
+			replyjson.put("errorCode", 0);
+			replyMsg.setJson(replyjson);
 			try {
-				if(msg.getJson().has("sender")){
-					int senderRole=msg.getJson().getInt("sender");
-					json.put("originalSenderRole", senderRole);
-				}
-				json.put("sender", 6);				
-				int ctrolID=msg.getJson().getInt("ctrolID");
-				int warnType=msg.getJson().getInt("businessType");
-				int role=msg.getJson().getInt("role");
-				Warn warn=new Warn(ctrolID, 3, 3, 0, new Date(), 2, warnType, 0, role);
-				
-				json.put("ctrolID", ctrolID);
-				json.put("warn", warn.toJsonObject().toString());
-			} catch (JSONException e) {
-				e.printStackTrace(); logException(e);
-				try {
-					json.put("errorCode",JSON_PARSE_ERROR);
-					json.put("errorDescription",e.getCause().getMessage());
-				} catch (JSONException e1) {
-					e1.printStackTrace();
-				}
-			}
-			msg.setJson(json);
-			msg.setCommandID(WARNING_MSG);
-			try {
-				CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+				CtrolSocketServer.sendCommandQueue.offer(replyMsg, 100, TimeUnit.MILLISECONDS);
 			} catch (InterruptedException e) {
 				e.printStackTrace(); logException(e);
 			}
+			
+			int senderRole=0;
+			if(msg.getJson().has("sender")){
+				senderRole=msg.getJson().getInt("sender");
+				json.put("originalSenderRole", senderRole);
+			}
+			json.put("sender", 6);				
+			int ctrolID=msg.getJson().getInt("ctrolID");
+			int warnType=msg.getJson().getInt("businessType");
+			//int role=msg.getJson().getInt("role");
+			Warn warn=new Warn(ctrolID, 3, 3, 0, new Date(), 2, warnType, 0, senderRole);
+			
+			json.put("ctrolID", ctrolID);
+			json.put("warn", warn.toJsonObject());
+		} catch (JSONException e) {
+			e.printStackTrace(); logException(e);
+			try {
+				json.put("errorCode",JSON_PARSE_ERROR);
+				json.put("errorDescription",e.getCause().getMessage());
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
 		}
+		msg.setJson(json);
+		msg.setCommandID(WARNING_MSG);
+		try {
+			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace(); logException(e);
+		}
+	}
 	
     /*** 请求触发模板
      * <pre>传入的json格式为：
@@ -4225,6 +4241,7 @@ public class LogicControl {
 			}
 			String filePath2=null;
 			String ir_file_path=this.config.getValue("ir_file_path");
+			String ir_file_ip=this.config.getValue("ir_file_ip");
 			if(applianceTypeStr!=""){
 				filePath2=ir_file_path+"/"+applianceTypeStr+"/codes";
 			}else{
@@ -4278,7 +4295,7 @@ public class LogicControl {
 			}else{                           //还是没有匹配到
 				json.put("errorCode", INFRARED_CODE_NOT_RECOGNIZED);
 				IRMatch2.saveUnknownCode(mysql, ctrolID, applianceType, applianceTypeStr, ircode);
-				log.warn("InfraRed code recognize failed,deviceType="+applianceTypeStr+",code="+ircode);
+				log.error("InfraRed code recognize failed,deviceType="+applianceTypeStr+",code="+ircode );
 			}
 
 			if(fileName==null){
@@ -4335,6 +4352,10 @@ public class LogicControl {
 				if(url.equals("") || url==null){
 					json.put("errorCode", INFRARED_FILE_NOT_EXIST);
 				}else{
+					TuringCatAesCrypto crypto = new TuringCatAesCrypto();
+					crypto.setToken("token_key");
+					String encrypted = crypto.encrypt("keyfiles3/"+fileName);
+					url=ir_file_ip+encrypted;
 					json.put("url", url);
 					json.put("errorCode", SUCCESS);
 				}			

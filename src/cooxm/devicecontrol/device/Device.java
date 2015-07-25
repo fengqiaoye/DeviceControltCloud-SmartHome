@@ -86,7 +86,7 @@ public class Device {
 	*/
 	int deviceType;
 	
-	/***0：家电   ;	1：传感器*/
+	/***0：传感器   ;	1：家电*/
 	int type;
 	/***
 	 （顺时针方向）

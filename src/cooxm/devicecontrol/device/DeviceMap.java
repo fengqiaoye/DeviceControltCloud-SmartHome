@@ -156,7 +156,7 @@ public class DeviceMap extends HashMap<String, Device> {
 	public List<Device> getApplianceByctrolID(int ctrolID){
 		List<Device> deviceList=new ArrayList<Device>();
 		for (Entry<String, Device> entry : this.entrySet()) {
-			if(Integer.parseInt(entry.getKey().split("_")[0])==ctrolID  && entry.getValue().type==0){
+			if(Integer.parseInt(entry.getKey().split("_")[0])==ctrolID  && entry.getValue().type==1){
 				deviceList.add(entry.getValue());
 			}			
 		}

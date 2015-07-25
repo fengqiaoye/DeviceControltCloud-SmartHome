@@ -3,6 +3,8 @@ package cooxm.devicecontrol.synchronize;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URL;
+import java.util.Date;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.net.ftp.FTPClient;
@@ -111,6 +113,7 @@ public class IRFileDownload {
             ftpClient.login("anonymous", "12345678"); 
 
             String remoteFileName = "/keyfiles3/AC/codes/"+this.getFilename()+".txt"; 
+            //String remoteFileName = "/AC/codes/"+this.getFilename()+".txt"; 
             fos = new FileOutputStream("d:/"+this.getFilename()+".txt"); 
 
             ftpClient.setBufferSize(1024); 
@@ -134,13 +137,17 @@ public class IRFileDownload {
         } 
 	}
 	
+
+	
+	
 	public static void main(String[] args) {
 		
-		IRFileDownload ir=new IRFileDownload(541,"10");
+		IRFileDownload ir=new IRFileDownload(541,"84");
 		String name=ir.getFilename();
 		System.out.println(name);
-		ir.downlaod();
-		
+        Date start=new Date();
+		ir.downlaod();		
+		System.out.println("finished in "+(new Date().getTime()-start.getTime())/1000 +"secods");
 		System.out.println(ir.getURL());		
 
 	}

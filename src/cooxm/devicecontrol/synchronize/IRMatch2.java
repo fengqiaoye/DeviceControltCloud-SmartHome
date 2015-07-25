@@ -129,7 +129,7 @@ public class IRMatch2 {
 	public String getTop1(){
 		Object[] a =this.fileScoreMap.keySet().toArray();  
 		int len=Math.min(1, this.fileScoreMap.keySet().size());
-		if(len>0 && (int)a[0]<=10){
+		if(len>0 && (int)a[0]<=10){  //位差小于等于10
 			return this.fileScoreMap.get(a[0]).split("\\|")[0]+"|"+a[0];
 			//return (this.fileScoreMap.get(a[0]).split("\\|"))[0];
 
@@ -179,7 +179,7 @@ public class IRMatch2 {
 							}
 							String fid=abstract_path.substring(pos+1,abstract_path.length()-4);
 
-							if(score==0){								
+							if(score<=10){								
 								String[] dbFeature=this.getDBFeature(Integer.parseInt(fid),deviceType);
 								String rawFrenquency=this.getRawCodeFrequency();
 								String rawC3length=this.getC3Length(rawCode);
@@ -348,7 +348,7 @@ public class IRMatch2 {
 			}			
 		}
 		if(res==null){
-			System.out.println("match failed !!");
+			log.info("infraRed code match failed !!");
 			return null;
 		}
 		String [] result=res.split("\\|");//[0];
@@ -453,7 +453,7 @@ public class IRMatch2 {
 	}
 
 	public static void main(String[] args) {
-		String[] raw=new String[41];
+		String[] raw=new String[50];
 		raw[0]="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
 		raw[1]="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
 		raw[2]="1e,04,00,00,24,00,26,82,a0,02,a0,82,a0,06,86,c1,23,4d,c2,00,11,85,c3,00,23,04,0c,00,50,02,00";
@@ -499,10 +499,13 @@ public class IRMatch2 {
 	    raw[38]="ad,04,00,00,24,00,26,82,3c,03,9a,82,43,07,86,c1,0f,ec,c2,00,0f,48,c3,00,18,4f,05,ab,c2,00,20,b5,c1,0f,eb,c2,00,0f,44,c3,00,18,4f,05,ab,c2,00,20,ec,c1,0f,d8,c2,00,0f,46,c3,00,18,4f,05,ab,c1,0f,ec,c2,00,0f,48,c3,00,18,4f,05,ab,c2,00,20,b5,c1,0f,eb,c2,00,0f,44,c3,00,18,4f,05,ab,c2,00,20,ec,c1,0f,d8,c2,00,0f,46,c3,00,18,4f,05,ab,c1,0f,ec,c2,00,0f,48,c3,00,18,4f,05,ab,c2,00,20,b5,c1,0f,eb,c2,00,0f,44,c3,00,18,4f,05,ab,c2,00,20,ec,c1,0f,d8,c2,00,0f,46,c3,00,18,4f,05,ab,c2,00,20,da,c1,0f,c5,c2,00,0f,6b,c3,00,18,4f,05,ab,00";
 	    raw[39]="3e,04,00,00,24,00,26,82,1c,03,c8,82,1b,07,aa,c1,0f,c2,c2,00,0f,70,c3,00,18,4f,05,ab,c2,00,20,e0,c1,0f,c1,c2,00,0f,6f,c3,00,18,4f,05,ab,c2,00,20,df,c1,0f,c1,c2,00,0f,70,c3,00,18,4f,05,ab,00";
 	    raw[40]="4e,04,00,00,24,00,26,81,e1,02,52,81,e3,06,a1,c1,10,f2,c2,00,11,60,c3,00,30,4d,b2,de,21,07,f8,c2,00,14,8e,c1,10,f1,c2,00,11,60,c3,00,30,4d,b2,de,21,07,f8,c1,10,f2,c2,00,11,60,c3,00,30,4d,b2,de,21,07,f8,c2,00,14,8e,c1,10,f1,c2,00,11,60,00";
+	    raw[41]="33,04,00,00,24,00,38,82,4d,01,fa,82,51,06,0d,c1,11,52,c2,00,10,f4,c3,00,30,4d,b2,de,21,07,f8,c2,00,14,1e,c1,11,51,c2,00,10,f2,c3,00,30,4d,b2,de,21,07,f8,00";
+	    //TV
+	    raw[42]="a8,04,00,00,24,00,26,82,14,03,c9,82,14,07,ad,c1,02,13,c2,00,03,ca,c3,00,09,56,01,c1,0f,c3,c2,00,0f,72,c3,00,18,4f,05,ab,c2,00,20,e2,c1,0f,bd,c2,00,0f,70,c3,00,18,4f,05,ab,c2,00,20,df,c1,0f,be,c2,00,0f,71,c3,00,18,4f,05,ab,c1,0f,c3,c2,00,0f,72,c3,00,18,4f,05,ab,c2,00,20,e2,c1,0f,bd,c2,00,0f,70,c3,00,18,4f,05,ab,c2,00,20,df,c1,0f,be,c2,00,0f,71,c3,00,18,4f,05,ab,c1,0f,c3,c2,00,0f,72,c3,00,18,4f,05,ab,c2,00,20,e2,c1,0f,bd,c2,00,0f,70,c3,00,18,4f,05,ab,c2,00,20,df,c1,0f,be,c2,00,0f,71,c3,00,18,4f,05,ab,00";
 	    //System.out.println(im.getC3(raw16));
 	    
         System.out.println(new Date());
-	    for (int i = 40; i < 41; i++) {
+	    for (int i = 42; i < 43; i++) {
 	    	System.out.println(i);
 	    	IRMatch2 im=new IRMatch2();
 	    	im.init(raw[i], 501);
