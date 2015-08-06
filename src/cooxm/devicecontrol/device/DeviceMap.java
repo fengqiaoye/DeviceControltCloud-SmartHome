@@ -217,7 +217,7 @@ public class DeviceMap extends HashMap<String, Device> {
 	 */
 	public static void main(String[] args) throws SQLException {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
-		Jedis jedis=new Jedis("172.16.35.170", 6379);
+		Jedis jedis=new Jedis("172.16.35.170", 6379,5000);
 		jedis.select(9);
 		DeviceMap dm=new DeviceMap(mysql,jedis);
 		System.out.println(dm.size());

@@ -238,7 +238,7 @@ public class IRMatch {
 		
 	public static String[][] getAllMaches(){
 		
-		SQLiteUtil sqlite=new SQLiteUtil("ird4.db");
+		SQLiteUtil sqlite=new SQLiteUtil("ird5.db");
 		String sql="select fid,matchs,format_name,device_id from formats ;";
 		String rs=sqlite.select(sql);
 		//System.out.println(rs);
@@ -380,7 +380,7 @@ public class IRMatch {
 	
 	public static List<Set<String>> getModels(List<String[]> fids){
 		List<Set<String>> models=new ArrayList<Set<String>>() ;
-		SQLiteUtil sqlite=new SQLiteUtil("ird4.db");
+		SQLiteUtil sqlite=new SQLiteUtil("ird5.db");
 		for(int i=0;i<fids.size();i++){
 			String sql="select m_search_string from model where m_format_id='"+fids.get(i)[1]+"';";
 			//System.out.println(sql);
@@ -407,7 +407,7 @@ public class IRMatch {
             }  
         }); 
 		
-		SQLiteUtil sqlite=new SQLiteUtil("ird4.db");
+		SQLiteUtil sqlite=new SQLiteUtil("ird5.db");
 		for(int i=0;i<fids.size();i++){
 			String[] fid=fids.get(i)[1].split("_");
 			String sql="select m_search_string,m_label from model where cast(m_format_id as int)='"+fid[0]+"'  and device_id="+fid[1]+";";

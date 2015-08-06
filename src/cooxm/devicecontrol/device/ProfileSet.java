@@ -21,6 +21,7 @@ import org.json.JSONObject;
 import cooxm.devicecontrol.control.Configure;
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.control.MainEntry;
+import cooxm.devicecontrol.device.Profile;
 import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.util.MySqlClass;
 import cooxm.devicecontrol.util.RedisClient;
@@ -134,16 +135,36 @@ public class ProfileSet {
 		this.modifyTime=sdf.parse(profileSetJson.getString("createTime"));	
 
 	}
+	
+	public static JSONObject toJson(List<Profile> profileList){
+	
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	    JSONObject profileSetJson = new JSONObject(); 
+	    JSONArray ja=new JSONArray();
+        for (Iterator iterator = profileList.iterator(); iterator.hasNext();) {
+	    	    try {
+				Profile profile = (Profile) iterator.next();
+			    profileSetJson.put("ctrolID",        profile.getCtrolID()       );
+				profileSetJson.put("profileSetID",         profile.getProfileTemplateID()      );
+			    profileSetJson.put("profileSetName",        profile.getProfileName()      );
+			    profileSetJson.put("profileSetTemplateID",       profile.getProfileTemplateID()     );
+	
+		    	ja.put(profile.getProfileID());
+	
+	
+			    profileSetJson.put("profileArray", ja);
+			    profileSetJson.put("createTime",sdf.format(profile.getCreateTime()));
+			    profileSetJson.put("modifyTime",sdf.format(profile.getModifyTime()));
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}			
+		}
+	    
+	    return profileSetJson;
+	}
 	 
 	public JSONObject toJsonObj(){
-//		Configure cf=MainEntry.getConfig();
-//		String mysql_ip			=cf.getValue("mysql_ip");
-//		String mysql_port		=cf.getValue("mysql_port");
-//		String mysql_user		=cf.getValue("mysql_user");
-//		String mysql_password	=cf.getValue("mysql_password");
-//		String mysql_database	=cf.getValue("mysql_database");	
-//		MySqlClass mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
-		
+	
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	    JSONObject profileSetJson = new JSONObject(); 
         //JSONObject profileJson ; 
@@ -259,7 +280,7 @@ public class ProfileSet {
    * @table  info_user_room_st_factor
    * @throws SQLException 
    */
-	public	static ProfileSet getProfileSetFromDB(MySqlClass mysql,int ctrolID,int profileSetID) 
+	/*public	static ProfileSet getProfileSetFromDB(MySqlClass mysql,int ctrolID,int profileSetID) 
 		{
 			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			String sql="select "
@@ -309,15 +330,18 @@ public class ProfileSet {
 			}
 
 			return profileSet;
-		}
+		}*/
 	
+	
+     //  --------------------------------2015-07-28  profileSet表不再存在，从profile表中读取  -----------------------
 	   /*** 
 	   * 根据 模板ID 来查找 情景集
 	   * @param  MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
 	   * @table  info_user_room_st_factor
 	   * @throws SQLException 
+	 * @throws ParseException 
 	   */
-	public	static ProfileSet getProfileSetByTemplateID(MySqlClass mysql,int ctrolID,int templateID) throws SQLException
+	/*public	static ProfileSet getProfileSetByTemplateID(MySqlClass mysql,int ctrolID,int templateID) throws SQLException
 	{
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		mysql.conn.setAutoCommit(false);
@@ -337,7 +361,7 @@ public class ProfileSet {
 		//System.out.println("query:"+sql);
 		String res=mysql.select(sql);
 		//System.out.println("get from mysql:\n"+res);
-		if(res==""||res.length()==0) {
+		if(res==null||res.length()==0) {
 			System.err.println("ERROR:query result is empty: "+sql);
 			return null;
 		}
@@ -364,6 +388,63 @@ public class ProfileSet {
 			profileSet.modifyTime=sdf.parse(cells[6]);
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		mysql.conn.commit();
+		return profileSet;
+	}*/
+	
+    //  -------------------------------- profileSet表不再存在，从profile表中读取  -----------------------
+	public	static ProfileSet getProfileSetByTemplateID(MySqlClass mysql,int ctrolID,int templateID) throws SQLException, ParseException
+	{
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		mysql.conn.setAutoCommit(false);
+		String sql="select "
+				+" userroomstid       ,"
+				+"userroomstname,"
+				+"ctr_id        ,"
+				+"roomid        ,"
+				+"roomtype      ,"
+				+"sttemplateid  ,"
+				+"stsetid  ,"			
+				+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
+				+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
+				+ "  from  "				
+				+Profile.profileIndexTable
+				+" where ctr_id="+ctrolID
+				+" and sttemplateid="+templateID
+				+ ";";
+		//System.out.println("query:"+sql);
+		String res=mysql.select(sql);
+		//System.out.println("get from mysql:\n"+res);
+		if(res==null||res.length()==0) {
+			System.err.println("ERROR:query result is empty: "+sql);
+			return null;
+		}
+		String[] resArray=res.split("\n");
+		ProfileSet profileSet=new ProfileSet();
+		List<Integer> profileIDList=new ArrayList<Integer>();
+		Integer profileID=null;
+		String[] cells=null;
+		Date modifyTime=new Date(0);
+		for(String line:resArray){
+			cells=line.split(",");
+			profileID=new Integer(Integer.parseInt(cells[0]));	
+			if(profileID!=-1){  //因为info_user_st_set表中 userstid=-1是人为添加，不是真正的profile；
+				profileIDList.add(profileID);
+			}
+			modifyTime=sdf.parse(cells[8]).after(modifyTime)?sdf.parse(cells[8]):modifyTime;
+		}
+		profileSet.profileList=profileIDList;
+		
+		profileSet.ctrolID=Integer.parseInt(cells[2]);
+		profileSet.profileSetID=Integer.parseInt(cells[5]);
+		profileSet.profileSetName=cells[1];
+		profileSet.profileSetTemplateID=Integer.parseInt(cells[5]);
+		try {
+			profileSet.createTime=sdf.parse(cells[7]);
+			profileSet.modifyTime=modifyTime;
+		} catch (ParseException e) {
 			e.printStackTrace();
 		}
 		mysql.conn.commit();
@@ -455,14 +536,15 @@ public class ProfileSet {
 	}
 		
 			
-	public static void main(String[] args) throws SQLException {
+	public static void main(String[] args) throws SQLException, ParseException {
 		// TODO Auto-generated method stub
-		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
+		MySqlClass mysql=new MySqlClass("120.24.81.226","3306","cooxm_device_control", "cooxm", "cooxm");
 		ProfileSet p =new ProfileSet();
-		p=ProfileSet.getProfileSetFromDB(mysql, 12345677, 12345);
+		p=ProfileSet.getProfileSetByTemplateID(mysql, 10002, 2);
+		//p=ProfileSet.getProfileSetFromDB(mysql, 12345677, 12345);
 		//p.profileSetID++;
 		
-		p.saveProfileSetToDB(mysql);
+		//p.saveProfileSetToDB(mysql);
 	}
 
 

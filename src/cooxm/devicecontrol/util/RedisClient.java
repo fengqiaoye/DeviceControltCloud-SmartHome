@@ -114,7 +114,7 @@ public class RedisClient {
     
     /** 删除 key*/
     public static void reConstructRedis(){
-    	Jedis jedis= new Jedis("120.24.81.226", 6379,200);
+    	Jedis jedis= new Jedis("120.24.81.226", 6379,5000);
     	Set<String> keys = jedis.keys("*");
     	for (Iterator iterator = keys.iterator(); iterator.hasNext();) {
 			String key = (String) iterator.next();
@@ -138,7 +138,7 @@ public class RedisClient {
     /** 
      *  */
     public static void reConstructRedis2(){
-    	Jedis jedis= new Jedis("120.24.81.226", 6379,2000);
+    	Jedis jedis= new Jedis("120.24.81.226", 6379,5000);
     	jedis.select(9);
     	Set<String> keys = jedis.keys("*");
     	for (Iterator iterator = keys.iterator(); iterator.hasNext();) {
@@ -180,7 +180,7 @@ public class RedisClient {
 
     public static void main(String[] args) {  
     	
-   	Jedis jedis= new Jedis("172.16.35.170", 6379,200);
+   	Jedis jedis= new Jedis("172.16.35.170", 6379,5000);
    	jedis.select(9);
 //   	String x=jedis.hget(LogicControl.currentProfile, 15662+"");
 //   	System.out.println(x);

@@ -314,15 +314,20 @@ public class LogicControl {
 	/**空的消息，什么事情也不做*/
 	public static final short DO_NOTHING			      =   COMMAND_START+111;
 	
+    /*** 取消告警消息   */
+	private static final short REPORT_CONTROL_MSG		    =	COMMAND_START+102;
+    /*** 取消告警消息  的回复  */
+	private static final short REPORT_CONTROL_MSG_ACK		=	COMMAND_START+102+COMMAND_ACK_OFFSET;
+	
+	
+
+	
     /*** 告警消息   */
 	private static final short WARNING_MSG				 	=	WARNING_START+3;
     /*** 告警消息  的回复  */
 	private static final short WARNING_MSG_ACK				=	WARNING_START+3+COMMAND_ACK_OFFSET;	
 	
-    /*** 取消告警消息   */
-	private static final short CANCEL_WARNING_MSG		    =	COMMAND_START+102;
-    /*** 取消告警消息  的回复  */
-	private static final short CANCEL_WARNING_MSG_ACK		=	COMMAND_START+102+COMMAND_ACK_OFFSET;
+
 	
 	/***********************  ERROR CODE :-50000  :  -59999 ************/
 	private static final int SUCCESS                  =	0;
@@ -408,7 +413,7 @@ public class LogicControl {
 	SocketClient msgSock=null;
 	Jedis jedis=null;// new Jedis("172.16.35.170", 6379,200);
 	public static ProfileMap profileMap =null;
-	public static ProfileSetMap profileSetMap =null;
+	//public static ProfileSetMap profileSetMap =null;
 	public static DeviceMap deviceMap=null;
 	TriggerMap triggerMap=null;
 	TriggerTemplateMap  triggerTemplateMap=null;
@@ -445,18 +450,12 @@ public class LogicControl {
 		
 		
 		mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
-		this.jedis= new Jedis(redis_ip, redis_port,200);
+		this.jedis= new Jedis(redis_ip, redis_port,5000);
 		jedis.select(9);
 		try{
-//	    	ConnectThread th=new ConnectThread(msg_server_IP, msg_server_port, 1, 6, 201,false);
-//	    	th.start();	
-			
-//			this.msgSock=new SocketClient(msg_server_IP, msg_server_port, cluster_id, 6, 201, false);	
-//			new Thread((Runnable) this.msgSock).start();
-//			log.info("Successfull connect to msg Server: "+msg_server_IP+":"+msg_server_port);
 	 	
 			this.profileMap= new ProfileMap(mysql);
-			this.profileSetMap= new ProfileSetMap(mysql);
+			//this.profileSetMap= new ProfileSetMap(mysql);
 			this.deviceMap=new DeviceMap(mysql,jedis);
 			this.profileTemplateList=ProfileTemplate.getAllFromDB(mysql);
 			this.triggerTemplateMap=new  TriggerTemplateMap(mysql);
@@ -471,7 +470,7 @@ public class LogicControl {
 			logException(e);
 		}
 		log.info("Initialization of map successful :  profileMap size="+profileMap.size()
-				+";profileSetMap size="+profileSetMap.size()
+				//+";profileSetMap size="+profileSetMap.size()
 				+"; deviceMap size="+deviceMap.size()
 				+"; roomMap size="+roomMap.size()
 				);
@@ -613,8 +612,8 @@ public class LogicControl {
 		case WARNING_MSG:	
 			warning_msg(msg);
 			break;
-		case CANCEL_WARNING_MSG:	
-			cancel_warning_msg(msg);
+		case REPORT_CONTROL_MSG:	
+			report_control_msg(msg);
 			break;
 		case WARNING_MSG_ACK:	
 			warning_msg_ack(msg);
@@ -831,8 +830,16 @@ public class LogicControl {
 		    	int profileID=msgProfile.getProfileID();
 		    	Date msgModifyTime=msgProfile.getModifyTime();
 		    	String key=ctrolID+"_"+profileID;
- 
-		    	if( (dbProfile=this.profileMap.get(key))!=null && dbProfile.getModifyTime().after(msgModifyTime)){	//云端较新  
+		    	Profile pr = this.profileMap.remove(key);
+
+	    		Profile p=this.profileMap.put(key, msgProfile);
+				if(p!=null){
+					json.put("errorCode",SUCCESS); 
+				}else{
+					json.put("errorCode",SQL_ERROR); 
+				}
+              
+		    	/*if( (dbProfile=this.profileMap.get(key))!=null && dbProfile.getModifyTime().after(msgModifyTime)){	//云端较新  
 					json.put("errorCode",OBSOLETE);    	
 					log.error("Profile in Cloud is newer than from profile from user, ctrolID:"+ctrolID+" profileID:"+profileID+".");
 		    	}else { //云端较旧  或者 不存在，则保存
@@ -842,7 +849,7 @@ public class LogicControl {
 					}else{
 						json.put("errorCode",SQL_ERROR); 
 					}
-				}
+				}*/
 			//}
 		} catch (JSONException e1) {
 			e1.printStackTrace();
@@ -954,7 +961,7 @@ public class LogicControl {
 			json.put("sender",2);	
 			json.put("receiver",sender); 
 	    	String key=ctrolID+"_"+profileID;
-	    	if((profile= profileMap.get(key))!=null || (profile=Profile.getFromDBByProfileID(mysql, ctrolID, profileID))!=null){
+	    	if((profile= profileMap.get(key))!=null /*|| (profile=Profile.getFromDBByProfileID(mysql, ctrolID, profileID))!=null*/){
 	    		int roomID=profile.getRoomID();
 	        	String key2=LogicControl.currentProfile+ctrolID;
 	    		jedis.hset(key2, roomID+"", profile.toJsonObj().toString());
@@ -1202,18 +1209,34 @@ public class LogicControl {
 			}
 			json.put("sender",2);	
 			json.put("receiver",sender); 
-			//profileMap.size();
-	    	if( (profileList= profileMap.getProfilesByctrolID(ctrolID)).size()!=0  ){
+			int count=msg.getJson().getInt("count");
+			int offset=msg.getJson().getInt("offset");
+			profileList= profileMap.getProfilesByctrolID(ctrolID);	
+			int i=0;
+	    	if( profileList.size()!=0  ){
 	    		JSONArray ja=new JSONArray();
-	    		for (Profile profile : profileList) {
-	    			JSONObject jo=new JSONObject();
-	    			jo.put("profileID", profile.getProfileID());
-	    			jo.put("modifyTime", sdf.format(profile.getModifyTime()));
-					ja.put(jo);	    			
+	    		for (Profile profile : profileList) {	 
+	    			if ( i >= offset && i < offset+count) {
+		    			JSONObject jo=new JSONObject();
+		    			jo.put("profileID", profile.getProfileID());
+		    			jo.put("modifyTime", profile.getModifyTime().getTime()/1000); //sdf.format(profile.getModifyTime())
+						ja.put(jo);	
+					}else if (i>=offset+count){
+						break;
+					}
+	    			i++;    			
 				}
+	    		json.put("offset", i);
+	    		if(i>=profileList.size()){
+	    			json.put("end", 1);
+	    		}else{
+	    			json.put("end", 0);
+	    		}
 	    		json.put("profileArray", ja);
 	    		json.put("errorCode",SUCCESS);
 	    	}else {
+	    		json.put("end", 1);
+	    		json.put("offset", offset);
 				log.error("Can't get profile list by ctrolID:"+ctrolID+" from profileMap or Mysql.");
 				json.put("errorCode",NOT_EXIST);
 	    	}
@@ -1314,7 +1337,8 @@ public class LogicControl {
      *   sender:    中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:4; ...
      *   receiver:  中控:0;  手机:1;  设备控制服务器:2;  web:3;  主服务:4;  消息服务:5; ...
      *   ctrolID:1234567
-     *   profileSetID:7654321
+     *   //profileSetID:7654321
+     *   profileTemplateID:3    1睡眠  ，2观影，3离家， 4居家
      * }
      * @throws JSONException 
      * @return message 的json格式：
@@ -1333,7 +1357,7 @@ public class LogicControl {
      */
     public void get_profile_set(Message msg) {
     	JSONObject json=new JSONObject();
-    	ProfileSet profileSet=null;
+    	List<Profile> profileList;
     	int ctrolID;
 		try {
 			ctrolID = msg.getJson().getInt("ctrolID");
@@ -1346,16 +1370,15 @@ public class LogicControl {
 	    	}
 			json.put("sender",2);
 			json.put("receiver",sender);
-	    	if((profileSet=profileSetMap.get(key))!=null /*|| (profileSet=ProfileSet.getProfileSetFromDB(mysql, ctrolID, profileSetID))!=null*/){
-	    		json.put("profileSet", profileSet.toJsonObj());
+			
+	    	if((profileList=profileMap.getProfileSetByTemplateID(ctrolID, profileSetID))!=null ){
+	    		
+	    		json.put("profileSet", ProfileSet.toJson(profileList));
 	    		json.put("errorCode",SUCCESS);   
 	    	}else {
 				log.error("Can't get_profile_set, ctrolID:"+ctrolID+" profileSetID:"+profileSetID+" from profileMap or Mysql.");
 				json.put("errorCode",PROFILE_SET_NOT_EXIST);
 	    	}
-
-
-
 		} catch (JSONException e1) {
 			e1.printStackTrace();
 			try {
@@ -1412,46 +1435,44 @@ public class LogicControl {
 	    	json.put("ctrolID",ctrolID);
 			json.put("sender",2);
 			json.put("receiver",sender); 
-	    	if((dbProfileSet=profileSetMap.get(key))==null || (dbProfileSet!=null &&  dbProfileSet.getModifyTime().before(msgModifyTime))){
-    			//2015-06-01 和李鹏商量，商定profileSet分房间发送,set里面不再包含profile任何细节
-	    		if(msgProfileSet.getProfileList()==null){
-	    			json.put("errorCode",PROFILESET_PROFILELIST_IS_INCONTACT); 
-	    		}else{
-	    			List<Integer> profileIDs=msgProfileSet.getProfileList();
-	    			boolean contact_flag=true;
-		    		for (int i = 0; i < profileIDs.size(); i++) {
-						String tmpKey=msgProfileSet.getCtrolID()+"_"+profileIDs.get(i);
-						if(!profileMap.containsKey(tmpKey)){
-							json.put("errorCode",PROFILESET_PROFILELIST_IS_INCONTACT);
-							contact_flag=false;
-						}
+
+			//2015-06-01 和李鹏商量，商定profileSet分房间发送,set里面不再包含profile任何细节
+    		if(msgProfileSet.getProfileList()==null){
+    			json.put("errorCode",PROFILESET_PROFILELIST_IS_INCONTACT); 
+    		}else{
+    			List<Integer> profileIDs=msgProfileSet.getProfileList();
+    			boolean contact_flag=true;
+	    		for (int i = 0; i < profileIDs.size(); i++) {
+					String tmpKey=msgProfileSet.getCtrolID()+"_"+profileIDs.get(i);
+					if(!profileMap.containsKey(tmpKey)){
+						json.put("errorCode",PROFILESET_PROFILELIST_IS_INCONTACT);
+						contact_flag=false;
 					}
-		    		if(contact_flag==true){
-			    		ProfileSet ps=profileSetMap.put(key, msgProfileSet);
-						/*JSONArray ja=msg.getJson().getJSONObject("profileSet").getJSONArray("profileArray");
-			    		for (int i=0;i< ja.length();i++) {
-			    			
-			    			Profile p=new Profile(ja.getJSONObject(i));	    			
-							String key2=ctrolID+"_"+p.getProfileID();
-							Profile p2=profileMap.put(key2, p);
-							if(p2!=null){
-								json.put("errorCode",SUCCESS); 
-							}else{
-								json.put("errorCode",SQL_ERROR); 
-								break;
-							}
-						}*/
-						if(ps!=null){
+				}
+	    		if(contact_flag==true){
+	    			json.put("errorCode",SUCCESS); 
+		    		//ProfileSet ps=profileSetMap.put(key, msgProfileSet);
+					/*JSONArray ja=msg.getJson().getJSONObject("profileSet").getJSONArray("profileArray");
+		    		for (int i=0;i< ja.length();i++) {
+		    			
+		    			Profile p=new Profile(ja.getJSONObject(i));	    			
+						String key2=ctrolID+"_"+p.getProfileID();
+						Profile p2=profileMap.put(key2, p);
+						if(p2!=null){
 							json.put("errorCode",SUCCESS); 
 						}else{
-							json.put("errorCode",PROFILESET_PROFILELIST_IS_INCONTACT); 
+							json.put("errorCode",SQL_ERROR); 
+							break;
 						}
-		    		}
-		    	 }
-	    	}else if( dbProfileSet.getModifyTime().after(msgModifyTime)){	//云端较新  
-	    		log.error("Profile in Cloud is newer than from profile from user, ctrolID:"+ctrolID+" profileID:"+profileSetID+".");
-				json.put("errorCode",PROFILE_SET_OBSOLETE);    		
-	    	}   
+					}
+					if(ps!=null){
+						json.put("errorCode",SUCCESS); 
+					}else{
+						json.put("errorCode",PROFILESET_PROFILELIST_IS_INCONTACT); 
+					}*/
+	    		}
+	    	 }
+  
 		} catch (JSONException e1) {
 			e1.printStackTrace();
 			try {
@@ -1478,6 +1499,7 @@ public class LogicControl {
 		} 	
 	}
 	
+	//  --------------------  profileSet表 的数据表不再适用  -------------
     /*** 删除情景模式集
      * <pre>传入的json格式为：
      * { 
@@ -1490,7 +1512,7 @@ public class LogicControl {
      *   （2）如果查询的情景模式存在，则返回情景模式的json格式                  
      */
     public void delete_profile_set(Message msg) {
-    	JSONObject json=new JSONObject();
+    /*	JSONObject json=new JSONObject();
     	//Profile profile=null;
     	int ctrolID;
 		try {
@@ -1534,7 +1556,7 @@ public class LogicControl {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace(); logException(e);
-		}    	
+		}   */ 	
     }
 	
 
@@ -1640,7 +1662,7 @@ public class LogicControl {
 			if(profileList!=null){
 				for (Profile profile : profileList) {
 					String key2=profile.getCtrolID()+"_"+profile.getProfileID();
-			    	if((profile2= profileMap.get(key2))!=null|| (profile=Profile.getFromDBByProfileID(mysql, ctrolID, profile.getProfileID()))!=null){
+			    	if((profile2= profileMap.get(key2))!=null /*|| (profile=Profile.getFromDBByProfileID(mysql, ctrolID, profile.getProfileID()))!=null*/){
 			    		if(profile.getProfileSetID()>=1  && !profile.isEmpty()){  //如果该情景和 情景集联动，setID==1
 		    			 jedis.hset(currentProfile+ctrolID, profile.getRoomID()+"", profile.toJsonObj().toString());
 		    			 all_profile_is_empty = all_profile_is_empty && profile.isEmpty(); //判断是否所有的情景的详情都为空	 
@@ -1721,7 +1743,7 @@ public class LogicControl {
      * }                 
      */
     public void get_all_profile_set(Message msg) {
-    	List<ProfileSet> profileSetList=null;
+    	/*List<ProfileSet> profileSetList=null;
 		JSONObject json= new JSONObject();
     	int ctrolID;
 		try {
@@ -1761,7 +1783,7 @@ public class LogicControl {
     		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace(); logException(e);
-		}    	
+		}  */  	
     }
      
     /*** 保存或者上传一个情景模式
@@ -1784,7 +1806,7 @@ public class LogicControl {
      * @throws ParseException 
 	*/
     public void set_all_profile_set( Message msg) {
-    	JSONObject json=new JSONObject();
+    	/*JSONObject json=new JSONObject();
     	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     	//Profile msgProfile=new Profile(msg.getJson().getJSONObject("profile"));
     	ProfileSet dbProfile;
@@ -1821,7 +1843,7 @@ public class LogicControl {
 				}    		
 			}  
 			
-			/*删除云端存在但是上报不存在的*/
+			//删除云端存在但是上报不存在的
 		      List<ProfileSet> dbProfileList=profileSetMap.getProfileSetsByctrolID(ctrolID);
 		      for (Iterator iterator = dbProfileList.iterator(); iterator.hasNext();) {
 		    	  ProfileSet profile = (ProfileSet) iterator.next();
@@ -1854,7 +1876,7 @@ public class LogicControl {
 			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
 			e.printStackTrace(); logException(e);
-		}     	
+		}  */   	
     }
     
 	/*** 请求查询一个用户家里所有情景模式列表，不含情景详细信息
@@ -1893,8 +1915,26 @@ public class LogicControl {
 				   sender=msg.getJson().getInt("sender");
 			}
 			json.put("sender",2);	
-			json.put("receiver",sender); 
-	    	if( (profileSetList= profileSetMap.getProfileSetsByctrolID(ctrolID)).size()!=0  ){
+			json.put("receiver",sender);  
+			JSONArray ja=new JSONArray();
+			for (int i = 1; i <= 5; i++) {
+				List<Profile> profileList=profileMap.getProfileSetByTemplateID(ctrolID, i);  //获取情景集
+				if(profileList!=null){
+					Date modifyDate=new Date(0);
+					for (Iterator iterator = profileList.iterator(); iterator
+							.hasNext();) {
+						Profile profile = (Profile) iterator.next();
+						if (profile.getModifyTime().after(modifyDate)) {  //取较晚的时间
+							modifyDate=profile.getModifyTime();
+						}						
+					}					
+	    			JSONObject jo=new JSONObject();
+	    			jo.put("profileSetID", i);
+	    			jo.put("modifyTime", modifyDate.getTime()/1000);
+					ja.put(jo);
+				}				
+			}
+	    	/*if( (profileSetList= profileSetMap.getProfileSetsByctrolID(ctrolID)).size()!=0  ){
 	    		JSONArray ja=new JSONArray();
 	    		for (ProfileSet profile : profileSetList) {
 	    			JSONObject jo=new JSONObject();
@@ -1907,7 +1947,7 @@ public class LogicControl {
 	    	}else {
 				log.error("Can't get_room_profileSet by ctrolID:"+ctrolID+" from profileMap or Mysql.");
 				json.put("errorCode",PROFILE_SET_NOT_EXIST);
-	    	}
+	    	}*/
 		} catch (JSONException e1) {
 			e1.printStackTrace();
 			try {
@@ -2228,7 +2268,7 @@ public class LogicControl {
 	    				JSONObject jo=new JSONObject();
 	    				jo.put("profileTemplateID",pt.getProfileTemplateID());
 	    				jo.put("name",pt.getProfileTemplateName());
-	    				jo.put("modifyTime",sdf.format(pt.getModifyTime()));
+	    				jo.put("modifyTime",pt.getModifyTime().getTime()/1000);//sdf.format(pt.getModifyTime())
 	    				//ja.put(pt.toJsonObj());
 	    				ja.put(jo);
 	    			}
@@ -2431,6 +2471,7 @@ public class LogicControl {
 				String key2=LogicControl.roomBind+ctrolID;
 	    		int roomID=msgDevice.getRoomID();
 	    		jedis.hset(key2, deviceID+"", msgDevice.toJsonObj().toString());
+
 	    	}else if(dbDevice.modifyTime.after(msgModifyTime)){ //云端较新  
 	    		log.error("Profile in Cloud is newer than from profile from user, ctrolID:"+ctrolID+" deviceID:"+deviceID+".");
 				json.put("errorCode",DEVICE_OBSOLETE);   
@@ -2555,20 +2596,17 @@ public class LogicControl {
         		JSONObject stateJson=new JSONObject();
         		stateJson.put("time", sdf.format(new Date()));
         		stateJson.put("sender", sender);
-	        	if(msg.getJson().has("state")){    //air conditional
+	        	if(msg.getJson().has("state")){    //air conditional空调
 	        		state=new DeviceState(msg.getJson().getJSONObject("state"));
+	        		DeviceState oldState=new DeviceState();
 	        		if(deviceType==541){  //空调默认值
-		        		if(state.getMode()==-1){
-		        			state.setMode(0);
-		        		}
-		        		if(state.getWindSpeed()==-1){
-		        			state.setWindSpeed(0);
-		        		}
-		        		if(state.getTempreature()==-1){
-		        			state.setTempreature(23);
-		        		}
-	        		}	
-	        		stateJson.put("state", state.toJson());
+	        			String oldStateStr=jedis.hget(key2, deviceID+"");
+	        			if (oldStateStr!=null) {
+	        				oldState=new DeviceState(new JSONObject(oldStateStr));
+	        				oldState.replaceAdd(state);
+						}	        			
+	        		}
+	        		stateJson.put("state", oldState.toJson());
 	        		jedis.hset(key2, deviceID+"", stateJson.toString());
 	        		if(sender==0){
 	        			json.put("errorCode",SUCCESS);   		
@@ -2584,6 +2622,23 @@ public class LogicControl {
 	        		int keyType=msg.getJson().getInt("keyType");
 	        		stateJson.put("keyType", keyType);
 	        		jedis.hset(key2, deviceID+"",stateJson.toString());
+	        		if(deviceType==131 && keyType==502){  //智能插座关闭
+	        			Device plug=deviceMap.get(ctrolID+"_"+deviceID);
+	        			if(plug!=null){
+	        				int relatedDevID=plug.getRelatedDevType();  //智能插座关联的设备
+	        				String devStateStr=jedis.hget(key2, relatedDevID+"");
+	        				if(devStateStr!=null){
+	        					JSONObject jsonState=new JSONObject(devStateStr);
+	        					if(jsonState.has("state")){  //空调
+	        						DeviceState airState=new DeviceState(jsonState);
+	        						airState.setOnOff(1);    // 1代表空调关闭
+	        					}else{                      //其他家电
+	        						
+	        					}
+	        				}
+	        				
+	        			}
+	        		}
   
 	        		if(sender==0){
 	        			json.put("errorCode",SUCCESS);   		
@@ -2826,7 +2881,7 @@ public class LogicControl {
 	    		for (Device device : deviceList) {
 	    			JSONObject jo=new JSONObject();
 	    			jo.put("deviceID", device.getDeviceID());
-	    			jo.put("modifyTime", sdf.format(device.getModifyTime()));
+	    			jo.put("modifyTime", device.getModifyTime().getTime()/1000);//sdf.format(device.getModifyTime())
 					ja.put(jo);
 				}
 	    		json.put("deviceArray", ja);
@@ -3003,6 +3058,7 @@ public class LogicControl {
 	    	Room dbRoom;
 	    	int ctrolID=msg.getJson().getInt("ctrolID");
 	    	int roomID=msgRoom.getRoomID();
+	    	int roomType=msgRoom.getRoomType();
 	    	Date msgModifyTime=msgRoom.getModifyTime();
 	    	String key=ctrolID+"_"+roomID;
 	    	int sender=0;
@@ -3015,6 +3071,18 @@ public class LogicControl {
 	    		Room r=this.roomMap.put(key, msgRoom);
 	    		String jedisKey=LogicControl.roomList+ctrolID;
 	    		jedis.hset(jedisKey, roomID+"", msgRoom.toJsonObject().toString());
+	    		//自动给新创建的房间设置当前 情景模式为手动模式
+	    		Map<Integer, Set<Integer>> currentProfileMap=Profile.getCurrentProfileTemplateID(jedis, ctrolID);
+	    		if(currentProfileMap!=null && currentProfileMap.size()==1){
+	    			Iterator<Integer> it = currentProfileMap.keySet().iterator();
+	    			int profileTemplateID=it.next();
+	    			Profile p= Profile.getCustomerProfile(ctrolID, profileTemplateID, roomID, roomType);
+	    			jedis.hset(LogicControl.currentProfile+ctrolID, roomID+"", p.toJsonObj().toString());
+	    		}else{
+	    			Profile p= Profile.getCustomerProfile(ctrolID, 5, roomID, roomType);
+	    			jedis.hset(LogicControl.currentProfile+ctrolID, roomID+"", p.toJsonObj().toString());
+	    		}
+	    		
 	    		if(r!=null){
 	    			json.put("errorCode",SUCCESS);
 	    		}else{
@@ -3263,7 +3331,7 @@ public class LogicControl {
 	    		for (Room room : roomList) {
 	    			JSONObject jo=new JSONObject();
 	    			jo.put("roomID", room.getRoomID());
-	    			jo.put("modifyTime", sdf.format(room.getModifyTime()));
+	    			jo.put("modifyTime", room.getModifyTime().getTime()/1000);//sdf.format(room.getModifyTime())
 					ja.put(jo);
 				}
 	    		json.put("roomArray", ja);
@@ -3334,6 +3402,7 @@ public class LogicControl {
 	
 	public void warning_msg_ack(final Message msg){
 		//System.out.println("successfull sending warning message");
+		
 	} 	
 	
 	  /*** 取消告警消息
@@ -3347,11 +3416,11 @@ public class LogicControl {
 	    role: 0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务  
 	  }
 	  */
-	public void cancel_warning_msg(final Message msg){
+	public void report_control_msg(final Message msg){
 		JSONObject json=msg.getJson();
 		Message replyMsg=new Message(msg);
 		JSONObject replyjson=new JSONObject();	
-		replyMsg.setCommandID(CANCEL_WARNING_MSG_ACK);
+		replyMsg.setCommandID(REPORT_CONTROL_MSG_ACK);
 		try {
 			replyjson.put("errorCode", 0);
 			replyMsg.setJson(replyjson);
@@ -3780,20 +3849,31 @@ public class LogicControl {
 				   sender=msg.getJson().getInt("sender");
 			}
 			json.put("sender",2);	
-			json.put("receiver",sender); 
-			//TriggerTemplateMap rm=new TriggerTemplateMap(mysql);
-	    	if( triggerTemplateMap.size()!=0  ){
+			json.put("receiver",sender);
+			int count=msg.getJson().getInt("count");
+			int offset=msg.getJson().getInt("offset");
+			int i=0;
+	    	if( triggerTemplateMap.size()!=0 && count>0 ){
 	    		JSONArray ja=new JSONArray();
 	    		for (Entry<Integer, TriggerTemplate> entry:triggerTemplateMap.entrySet()) {
-	    			/*JSONObject jo=new JSONObject();
-	    			jo.put("triggerTemplateID", entry.getValue().getTriggerTemplateID());
-	    			jo.put("modifyTime", sdf.format(entry.getValue().getModifyTime()));
-					ja.put(jo);*/
-	    			ja.put( entry.getValue().toJsonHeader());
-				}
+	    			if (i>=offset && i<offset+count){
+	    				ja.put( entry.getValue().toJsonHeader());
+	    			}else if (i>=offset+count){
+	    				break;
+	    			}
+	    			i++;
+	    		}	
+	    		json.put("offset", i);
+	    		if(i>=triggerTemplateMap.size()){
+	    			json.put("end", 1);
+	    		}else{
+	    			json.put("end", 0);
+	    		}
 	    		json.put("triggerTemplateArray", ja);
 	    		json.put("errorCode",SUCCESS);
 	    	}else {
+	    		json.put("end", 1);
+	    		json.put("offset", offset);
 				log.error("can't get trigger template from mysql,please check cfg_trigger_template_header.");
 				json.put("errorCode",TRIGGER_TEMPLATE_NOT_EXIST);
 	    	}
@@ -4354,7 +4434,12 @@ public class LogicControl {
 				}else{
 					TuringCatAesCrypto crypto = new TuringCatAesCrypto();
 					crypto.setToken("token_key");
-					String encrypted = crypto.encrypt("keyfiles3/"+fileName);
+					int pos3=ir_file_path.lastIndexOf('\\');
+					if(pos3<0){
+						pos3=ir_file_path.lastIndexOf('/');
+					}
+					String fid3=ir_file_path.substring(pos3+1,ir_file_path.length());
+					String encrypted = crypto.encrypt(fid3+"/"+fileName);
 					url=ir_file_ip+encrypted;
 					json.put("url", url);
 					json.put("errorCode", SUCCESS);

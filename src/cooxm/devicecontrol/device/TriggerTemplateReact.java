@@ -190,7 +190,7 @@ public class TriggerTemplateReact {
 		 //long a=System.currentTimeMillis()/1000;
 		 //System.out.println(a);
 		 
-		 Jedis jedis =new Jedis("172.16.35.170", 6379);//("120.24.81.226", 6379);
+		 Jedis jedis =new Jedis("172.16.35.170", 6379,5000);//("120.24.81.226", 6379);
 		 jedis.select(9);
 		 String b = jedis.hget("currentProfile:40008", 3000+"");
 		 System.out.println(b);

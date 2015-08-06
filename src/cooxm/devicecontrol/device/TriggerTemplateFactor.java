@@ -27,6 +27,9 @@ public class TriggerTemplateFactor extends FactorTemplate{
 	 */
 	private int accumilateTime;
 	
+	/** 同一条规则触发之间的时间间隔*/
+	private int interval; 
+	
 	public String getLogicalRelation() {
 		return logicalRelation;
 	}
@@ -42,17 +45,24 @@ public class TriggerTemplateFactor extends FactorTemplate{
 	public void setAccumilateTime(int accumilateTime) {
 		this.accumilateTime = accumilateTime;
 	}
-	
 
+	public int getInterval() {
+		return interval;
+	}
+
+	public void setInterval(int interval) {
+		this.interval = interval;
+	}
 
 	public TriggerTemplateFactor(int factorID, int createOperator,
 			int modifyOperator, Date createTime, Date modifyTime, int roomType,
-			int operator, int minValue, int maxValue, int isabstract,
-			String logicalRelation, int accumilateTime) {
+			int operator, int minValue, int maxValue, int validFlag,
+			String logicalRelation, int accumilateTime,int interval) {
 		super(factorID, createOperator, modifyOperator, createTime, modifyTime,
-				roomType, operator, minValue, maxValue, isabstract);
+				roomType, operator, minValue, maxValue, validFlag);
 		this.logicalRelation = logicalRelation;
 		this.accumilateTime = accumilateTime;
+		this.interval=interval;
 	}
 	
 
@@ -78,12 +88,10 @@ public class TriggerTemplateFactor extends FactorTemplate{
 			factor.setMinValue(factorJson.getInt("minValue"));
 			factor.setMaxValue(factorJson.getInt("maxValue"));
 			factor.setMaxValue(factorJson.getInt("accumilateTime"));
-			//factor.setIsAbstract(factorJson.getInt("validFlag"));
-			factor.setCreateTime(sdf.parse(factorJson.getString("createTime")));
-			factor.setModifyTime(sdf.parse(factorJson.getString("modifyTime")) );
+			factor.setInterval(factorJson.getInt("interval"));
+			//factor.setCreateTime(sdf.parse(factorJson.getString("createTime")));
+			//factor.setModifyTime(sdf.parse(factorJson.getString("modifyTime")) );
 		} catch (JSONException e) {
-			e.printStackTrace();
-		} catch (ParseException e) {
 			e.printStackTrace();
 		}
 		
@@ -101,9 +109,9 @@ public class TriggerTemplateFactor extends FactorTemplate{
         	factorJson.put("minValue", getMinValue());
         	factorJson.put("maxValue", getMaxValue());
         	factorJson.put("accumilateTime", getAccumilateTime());
-        	//factorJson.put("validFlag", getIsAbstract());
-        	factorJson.put("createTime", sdf.format(getCreateTime()));
-			factorJson.put("modifyTime", sdf.format(getModifyTime()));
+        	factorJson.put("interval", getInterval());
+        	//factorJson.put("createTime", sdf.format(getCreateTime()));
+			//factorJson.put("modifyTime", sdf.format(getModifyTime()));
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}			

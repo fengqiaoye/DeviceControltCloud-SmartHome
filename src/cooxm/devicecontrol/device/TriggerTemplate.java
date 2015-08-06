@@ -305,10 +305,10 @@ public class TriggerTemplate {
 					+"operator ,"
 					+"min ,"
 					+"max ,"
-					+"accumilatetime   ,"
-					//+"isabstract, "
-					+"createtime, "
-					+"modifytime "
+					+"accumilatetime,   "
+					+"intervall "
+					//+"createtime, "
+					//+"modifytime "
 					+ ")"				
 					+"values "
 					+ "("
@@ -320,12 +320,12 @@ public class TriggerTemplate {
 					+ft.getOperator()+","
 					+ft.getMinValue()+","
 					+ft.getMaxValue()+","
-					+ft.getAccumilateTime()+",'"
-					//+ft.getIsAbstract()+",'"
-					+sdf.format(ft.getCreateTime())+"','"
-					+sdf.format(ft.getModifyTime())
-					+"');";
-			System.out.println(sql[i]);
+					+ft.getAccumilateTime() +","
+					+ft.getInterval() //+",'"
+					//+sdf.format(ft.getCreateTime())+"','"
+					//+sdf.format(ft.getModifyTime())
+					+");";
+			//System.out.println(sql[i]);
 			count=mysql.query(sql[i]);
 			i++;
 			//if(count>0) System.out.println("insert success"); 	
@@ -408,17 +408,17 @@ public class TriggerTemplate {
 					+"operator ,"
 					+"min ,"
 					+"max ,"
-					+"accumilatetime   ,"
-					+"isabstract, "
-					+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
-					+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
+					+"accumilatetime,   "
+					+"intervall "
+					//+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
+					//+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 					+ "  from  "				
 					+triggerFactorTable
 					+" where triggerid="+triggerid
 					+ ";";
-			System.out.println("query:"+sql);
+			//System.out.println("query:"+sql);
 			String res=mysql.select(sql);
-			System.out.println("get from mysql:\n"+res);
+			//System.out.println("get from mysql:\n"+res);
 			if(res==null || res=="" ) {
 				//System.err.println("ERROR:query result is empty: "+sql);
 				return null;
@@ -439,13 +439,13 @@ public class TriggerTemplate {
 					ft.setMinValue(Integer.parseInt(cells[6]));
 					ft.setMaxValue(Integer.parseInt(cells[7]));
 					ft.setAccumilateTime(Integer.parseInt(cells[8]));
-					//ft.setIsAbstract(Integer.parseInt(cells[9]));
-					try {
-						ft.setCreateTime(sdf.parse(cells[10]));
-						ft.setModifyTime(sdf.parse(cells[11]));
-					} catch (ParseException e) {
-						e.printStackTrace();
-					}					
+					ft.setInterval(Integer.parseInt(cells[9]));
+//					try {
+//						ft.setCreateTime(sdf.parse(cells[10]));
+//						ft.setModifyTime(sdf.parse(cells[11]));
+//					} catch (ParseException e) {
+//						e.printStackTrace();
+//					}					
 					factorList.add(ft);
 					
 				}else {
@@ -468,9 +468,9 @@ public class TriggerTemplate {
 					+triggerReactTable
 					+" where triggerid="+triggerid
 					+ ";";
-			System.out.println("query:"+sql2);
+			//System.out.println("query:"+sql2);
 			String res2=mysql.select(sql2);
-			System.out.println("get from mysql:\n"+res2);
+			//System.out.println("get from mysql:\n"+res2);
 			if(res2==null|| res2==""){
 				System.err.println("ERROR:empty query by : "+sql2);
 				return null;
@@ -503,9 +503,9 @@ public class TriggerTemplate {
 	
 	
 	public static void main(String[] args) {
-		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");		
-		TriggerTemplate t=getFromDB(mysql, 107);
-		t.triggerTemplateID++;
+		MySqlClass mysql=new MySqlClass("120.24.81.226","3306","cooxm_device_control", "cooxm", "cooxm");		
+		TriggerTemplate t=getFromDB(mysql, 101);
+		//t.triggerTemplateID++;
 		t.saveToDB(mysql);
 
 	}

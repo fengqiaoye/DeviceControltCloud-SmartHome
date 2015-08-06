@@ -53,7 +53,7 @@ public class TwoSocketServer
 			try
 			{
 				String clientName = socket.getRemoteSocketAddress().toString();
-				DataOutputStream output = new DataOutputStream(socket.getOutputStream());
+				//DataOutputStream output = new DataOutputStream(socket.getOutputStream());
 				DataInputStream input = new DataInputStream(socket.getInputStream());
 				while((msg = input.readUTF())!=null)
 				{
@@ -79,7 +79,7 @@ public class TwoSocketServer
 				String userInput;
 				String clientName = socket.getRemoteSocketAddress().toString();
 				DataOutputStream output = new DataOutputStream(socket.getOutputStream());
-				DataInputStream input = new DataInputStream(socket.getInputStream());
+				//DataInputStream input = new DataInputStream(socket.getInputStream());
 				while(true)
 				{
 					if(stdIn.ready())
@@ -92,6 +92,7 @@ public class TwoSocketServer
 						}
 					}
 				}
+				
 			}
 			catch(Exception e) {System.out.println(e.toString());}
 		}

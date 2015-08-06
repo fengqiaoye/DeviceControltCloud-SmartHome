@@ -203,7 +203,7 @@ public class ProfileTemplate {
 				+factor.getMinValue()+","
 				+factor.getMaxValue()+","
 				+factor.getOperator()+","
-				+factor.getIsAbstract()+","
+				+factor.getValidFlag()+","
 			    +factor.getCreateOperator()+","
 			    +factor.getModifyOperator()+",'"												
 				+sdf.format(factor.getCreateTime())+"','"
@@ -296,7 +296,7 @@ public class ProfileTemplate {
 				factor.setMinValue(Integer.parseInt(cells[3]));
 				factor.setMaxValue(Integer.parseInt(cells[4]));
 				factor.setOperator(Integer.parseInt(cells[5]));
-				factor.setIsAbstract(Integer.parseInt(cells[6]));
+				factor.setValidFlag(Integer.parseInt(cells[6]));
 				factor.setCreateOperator(Integer.parseInt(cells[7]));;
 				factor.setModifyOperator(Integer.parseInt(cells[8]));
 				try {
@@ -368,7 +368,7 @@ public class ProfileTemplate {
 					+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 					+ "  from "				
 					+profileTemplatIndexTable
-					//+" where templateid="+profileTemplateID
+					+" where templateid!=254"
 					+ ";";
 			//System.out.println("query:"+sql2);
 			String res2=mysql.select(sql2);
@@ -426,7 +426,7 @@ public class ProfileTemplate {
 					factor.setMinValue(Integer.parseInt(cells[3]));
 					factor.setMaxValue(Integer.parseInt(cells[4]));
 					factor.setOperator(Integer.parseInt(cells[5]));
-					factor.setIsAbstract(Integer.parseInt(cells[6]));
+					factor.setValidFlag(Integer.parseInt(cells[6]));
 					factor.setCreateOperator(Integer.parseInt(cells[7]));;
 					factor.setModifyOperator(Integer.parseInt(cells[8]));
 					try {
@@ -468,7 +468,7 @@ public class ProfileTemplate {
 		    	factorJson.put("minValue", factor.getMinValue());
 		    	factorJson.put("maxValue", factor.getMaxValue());
 		    	factorJson.put("operator", factor.getOperator());
-		    	factorJson.put("validFlag", factor.getIsAbstract());
+		    	factorJson.put("validFlag", factor.getValidFlag());
 		    	factorJson.put("createOperator", factor.getCreateOperator());
 		    	factorJson.put("modifyOperator", factor.getModifyOperator());
 		    	factorJson.put("createTime", sdf.format(factor.getCreateTime()));

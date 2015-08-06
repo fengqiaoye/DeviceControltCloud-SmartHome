@@ -17,6 +17,7 @@ import org.apache.log4j.Logger;
 
 import cooxm.devicecontrol.control.Configure;
 import cooxm.devicecontrol.control.MainEntry;
+import cooxm.devicecontrol.device.DeviceState;
 import cooxm.devicecontrol.encode.SQLiteUtil;
 import cooxm.devicecontrol.util.MySqlClass;
 import cooxm.devicecontrol.util.StringUtility;
@@ -28,14 +29,17 @@ import cooxm.devicecontrol.util.StringUtility;
 
 public class IRMatch2 {
 	static Logger log= Logger.getLogger(IRMatch.class);
-	private File fileDir;//=new File("D:\\documents\\cooxm\\document\\小秘智能家居后台设计\\红外码库\\ird3\\keyfiles3\\AC\\codes");
+	private File fileDir;//
 	/** < 疑或后1的个数，文件名> */
 	Map<Integer, String> fileScoreMap;//=new TreeMap<Integer, String>() ;	
 	/** Map< Type,Map<fileName,List<String>>> */
 	Map<String, HashMap<String, ArrayList<String>>> dirMap;
 	static SQLiteUtil sqlite;
 	int deviceType;
-	String rawCode;	
+	String rawCode;
+	boolean  return_flag=false;
+	
+	private String deviceTypeStr;	
 	
 	public int getDeviceType() {
 		return deviceType;
@@ -59,8 +63,9 @@ public class IRMatch2 {
 		this.fileScoreMap=new TreeMap<Integer, String>() ;
 		Configure cf=MainEntry.getConfig();
 		fileDir=new File(cf.getValue("ir_file_path"));
+		String sqlLibFile=cf.getValue("ird_sql_path");
 		this.dirMap=new HashMap<String, HashMap<String, ArrayList<String>>>();
-		this.sqlite=new SQLiteUtil("./ird4.db");
+		this.sqlite=new SQLiteUtil(sqlLibFile);//("./ird5.db");
 	}
 	
 	public void getTop5(){
@@ -114,11 +119,14 @@ public class IRMatch2 {
 		}
 		String rs=sqlite.select(sql);
 		//System.out.println(rs);
-		;
+     if(rs.length()>=20){
 		String frequency=rs.substring(18,20);
 		String C3length=getC3Length(rs);
 		String[] freStr={frequency,C3length};
         return freStr;
+     }else{
+    	 return new String[2];
+     }
     }
 	
 	public void clear(){
@@ -138,12 +146,12 @@ public class IRMatch2 {
 		}
 	}
 	
-	
+
 	/** 将匹配的结果按相差位数从小到大排序，结果保存在 map中
 	 * deviceType 设备类型
 	 * */
 	public  void match(File file,String c3code) {	
-		boolean return_flag=false;
+
     	Map<Integer, String> lineScoreMap= new TreeMap<Integer, String>();
     	
         if (file.isDirectory()) {
@@ -159,10 +167,23 @@ public class IRMatch2 {
             	//System.out.println("matching:"+file.getPath()+"---------------------");
             	int score=Integer.MAX_VALUE;
             	int byteLen=c3code.split(",").length;
-            	if(byteLen==getColumnNum(file)){
+            	
+				String path=file.getPath();
+    			String abstract_path="";
+				abstract_path=path.substring(path.indexOf("keyfiles")+10,path.length() );				
+				int pos=abstract_path.lastIndexOf('\\');
+				if(pos<0){
+					pos=abstract_path.lastIndexOf('/');
+				}
+				String fid=abstract_path.substring(pos+1,abstract_path.length()-4);
+				String[] dbFeature=this.getDBFeature(Integer.parseInt(fid),deviceType);
+				String rawFrenquency=this.getRawCodeFrequency();								
+				String rawC3length=this.getC3Length(rawCode);
+				
+            	if(byteLen==getColumnNum(file) &&dbFeature[0]!=null  &&dbFeature[1]!=null  && dbFeature[0].equals(rawFrenquency) && dbFeature[1].equals(rawC3length)){
             		String line=null;
             		try {
-            			String abstract_path="";
+
 						BufferedReader br=new BufferedReader(new FileReader(file));
 						while((line=br.readLine())!=null){
 							int diff= differceBitCount(line,c3code);
@@ -170,29 +191,22 @@ public class IRMatch2 {
 								lineScoreMap.put(diff, line);
 								score=Math.min(score, diff);
 							}
-							String path=file.getPath();
-							abstract_path=path.substring(path.indexOf("keyfiles3")+10,path.length() );
-							
-							int pos=abstract_path.lastIndexOf('\\');
-							if(pos<0){
-								pos=abstract_path.lastIndexOf('/');
-							}
-							String fid=abstract_path.substring(pos+1,abstract_path.length()-4);
 
-							if(score<=10){								
-								String[] dbFeature=this.getDBFeature(Integer.parseInt(fid),deviceType);
-								String rawFrenquency=this.getRawCodeFrequency();
-								String rawC3length=this.getC3Length(rawCode);
-								if(dbFeature[0].equals(rawFrenquency) && dbFeature[1].equals(rawC3length)){
-									//System.out.println("score=0,thisfrenquency="+dbFrenquency+",file="+abstract_path);
+
+							if(score<=8){	  //加入map列表
+								//System.out.print("score="+score+" ");
+								//System.out.println("score=0,thisfrenquency="+dbFrenquency+",file="+abstract_path);
+//								String fid=abstract_path.substring(pos+1,abstract_path.length()-4);
+//								String[] dbFeature=this.getDBFeature(Integer.parseInt(fid),deviceType);
+//								String rawFrenquency=this.getRawCodeFrequency();								
+//								String rawC3length=this.getC3Length(rawCode);
+								//if(dbFeature[0].equals(rawFrenquency) && dbFeature[1].equals(rawC3length)){
 									fileScoreMap.put(score, abstract_path+"|"+line);
-									return_flag=true;
-									return;
-								}else{
-									break;
-								}
-							}else{
-								fileScoreMap.put(score, abstract_path+"|"+lineScoreMap.get(score));
+									if(score==0){
+										return_flag=true;
+										return;
+									}
+								//}
 							}
 						}	
 						//System.out.println("SIZE of scoreMAP="+fileScoreMap.size()+",the top one is:"+abstract_path);
@@ -320,7 +334,10 @@ public class IRMatch2 {
 	public String recursiveMatch(IRMatch2  im){
     	
 		Configure cf=MainEntry.getConfig();
-		File file=new File(cf.getValue("ir_file_path"));
+		String ir_file_path=cf.getValue("ir_file_path")+"/"+getDeviceTypeStr(this.deviceType)+"/codes";
+		System.out.println("input file path = "+ir_file_path);
+		File file=new File(ir_file_path);
+
 		String C3code=im.getC3(this.rawCode);
 		System.out.println("C3CODE="+C3code);
 		//System.out.println("C3CODE len="+len);
@@ -359,7 +376,7 @@ public class IRMatch2 {
 			score=result[1];
 		}
 		
-		System.out.println(fileName+",diff="+score);
+		System.out.println("matched:"+fileName+", diff="+score);
 
 		int pos=fileName.lastIndexOf('\\');
 		if(pos<0){
@@ -375,6 +392,12 @@ public class IRMatch2 {
 		
 		String deviceTypeStr=fileName.substring(0,pos2);
 		System.out.println("TYPE="+deviceTypeStr);
+		int devType=getDeviceType(deviceTypeStr);
+		System.out.println("TYPE="+devType+"\n");
+		return null;
+	}
+	
+	public int getDeviceType(String deviceTypeStr) {
 		int devType=-1;
 		switch (deviceTypeStr) {
 		case "AC": //空调
@@ -402,8 +425,38 @@ public class IRMatch2 {
 			devType=-1;
 			break;
 		}
-		System.out.println("TYPE="+devType+"\n");
-		return null;
+		return devType;
+	}
+	
+	public String getDeviceTypeStr(int applianceType) {
+		String applianceTypeStr="";
+		switch (applianceType) {
+		case 541: //空调
+			applianceTypeStr="AC";
+			break;
+		case 501: //电视
+			applianceTypeStr="TV";
+			break;
+		case 511: //机顶盒
+			applianceTypeStr="STB";
+			break;
+		case 522: //DVD
+			applianceTypeStr="DVD";
+			break;
+		case 601: //电风扇
+			applianceTypeStr="FAN";
+			break;
+		case 591: //空气净化器
+			applianceTypeStr="ACL";
+			break;
+		case 521: //视频盒子
+			applianceTypeStr="IPTV";
+			break;	
+		default:
+			applianceTypeStr="";
+			break;
+		}
+		return applianceTypeStr;
 	}
 	
 	public void initFileMap(File file){		
@@ -415,7 +468,7 @@ public class IRMatch2 {
         } else {
             if (file.getName().endsWith("txt")) {
             	String path=file.getPath();
-            	String fileName=path.substring(path.indexOf("keyfiles3")+10,path.length() );
+            	String fileName=path.substring(path.indexOf("keyfiles")+10,path.length() );
     			int pos2=fileName.indexOf('\\');
     			if(pos2<0){
     				pos2=fileName.indexOf('/');
@@ -451,22 +504,132 @@ public class IRMatch2 {
             }
         }		
 	}
+	/** 
+
+	* @Title: getState 根据行号反推空调状态
+	* @Description: 根据行号反推空调状态
+	* @param  maxLineNo 文件总共有多少行
+	* @param  lineNo   红外码位于文件第几行
+	* @return         设备状态DeviceState(onOff, mode, windSpeed, windDirection, tempreature, keyType)
+	* @throws
+	 */
+	public static DeviceState getState(final int maxLineNo,int lineNo){
+		int onOff = -1;
+		int mode = -1;
+		int windSpeed = -1;
+		int windDirection =-1;
+		int tempreature = -1;
+		int keyType=-1;
+		DeviceState state=new DeviceState(onOff, mode, windSpeed, windDirection, tempreature, keyType);
+		switch (maxLineNo) {
+		case 3000:
+			lineNo=lineNo-1;
+			windDirection= lineNo % 5 ;// 风向4
+			lineNo=lineNo/5;//
+			windSpeed= lineNo % 4;//  风速2
+			lineNo=lineNo/4;
+			tempreature= lineNo % 15;//  温度
+			lineNo=lineNo/15;
+			mode= lineNo % 5;//  模式
+			lineNo=lineNo/5;
+			onOff= lineNo % 2;//  开关
+			state=new DeviceState(onOff, mode, windSpeed, windDirection, tempreature+16, keyType);
+			break;
+		case 15000:
+			lineNo=lineNo-1;
+			keyType= lineNo % 5 ;// key
+			lineNo=lineNo/5;//
+			windDirection= lineNo % 5;//  风向
+			lineNo=lineNo/5;
+			windSpeed= lineNo % 4;//  风速
+			lineNo=lineNo/4;
+			tempreature= lineNo % 15;//  温度
+			lineNo=lineNo/15;
+			mode=lineNo % 5;
+			lineNo=lineNo/5;
+			onOff= lineNo % 2;//  开关
+			state=new DeviceState(onOff, mode, windSpeed, windDirection, tempreature+16, keyType);
+			break;
+		case 14:
+			switch (lineNo) {
+			case 1:
+				keyType=0;
+				break;
+			case 2:
+				keyType=1;
+				mode=0;
+				break;
+			case 3:
+				keyType=1;
+				mode=1;
+				break;
+			case 4:
+				keyType=1;
+				mode=2;
+				break;
+			case 5:
+				keyType=1;
+				mode=3;
+				break;
+			case 6:
+				keyType=1;
+				mode=4;
+				break;
+			case 7:
+				keyType=2;
+				break;
+			case 8:
+				keyType=2;
+				break;
+			case 9:
+				keyType=3;
+				windSpeed=0;
+				break;
+			case 10:
+				keyType=3;
+				windSpeed=1;
+				break;
+			case 11:
+				keyType=3;
+				windSpeed=2;
+				break;
+			case 12:
+				keyType=3;
+				windSpeed=3;
+				break;
+			case 13:
+				keyType=4;
+				windDirection=0;
+				break;
+			case 14:
+				keyType=4;
+				windDirection=1;
+				break;	
+			default:
+				break;
+			}
+			keyType=lineNo;
+			state=new DeviceState(onOff, mode, windSpeed, windDirection, tempreature, keyType);
+			break;			
+		default:
+			break;
+		}
+		return state;
+	}
 
 	public static void main(String[] args) {
 		String[] raw=new String[50];
 		raw[0]="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
-		raw[1]="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
-		raw[2]="1e,04,00,00,24,00,26,82,a0,02,a0,82,a0,06,86,c1,23,4d,c2,00,11,85,c3,00,23,04,0c,00,50,02,00";
+		raw[1]="1e,04,00,00,24,00,26,82,a0,02,a0,82,a0,06,86,c1,23,4d,c2,00,11,85,c3,00,23,04,0c,00,50,02,00";
+		raw[2]="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
+
 		raw[3]="33,04,00,00,24,00,26,82,4e,01,f7,82,4e,6,3f,c1,11,76,c2,00,11,76,c3,00,30,4d,b2,f8,07,1b,e4,c2,00,14,a6,c1,11,76,c2,00,11,76,c3,00,30,4d,b2,f8,07,1b,e4,00,";
 		raw[4]="2e,04,00,00,24,00,26,82,11,02,45,82,11,06,6a,c1,0b,c8,c2,00,0b,c8,c1,0b,c8,c2,00,11,4c,c3,00,70,65,01,00,00,02,35,00,00,00,00,00,00,a0,e8,00";
 		raw[5]="24,04,00,00,24,00,26,81,b0,02,bd,81,b0,06,fc,c1,0b,d1,c2,00,11,8f,c3,00,58,65,01,00,00,35,00,00,00,00,00,4b,00";
 		raw [6]="27,04,00,00,24,00,26,81,f8,01,f8,81,f8,04,8d,c1,0e,11,c2,00,05,ff,c3,00,70,23,cb,26,01,00,20,08,07,09,00,00,00,00,4d,00";
 		raw [7]="47,04,00,00,24,00,26,82,88,02,88,82,88,06,79,c1,23,4d,c2,00,11,87,c3,00,23,18,09,20,50,02,c2,00,4e,1d,c3,00,20,00,20,00,e0,c2,00,9c,51,c1,23,4d,c2,00,11,87,c3,00,23,18,09,20,70,02,c2,00,4e,1d,c3,00,20,00,00,18,c0,00";
 		raw [8]="1e,04,00,00,24,00,26,82,6d,02,6d,82,6d,06,7c,c1,23,02,c2,00,11,63,c3,00,23,08,00,00,50,02,00";
-		raw[9]="2e,04,00,00,24,00,26,82,3e,02,3e,82,3e,06,3a,c1,0b,dc,c2,00,0b,dc,c1,0b,dc,c2,00,11,1c,c3,00,70,65,01,00,00,02,35,00,00,00,00,00,00,a0,e8,00";
-	    raw[10]="2b,04,00,00,24,00,26,81,e1,02,8d,81,e1,06,cc,c1,0b,fd,c2,00,0b,fd,c1,0b,fd,c2,00,11,5d,c3,00,58,65,81,00,00,35,00,00,00,00,00,cb,00";
-	    raw[11]="2a,04,00,00,24,00,26,81,8c,01,8c,81,8c,04,f9,c1,0d,6e,c2,00,04,f9,c3,00,88,40,00,14,80,43,01,a8,ee,03,00,68,00,00,02,00,00,52,00";
-	    raw[12]="33,04,00,00,24,00,26,82,34,02,34,82,34,06,5b,c1,14,a9,c2,00,14,a9,c3,00,30,4d,b2,f8,07,1b,e4,c2,00,14,a9,c1,14,a9,c2,00,14,a9,c3,00,30,4d,b2,f8,07,1b,e4,00";
+		raw[12]="33,04,00,00,24,00,26,82,34,02,34,82,34,06,5b,c1,14,a9,c2,00,14,a9,c3,00,30,4d,b2,f8,07,1b,e4,c2,00,14,a9,c1,14,a9,c2,00,14,a9,c3,00,30,4d,b2,f8,07,1b,e4,00";
 	    raw[13]="27,04,00,00,24,00,26,82,16,02,16,82,16,04,70,c1,0e,34,c2,00,04,70,c3,00,70,23,cb,26,01,00,20,08,07,09,00,00,00,00,4d,00";
 	    raw[14]="47,04,00,00,24,00,26,82,6b,02,6b,82,6b,06,93,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,50,02,c2,00,4e,3d,c3,00,20,00,20,00,e0,c2,00,9c,6f,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,70,02,c2,00,4e,3d,c3,00,20,00,00,18,c0,00";
 	    raw[15]="47,04,00,00,24,00,26,82,6b,02,6b,82,6b,06,93,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,50,02,c2,00,4e,3a,c3,00,20,00,20,00,d0,c2,00,9c,6c,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,70,02,c2,00,4e,3a,c3,00,20,00,00,18,c0,00";
@@ -480,19 +643,21 @@ public class IRMatch2 {
 		raw[23]="33,04,00,00,24,00,26,81,9a,02,96,81,99,06,e8,c1,10,ac,c2,00,11,a5,c3,00,30,4d,b2,f8,07,1b,e4,c2,00,14,d7,c1,10,a9,c2,00,11,a3,c3,00,30,4d,b2,f8,07,1b,e4,00";   
 		raw[24]="29,04,00,00,24,00,26,82,10,02,41,81,f5,06,6f,c1,17,75,c2,00,1c,88,c3,00,5f,ff,00,ff,00,ff,00,f7,08,f6,09,2a,55,c2,00,1d,28,00,";
 	    raw[25]="1e,04,00,00,24,00,26,82,09,02,1e,81,ec,06,a9,c1,23,4f,c2,00,11,98,c3,00,28,c3,02,0c,10,aa,00";
-		/* 以下为电视码  */
+		// 以下为电视码  /
 	    raw[26]="1d,04,00,00,24,00,26,82,86,01,e3,82,85,06,31,c1,23,4d,c2,00,11,60,c3,00,20,40,bf,12,ed,00";
 	    raw[27]="28,04,00,00,24,00,26,82,6d,01,fb,82,83,06,34,c1,11,b9,c2,00,11,64,c3,00,20,18,18,b,f4,c2,00,be,63,c1,11,b5,c2,00,11,65,00";
+	    raw[9]="2e,04,00,00,24,00,26,82,3e,02,3e,82,3e,06,3a,c1,0b,dc,c2,00,0b,dc,c1,0b,dc,c2,00,11,1c,c3,00,70,65,01,00,00,02,35,00,00,00,00,00,00,a0,e8,00";
+	    raw[10]="2b,04,00,00,24,00,26,81,e1,02,8d,81,e1,06,cc,c1,0b,fd,c2,00,0b,fd,c1,0b,fd,c2,00,11,5d,c3,00,58,65,81,00,00,35,00,00,00,00,00,cb,00";
+	    raw[11]="2a,04,00,00,24,00,26,81,8c,01,8c,81,8c,04,f9,c1,0d,6e,c2,00,04,f9,c3,00,88,40,00,14,80,43,01,a8,ee,03,00,68,00,00,02,00,00,52,00";
 	    
-	    /* 以下为机顶盒  */
+	    // 以下为机顶盒  /
 	    raw[28]="1d,04,00,00,24,00,26,82,49,02,1f,82,4a,06,6c,c1,23,29,c2,00,11,84,c3,00,20,20,8d,1a,e5,00";
 	    raw[29]="28,04,00,00,24,00,26,82,89,01,df,82,8a,06,2e,c1,23,67,c2,00,11,44,c3,00,20,01,fe,3,fc,c2,00,9b,b3,c1,23,43,c2,00,8,91,00";
-	    /* 以下为DVD  */
+	    // 以下为DVD  /
 	    raw[30]="1d,04,00,00,24,00,26,82,63,02,04,82,66,06,51,c1,23,46,c2,00,11,66,c3,00,20,49,b6,1a,e5,00";
 	    raw[31]="1d,04,00,00,24,00,26,82,46,02,21,82,45,06,70,c1,23,26,c2,00,11,85,c3,00,20,20,df,b,f4,00";
 	    raw[32]="3e,04,00,00,24,00,26,81,ea,03,f5,81,ec,07,da,c1,0f,99,c2,00,0f,9d,c3,00,18,4f,05,ab,c2,00,21,0f,c1,0f,94,c2,00,0f,9e,c3,00,18,4f,05,ab,c2,00,21,0f,c1,0f,93,c2,00,0f,9d,c3,00,18,4f,05,ab,00,";
 	    raw[33]="4f,04,00,00,24,00,38,82,41,03,9e,82,27,07,9e,c1,0f,d5,c2,00,0f,61,c3,00,18,4f,05,ab,c2,00,20,d2,c1,0f,d4,c2,00,0f,5f,c3,00,18,4f,05,ab,c2,00,20,d4,c1,0f,d3,c2,00,0f,60,c3,00,18,4f,05,ab,c2,00,20,d2,c1,0f,ea,c2,00,0f,49,c3,00,18,4f,05,ab,00";
-	    raw[34]="b3,04,00,00,24,00,26,82,88,02,45,82,8d,06,8e,c1,23,0f,c2,00,11,80,c3,00,23,31,07,00,50,02,c2,00,f1,40,c1,0b,ce,c2,00,0b,b3,c1,0c,2b,c2,00,11,5b,c3,00,48,a5,0e,06,00,30,02,04,00,87,c2,00,ef,e5,c1,11,59,c2,00,11,37,c3,00,30,4d,b2,de,21,07,f8,c2,00,14,86,c1,11,63,c2,00,11,36,c3,00,30,4d,b2,de,21,07,f8,c2,00,f0,06,c1,22,36,c2,00,12,0e,c3,00,28,03,18,0c,00,aa,c2,00,f2,24,c1,23,11,c2,00,11,6d,c3,00,23,71,07,20,50,02,c2,00,4e,51,c3,00,20,11,20,00,50,c2,00,9c,7a,c1,23,0d,c2,00,11,6e,c3,00,23,71,07,20,70,02,c2,00,4e,50,c3,00,20,11,00,30,60,00";
 	    raw[35]="60,04,00,00,24,00,26,81,f7,03,e8,81,f9,07,cd,c1,0f,a2,c2,00,0f,90,c3,00,18,4f,05,ab,c2,00,21,05,c1,0f,9f,c2,00,0f,93,c3,00,18,4f,05,ab,c2,00,21,04,c1,0f,9f,c2,00,0f,91,c3,00,18,4f,05,ab,c2,00,21,03,c1,0f,9f,c2,00,0f,91,c3,00,18,4f,05,ab,c2,00,21,05,c1,0f,a0,c2,00,0f,93,c3,00,18,4f,05,ab,00";
 	    raw[36]="82,04,00,00,24,00,26,82,43,03,9d,82,3f,07,80,c1,0f,e8,c2,00,0f,4e,c3,00,18,4f,05,ab,c2,00,20,ba,c1,0f,e8,c2,00,0f,4b,c3,00,18,4f,05,ab,c2,00,20,b6,c1,0f,eb,c2,00,0f,46,c3,00,18,4f,05,ab,c2,00,20,d4,c1,0f,ec,c2,00,0f,4c,c3,00,18,4f,05,ab,c2,00,20,b6,c1,0f,e9,c2,00,0f,4c,c3,00,18,4f,05,ab,c2,00,20,da,c1,0f,c6,c2,00,0f,78,c3,00,18,4f,05,ab,c2,00,20,d3,c1,0f,cc,c2,00,0f,65,c3,00,18,4f,05,ab,00";
 	    raw[37]="60,04,00,00,24,00,26,81,fb,03,e3,81,fb,07,c9,c1,0f,a7,c2,00,0f,8d,c3,00,18,4f,05,ab,c2,00,20,fd,c1,0f,a4,c2,00,0f,8c,c3,00,18,4f,05,ab,c2,00,20,fd,c1,0f,a3,c2,00,0f,8c,c3,00,18,4f,05,ab,c2,00,20,fd,c1,0f,a4,c2,00,0f,8d,c3,00,18,4f,05,ab,c2,00,20,fd,c1,0f,a5,c2,00,0f,8d,c3,00,18,4f,05,ab,00";
@@ -502,18 +667,28 @@ public class IRMatch2 {
 	    raw[41]="33,04,00,00,24,00,38,82,4d,01,fa,82,51,06,0d,c1,11,52,c2,00,10,f4,c3,00,30,4d,b2,de,21,07,f8,c2,00,14,1e,c1,11,51,c2,00,10,f2,c3,00,30,4d,b2,de,21,07,f8,00";
 	    //TV
 	    raw[42]="a8,04,00,00,24,00,26,82,14,03,c9,82,14,07,ad,c1,02,13,c2,00,03,ca,c3,00,09,56,01,c1,0f,c3,c2,00,0f,72,c3,00,18,4f,05,ab,c2,00,20,e2,c1,0f,bd,c2,00,0f,70,c3,00,18,4f,05,ab,c2,00,20,df,c1,0f,be,c2,00,0f,71,c3,00,18,4f,05,ab,c1,0f,c3,c2,00,0f,72,c3,00,18,4f,05,ab,c2,00,20,e2,c1,0f,bd,c2,00,0f,70,c3,00,18,4f,05,ab,c2,00,20,df,c1,0f,be,c2,00,0f,71,c3,00,18,4f,05,ab,c1,0f,c3,c2,00,0f,72,c3,00,18,4f,05,ab,c2,00,20,e2,c1,0f,bd,c2,00,0f,70,c3,00,18,4f,05,ab,c2,00,20,df,c1,0f,be,c2,00,0f,71,c3,00,18,4f,05,ab,00";
-	    //System.out.println(im.getC3(raw16));
-	    
-        System.out.println(new Date());
-	    for (int i = 42; i < 43; i++) {
+	    //TV
+	    raw[43]="3e,04,00,00,24,00,26,81,f5,03,ea,81,f6,07,d0,c1,0f,9f,c2,00,0f,93,c3,00,18,4f,05,ab,c2,00,21,05,c1,0f,9d,c2,00,0f,93,c3,00,18,4f,05,ab,c2,00,21,03,c1,0f,9d,c2,00,0f,92,c3,00,18,4f,05,ab,00";
+	    //AC
+	    raw[44]="33,04,00,00,24,00,26,82,50,01,f8,82,54,06,08,c1,11,56,c2,00,10,f1,c3,00,30,4d,b2,de,21,07,f8,c2,00,14,19,c1,11,55,c2,00,10,f0,c3,00,30,4d,b2,de,21,07,f8,00";
+	     //AC
+	    raw[45]="29,04,00,00,24,00,26,82,40,02,21,82,41,06,54,c1,17,f2,c2,00,1c,b7,c3,00,60,ff,00,ff,00,ff,00,fb,04,f6,09,2a,d5,c2,00,1c,a5,00";
+
+	    Date date =new Date();
+
+    	
+	    for (int i = 44; i < 45; i++) {
 	    	System.out.println(i);
 	    	IRMatch2 im=new IRMatch2();
-	    	im.init(raw[i], 501);
+	    	im.init(raw[i], 541);		
 	    	im.recursiveMatch(im);
-			
 		}
+
+
         
-    System.out.println(new Date());
+    System.out.println("IR match finished in :"+(new Date().getTime()-date.getTime())+" miliseconds");
+
+    
 	}
 	
 

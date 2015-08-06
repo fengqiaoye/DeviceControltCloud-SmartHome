@@ -177,11 +177,11 @@ public class EnviromentState {
 	public static void main(String[] args) throws SQLException {
 		// TODO Auto-generated method stub
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
-		ProfileSet p =new ProfileSet();
-		p=ProfileSet.getProfileSetFromDB(mysql, 12345677, 12345);
-		p.profileSetID++;
+		//ProfileSet p =new ProfileSet();
+		//p=ProfileSet.getProfileSetFromDB(mysql, 12345677, 12345);
+		//p.profileSetID++;
 		
-		p.saveProfileSetToDB(mysql);
+		//p.saveProfileSetToDB(mysql);
 	}
 	
 }

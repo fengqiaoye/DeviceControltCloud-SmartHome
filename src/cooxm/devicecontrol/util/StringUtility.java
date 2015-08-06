@@ -137,7 +137,7 @@ public class StringUtility {
  
 
 	public static void main(String[] args) {
-		String path="D:/documents/cooxm/document/Infrared/ird3/keyfiles3/DVD";
+		String path="D:/documents/cooxm/document/Infrared/ird3/keyfiles5/DVD";
 		
 //		String s = "4F,05,AB,4F,05,AB,4F,05,AB,";		
 //		String str=new StringUtility().find(s);

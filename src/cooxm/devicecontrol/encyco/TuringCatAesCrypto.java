@@ -123,13 +123,13 @@ public class TuringCatAesCrypto {
 	} 
 
 	public static void main(String[] args) {
-		String src = "keyfiles3/AC/codes/85.txt";//"keyfiles3/AC/codes/85.txt";
+		String src = "keyfiles5/AC/codes/85.txt";//"keyfiles5/AC/codes/85.txt";
 		TuringCatAesCrypto crypto = new TuringCatAesCrypto();
 		crypto.setToken("token_key");
 		System.out.println("src: " + src);
 		String encrypted = crypto.encrypt(src);
 		System.out.println("encrypted: " + encrypted);
-		String dec="Mm1iR1gwaVJKQzlrYnRPUFpmendvdWNnQzg2dk5Oc25ac3hoKzBYcWZIWlVjODdGYjVjaDdKK1pON1E9";
+		String dec="UU5UV2RoYzN1Z2ZiVks0dEdDRkZoU3pOdlJpUFNZcEcxa0xnUklSTzlnV2xmOG96b3AwL24wWDIxWk09";
 		String decrypted = crypto.decrypt(dec);
 		System.out.println("decrypted: " + decrypted);
 		
@@ -141,7 +141,7 @@ public class TuringCatAesCrypto {
 		hd.download(newURL);		
 		System.out.println("finished in "+(new Date().getTime()-start.getTime())/1000 +" secods");
 		
-//		String tes=AESUtil2.encodeAES("keyfiles3/AC/codes/85.txt","token_key");
+//		String tes=AESUtil2.encodeAES("keyfiles5/AC/codes/85.txt","token_key");
 //		String encyco=AESUtil.decrypt(tes);
 //		System.out.println(tes);
 //		System.out.println(encyco);

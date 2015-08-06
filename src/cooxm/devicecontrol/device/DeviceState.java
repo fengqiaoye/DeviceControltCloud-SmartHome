@@ -36,6 +36,17 @@ public class DeviceState {
 	
 	Date modifyTime;
 	
+	int keyType;
+	
+	
+	public int getKeyType() {
+		return keyType;
+	}
+
+	public void setKeyType(int keyType) {
+		this.keyType = keyType;
+	}
+
 	public int getOnOff() {
 		return onOff;
 	}
@@ -115,6 +126,7 @@ public class DeviceState {
 		this.windSpeed = -1;
 		this.windDirection =-1;
 		this.tempreature = -1;
+		this.keyType=-1;
 		/*this.channel = -1;
 		this.volumn = -1;
 		this.brightness = -1;*/
@@ -130,7 +142,7 @@ public class DeviceState {
 	音量的值 
 	 屏幕亮度值 */
 	public DeviceState(int onOff, int mode, int windSpeed, int windDirection,
-			int tempreature /*, int channel, int volumn, int brightness*/) {
+			int tempreature /*, int channel, int volumn, int brightness*/,int keyType) {
 		this.onOff = onOff;
 		this.mode = mode;
 		this.windSpeed = windSpeed;
@@ -140,6 +152,7 @@ public class DeviceState {
 		this.volumn = volumn;
 		this.brightness = brightness;*/
 		this.modifyTime=new Date();
+		this.keyType=keyType;
 	}
 	
 	public JSONObject toJson(){
@@ -155,6 +168,8 @@ public class DeviceState {
 			json.put("volumn", this.volumn);
 			json.put("brightness", this.brightness);*/
 			json.put("modifyTime", sdf.format(new Date()));
+			json.put("keyType", keyType);
+			
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
@@ -185,9 +200,27 @@ public class DeviceState {
 		}else{
 			this.modifyTime=new Date();
 		}
+		
+		this.keyType=json.optInt("keyType");
+	}
+	
+	/**<pre> 将一个旧的状态和一个新的状态叠加
+	 * 如果新状态某个字段是-1，则保持和 旧的相同;
+	 * 如果新状态某个字段不是-1，则将旧的状态这个字段用新的替换*/
+	public DeviceState replaceAdd(DeviceState newState) {
+		this.onOff=(newState.onOff==-1)         	? 	this.onOff		:newState.onOff;
+		this.mode=(newState.mode==-1)           	?  	this.mode		:newState.mode;
+		this.windSpeed=(newState.windSpeed==-1) 	?	this.windSpeed	:newState.windSpeed;
+		this.windDirection=(newState.windDirection==-1)	?this.windDirection	:newState.windDirection;
+		this.tempreature=(newState.tempreature==-1)	?	this.tempreature	:newState.tempreature;
+		this.keyType=(newState.keyType==-1)				?	this.keyType		:newState.keyType;	
+		return this;		
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws ParseException, JSONException {
+    DeviceState old=new DeviceState(-1, 0, -1, 5, -1, -1);
+    DeviceState newd=new DeviceState(1, 0, -1, 6, 25, 4);
+    old.replaceAdd(newd);
 
 	}
 

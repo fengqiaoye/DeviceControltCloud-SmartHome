@@ -130,29 +130,30 @@ public class RoomMap  extends HashMap<String, Room>{
 		if(null==this.mysql)
 			return null;
 		Room room =super.get(key);
-		Room.deleteRoomFromDB(mysql, room.ctrolID, room.roomID);
-		
-		//同时删除房间的情景模式，家电列表
-		try {
-			ProfileSet.deleteProfileSetByRoomIDFromRedis(this.jedis, room.ctrolID, room.roomID);//删Redis
-			LogicControl.profileSetMap.deleteProfileByRoomID(room.ctrolID, room.roomID);     //删数据库
+		if(room!=null){
+			Room.deleteRoomFromDB(mysql, room.ctrolID, room.roomID);
 			
-			Device.deleteProfileByRoomIDFromRedis(this.jedis, room.ctrolID, room.roomID);
-			LogicControl.deviceMap.deleteDevicesByroomID(room.ctrolID, room.roomID);
-			
-			Profile.deleteProfileByRoomIDFromRedis(this.jedis, room.ctrolID, room.roomID);
-			LogicControl.profileMap.deleteProfilesByRoomID(room.ctrolID, room.roomID);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return null;
+			//同时删除房间的情景模式，家电列表
+			try {
+				//ProfileSet.deleteProfileSetByRoomIDFromRedis(this.jedis, room.ctrolID, room.roomID);//删Redis
+				//LogicControl.profileSetMap.deleteProfileByRoomID(room.ctrolID, room.roomID);     //删数据库
+				
+				Device.deleteDeviceByRoomIDFromRedis(this.jedis, room.ctrolID, room.roomID);
+				LogicControl.deviceMap.deleteDevicesByroomID(room.ctrolID, room.roomID);
+				
+				Profile.deleteFactorByDeviceIDFromRedis(this.jedis, room.ctrolID, room.roomID);
+				LogicControl.profileMap.deleteProfilesByRoomID(room.ctrolID, room.roomID);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
 		}
-
 		return super.remove(key);
 	}
 	
 	public static void main (String[] args) throws SQLException{
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
-		Jedis jedis=new Jedis("172.16.35.170", 6379);
+		Jedis jedis=new Jedis("172.16.35.170", 6379,5000);
 		jedis.select(9);
 		RoomMap p = new RoomMap(mysql,jedis);
 		

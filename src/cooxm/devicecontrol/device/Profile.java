@@ -8,9 +8,12 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
@@ -587,6 +590,7 @@ public class Profile  {
    */
 	public	static int deleteFromDB(MySqlClass mysql,int ctrolID,int profileID) 
 		{
+			int res2=-1;
 			try {
 				mysql.conn.setAutoCommit(false);
 			} catch (SQLException e) {
@@ -600,7 +604,7 @@ public class Profile  {
 					+ ";";
 			System.out.println("query:"+sql);
 			int res=mysql.query(sql);
-			System.out.println("deleted "+ res + " rows of records from table:"+profileDetailTable);
+			//System.out.println("deleted "+ res + " rows of records from table:"+profileDetailTable);
 			if(res<=0 ) {
 				//System.err.println("ERROR: empty result: "+sql);
 				return 0;
@@ -613,18 +617,19 @@ public class Profile  {
 			+" and userroomstid="+profileID
 			+ ";";
 			System.out.println("query:"+sql2);
-			int res2=mysql.query(sql2);
+			res2=mysql.query(sql2);
 			System.out.println("deleted "+ res + " rows of records from table:"+profileIndexTable);
 			if(res2<0){
 				log.error("ERROR:exception happened: "+sql2);
-				return 0;
-			} 
+				return -1;
+			}
+			
 		try {
 			mysql.conn.commit();
 		} catch (SQLException e) {
 			e.printStackTrace();
-		}			
-		return 1;			
+		}	
+		return res2;					
 	}
 	
 	   /*** 
@@ -673,7 +678,7 @@ public class Profile  {
 			return 1;			
 		}
 		
-		public static void deleteProfileByRoomIDFromRedis(Jedis jedis,int ctrolID,int roomID) throws JSONException, ParseException{
+		/*public static void deleteCurrentProfileByRoomIDFromRedis(Jedis jedis,int ctrolID,int roomID) throws JSONException, ParseException{
 			Map<String, String> profileMap = jedis.hgetAll(LogicControl.currentProfile+ctrolID);
 			for (Map.Entry<String, String> entry:profileMap.entrySet()) {
 				Profile p=new Profile(new JSONObject(entry.getValue()));
@@ -682,7 +687,7 @@ public class Profile  {
 				}				
 			}
 			
-		}
+		}*/
 		
 		public static void deleteFactorByDeviceIDFromRedis(Jedis jedis,int ctrolID,int deviceID) throws JSONException, ParseException{
 			Map<String, String> profileMap = jedis.hgetAll(LogicControl.currentProfile+ctrolID);
@@ -835,22 +840,76 @@ public class Profile  {
 		
 	}
 	
+	public static Map<Integer, Set<Integer>> getCurrentProfileTemplateID(Jedis jedis,int ctrolID) throws JSONException{
+		Map<Integer, Set<Integer>> currentProfile=new HashMap<Integer, Set<Integer>>();
+		Map<String, String> x = jedis.hgetAll(LogicControl.currentProfile+ctrolID);
+		if(x==null){
+			return null;
+		}else{
+			Iterator<Map.Entry<String, String>> it = x.entrySet().iterator();				
+			while( it.hasNext()){
+				Map.Entry<String, String> pmap=it.next();
+				JSONObject json=new JSONObject(pmap.getValue())	;
+				int templateID=json.getInt("profileTemplateID");
+				Set<Integer> roomIDSet=currentProfile.get(templateID);
+				if(roomIDSet==null){
+					roomIDSet=new TreeSet<Integer>() ;
+				}
+				roomIDSet.add(Integer.parseInt(pmap.getKey()));	
+				currentProfile.put(templateID, roomIDSet);
+			}
+		}
+		return currentProfile;
+	}
+	
+	
+	public static String getOneProfile(Jedis jedis,int ctrolID){
+		Map<String, String> x = jedis.hgetAll(LogicControl.currentProfile+ctrolID);
+		if(x==null){
+			return null;
+		}else{
+			Iterator<Map.Entry<String, String>> it = x.entrySet().iterator();				
+			while( it.hasNext()){
+				Map.Entry<String, String> pmap=it.next();
+				return pmap.getValue()	;
+			}
+		}
+		return null;
+	}
+	
+	
+	public static Profile getCustomerProfile(int ctrolID,int profileTemplateID,int roomID,int roomType){
+		Profile p=new Profile();
+		p.profileID = 199;
+		p.profileName = "手动模式";
+		p.ctrolID = ctrolID;
+		p.profileTemplateID = profileTemplateID;
+		p.profileSetID = 1;
+		p.roomID=roomID;
+		p.roomType=roomType;
+		p.factorList = new ArrayList<Factor>() ;
+		p.createTime = new Date();
+		p.modifyTime = new Date();
+		return p;
+		
+	}
 
 	
 	public static void main(String[] args) throws SQLException, JSONException {
-		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
-		Profile p =new Profile();
-		p=Profile.getFromDBByProfileID(mysql, 12345677, 123456789);
-		p.getFactorList().remove(0);
-		p.setProfileName("离家模式111");
-		p.saveToDB(mysql);
+//		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
+//		Profile p =new Profile();
+//		p=Profile.getFromDBByProfileID(mysql, 12345677, 123456789);
+//		p.getFactorList().remove(0);
+//		p.setProfileName("离家模式111");
+//		p.saveToDB(mysql);
+		//System.out.println(p.toJsonObj().toString());
+	    //JSONObject jo=p.toJsonObj();
 		
-		System.out.println(p.toJsonObj().toString());
-	    //JSONObject jo=p.toJsonObj();		
-
-	
+		Jedis jedis =new Jedis("120.24.81.226",6379, 5000);
+		jedis.select(9);
+		Map<Integer, Set<Integer>> x = getCurrentProfileTemplateID(jedis,10002);
+		String x2=getOneProfile(jedis,10002);
 		
-//		IRMatch2.saveUnknownCode(mysql, 0, 501, "TV", "3e,04,00,00,24,00,26,81,ea,03,f5,81,eb,07,d8,c1,0f,98,c2,00,0f,a0,c3,00,18,cf,01,e3,c2,00,21,0c,c1,0f,95,c2,00,0f,9d,c3,00,18,cf,01,e3,c2,00,21,0e,c1,0f,96,c2,00,0f,9d,c3,00,18,cf,01,e3,00,");
 	}
 
 }

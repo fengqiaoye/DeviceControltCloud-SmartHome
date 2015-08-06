@@ -58,7 +58,7 @@ public class IRFileDownload {
 	/** 如果初始化时候 filename的文件含没有.txt后缀，用这个函数
 	 */
 	public String getURL(){	
-		String url=DOWNLOAD_FTP_IP+"/keyfiles3/"+this.getFilename()+".txt"; 		
+		String url=DOWNLOAD_FTP_IP+"/keyfiles5/"+this.getFilename()+".txt"; 		
 		return url;		
 	}
 	
@@ -69,7 +69,7 @@ public class IRFileDownload {
 	* @return String    
 	*/
 	public String getURLWithoutExtention(){	
-		String url=DOWNLOAD_FTP_IP+"/keyfiles3/"+this.getFilename(); 
+		String url=DOWNLOAD_FTP_IP+"/keyfiles5/"+this.getFilename(); 
 		return url;		
 	}
 	
@@ -112,7 +112,7 @@ public class IRFileDownload {
             ftpClient.connect(DOWNLOAD_FTP_IP); 
             ftpClient.login("anonymous", "12345678"); 
 
-            String remoteFileName = "/keyfiles3/AC/codes/"+this.getFilename()+".txt"; 
+            String remoteFileName = "/keyfiles5/AC/codes/"+this.getFilename()+".txt"; 
             //String remoteFileName = "/AC/codes/"+this.getFilename()+".txt"; 
             fos = new FileOutputStream("d:/"+this.getFilename()+".txt"); 
 

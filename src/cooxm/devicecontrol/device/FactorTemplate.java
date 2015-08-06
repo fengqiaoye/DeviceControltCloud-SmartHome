@@ -40,7 +40,7 @@ public class FactorTemplate  extends FactorDict  {
 
 	/**是否抽象的，0：无效； 
 	   1：有效 */
-	private int isAbstract;
+	private int validFlag;
 	
 
 	public int getRoomType() {
@@ -74,12 +74,12 @@ public class FactorTemplate  extends FactorDict  {
 	public void setMaxValue(int maxValue) {
 		this.maxValue = maxValue;
 	}
-	public int getIsAbstract() {
-		return isAbstract;
+	public int getValidFlag() {
+		return validFlag;
 	}
 
-	public void setIsAbstract(int isAbstract) {
-		this.isAbstract = isAbstract;
+	public void setValidFlag(int ValidFlag) {
+		this.validFlag = ValidFlag;
 	}
 
 	public FactorTemplate() {	}
@@ -90,7 +90,7 @@ public class FactorTemplate  extends FactorDict  {
 		this.operator = operator;
 		this.minValue = minValue;
 		this.maxValue = maxValue;
-		this.isAbstract=validFlag;
+		this.validFlag=validFlag;
 	}	
 	
 	
@@ -103,7 +103,7 @@ public class FactorTemplate  extends FactorDict  {
 		this.operator = operator;
 		this.minValue = minValue;
 		this.maxValue = maxValue;
-		this.isAbstract=validFlag;
+		this.validFlag=validFlag;
 	}
 	
 	
@@ -118,7 +118,7 @@ public class FactorTemplate  extends FactorDict  {
         	factorJson.put("minValue", getMinValue());
         	factorJson.put("maxValue", getMaxValue());
         	factorJson.put("operator", getOperator());
-        	factorJson.put("validFlag", getIsAbstract());
+        	factorJson.put("validFlag", getValidFlag());
         	//factorJson.put("createTime", sdf.format(getCreateTime()));
 			//factorJson.put("modifyTime", sdf.format(getModifyTime()));
 		} catch (JSONException e) {
@@ -139,7 +139,7 @@ public class FactorTemplate  extends FactorDict  {
 			factor.setMinValue(factorJson.getInt("minValue"));
 			factor.setMaxValue(factorJson.getInt("maxValue"));
 			factor.operator=factorJson.getInt("operator");
-			factor.isAbstract=factorJson.getInt("validFlag");
+			factor.validFlag=factorJson.getInt("validFlag");
 			/*factor.setCreateTime(sdf.parse(factorJson.getString("createTime")) );
 			factor.setModifyTime(sdf.parse(factorJson.getString("modifyTime")) );*/
 		} catch (JSONException e) {

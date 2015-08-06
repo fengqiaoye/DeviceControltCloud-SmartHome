@@ -107,7 +107,8 @@ public class Device {
 	Date createTime;
 	public Date modifyTime;
 	
-	DeviceState state;
+	/** 1.设备是好的；  0，设备是坏的 */
+	int state;
 	
 	public static final String deviceBindTable="info_user_room_bind";
 	
@@ -182,6 +183,12 @@ public class Device {
 	
 
 	
+	public int getState() {
+		return state;
+	}
+	public void setState(int state) {
+		this.state = state;
+	}
 	public void setDeviceName(String deviceName) {
 		this.deviceName = deviceName;
 	}
@@ -198,7 +205,8 @@ public class Device {
 			int wall,
 			int relatedDevType, 
 			Date createTime,
-			Date modifyTime
+			Date modifyTime,
+			int state
 			) {		
 		this.deviceID              =   deviceID      ; 
 		this.deviceName            =   deviceName;
@@ -212,7 +220,7 @@ public class Device {
 		this.relatedDevType          = relatedDevType;
 		this.createTime              = createTime    ;
 		this.modifyTime              = modifyTime    ;
-		this.state=null;
+		this.state=state;
 	}
 	
 
@@ -231,6 +239,11 @@ public class Device {
 			this.relatedDevType=deviceJson.getInt("relatedDevType");
 			this.createTime=sdf.parse(deviceJson.getString("createTime"));
 			this.modifyTime=sdf.parse(deviceJson.getString("modifyTime"));	
+			if(deviceJson.has("state")){
+				this.state=deviceJson.getInt("state");
+			}else{
+				this.state=1;
+			}
 	}
 	
 	public JSONObject toJsonObj(){
@@ -249,6 +262,7 @@ public class Device {
 		    deviceJson.put("relatedDevType",  this.relatedDevType);
 		    deviceJson.put("createTime",      sdf.format(this.createTime    ));
 		    deviceJson.put("modifyTime",      sdf.format(this.modifyTime    ));
+		    deviceJson.put("state",      this.state);
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -256,80 +270,7 @@ public class Device {
 	    return deviceJson;
 	}
 	
-	/*** 
-	 * get device name:
-	 * @return deviceName : a string name of a device depends on device ID
-	 * <br> deviceType: <br>	
-	0-10：保留
-	10：灯
-	20：电视
-	40: 空调
-	60：窗户
-	80：窗帘
-	90：暖器
 
-	1010:声感器
-	1020:光感器
-	1030：温感器
-	1040：湿感器
-	1050：声光温湿四合一传感器
-	1051:四合一声感
-	1052：四合一光感
-	1053：四合一温感
-	1054：四合一湿感
-	1060:PM2.5检测器
-	1070:有害气体检测器
-	1080:智能插座
-
-	2040:射频发射器
-	2050:红外发射器	 
-	 */
-	public String getDeviceName(){
-		switch (this.deviceID) {
-		case 10:
-			return "light";
-		case 20:
-			return "tv";
-		case 40:
-			return "aircon";
-		case 60:
-			return "window";
-		case 80:
-			return "curtain";
-		case 90:
-			return "heating";
-		case 1010:
-			return "noicesensor";
-		case 1020:
-			return "lightsensor";
-		case 1030:
-			return "thermometer";
-		case 1040:
-			return "humidity";
-		case 1050:
-			return "fourinone";
-		case 1051:
-			return "fourinone-noice";
-		case 1052:
-			return "fourinone-light";
-		case 1053:
-			return "fourinone-thermometer";
-		case 1054:
-			return "fourinone-humidity";
-		case 1060:
-			return "pm25";
-		case 1070:
-			return "poisongas";
-		case 1080:
-			return "powpoint";
-		case 2040:
-			return "rfid";
-		case 2050:
-			return "infrared";
-		default:
-			return  "unknown";
-		} 		
-	}
 	
 	/*** 
 	 * Save device info to Mysql:
@@ -351,7 +292,8 @@ public class Device {
 				+"wall         ,"
 				+"relateddevid ,"
 				+"createtime   ,"
-				+"modifytime   "
+				+"modifytime,   "
+				+"state   "
 				+ ")"				
 				+"values "
 				+ "("
@@ -366,9 +308,10 @@ public class Device {
 				+wall+","
 				+relatedDevType+",'"
 				+sdf.format(createTime)+"','"
-				+sdf.format(createTime)
-				+"')";
-		//System.out.println(sql);
+				+sdf.format(createTime)	+"',"
+				+state
+				+ ");";
+		System.out.println(sql);
 		return mysql.query(sql);		
 	}
 
@@ -391,7 +334,8 @@ public class Device {
 				+"wall         ,"
 				+"relateddevid ,"
 				+"createtime   ,"
-				+"modifytime   "
+				+"modifytime,   "
+				+"state   "
 				+ " from "				
 				+Device.deviceBindTable
 				+" where ctr_id="+ctrolID
@@ -449,7 +393,8 @@ public class Device {
 				+"wall         ,"
 				+"relateddevid ,"
 				+"createtime   ,"
-				+"modifytime   "
+				+"modifytime,   "
+				+"state   "
 				+ " from "				
 				+Device.deviceBindTable
 				+" where ctr_id="+ctrolID
@@ -511,7 +456,7 @@ public class Device {
 		return 1;
 	}
 	
-	public static void deleteProfileByRoomIDFromRedis(Jedis jedis,int ctrolID,int roomID) throws JSONException, ParseException{
+	public static void deleteDeviceByRoomIDFromRedis(Jedis jedis,int ctrolID,int roomID) throws JSONException, ParseException{
 		Map<String, String> DeviceMap = jedis.hgetAll(LogicControl.roomBind+ctrolID);
 		for (Map.Entry<String, String> entry:DeviceMap.entrySet()) {
 			Device p=new Device(new JSONObject(entry.getValue()));
@@ -536,7 +481,8 @@ public class Device {
 				+"wall         ,"
 				+"relateddevid ,"
 				+"createtime   ,"
-				+"modifytime   "
+				+"modifytime,   "
+				+"state   "
 				+ " from "				
 				+Device.deviceBindTable
 				+" where ctr_id="+ctrolID
@@ -582,8 +528,8 @@ public class Device {
 	
 	
 	  public static void main(String[] args) throws SQLException{
-		  MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
-		  Jedis jedis= new Jedis("172.16.35.170", 6379);
+		  MySqlClass mysql=new MySqlClass("120.24.81.226","3306","cooxm_device_control", "cooxm", "cooxm");
+		  Jedis jedis= new Jedis("120.24.81.226", 6379,5000);
 		  jedis.select(9);
 		  
 		  /*Date date=new Date();
@@ -599,7 +545,7 @@ public class Device {
 		  System.out.println("Query OK");*/
 		  
 		  
-			String x="{\"modifyTime\":\"2015-06-30 17:56:28\",\"createTime\":\"2015-06-30 17:56:28\",\"ctrolID\":40004,\"roomID\":3000,\"roomName\":\"客厅\",\"roomType\":2}";
+			String x="{\"deviceID\":1,\"deviceSN\":\"abc\",\"deviceName\":\"fdfe\",\"deviceType\":\"541\",\"type\":\"1\",\"state\":\"1\",\"relatedDevType\":\"20\",\"wall\":\"1\",\"modifyTime\":\"2015-06-30 17:56:28\",\"createTime\":\"2015-06-30 17:56:28\",\"ctrolID\":40004,\"roomID\":3000,\"roomName\":\"客厅\",\"roomType\":2}";
 	        JSONObject j=null;
 			try {
 				j = new JSONObject(x);
@@ -613,6 +559,8 @@ public class Device {
 				e.printStackTrace();
 			}
 			System.out.println(d.getRoomID());
+			d.saveToDB(mysql);
+			getOneDeviceFromDB(mysql, 40004, 1);
 		  
 		  
 

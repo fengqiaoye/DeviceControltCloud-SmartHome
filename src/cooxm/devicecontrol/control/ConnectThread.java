@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.UnknownHostException;
 
 import org.apache.log4j.Logger;
+import org.json.JSONException;
 
 import cooxm.devicecontrol.socket.SocketClient;
 
@@ -38,9 +39,16 @@ public class ConnectThread extends Thread{
 	public void run(){
 		while (true){
 			if(this.client==null){
-				this.client=new SocketClient(IP, port,clusterID,serverID,serverType,false);
+				this.client=new SocketClient(IP, port,clusterID,serverID,serverType,false,false);
 			}else{				
-				this.client.sendAuth(this.clusterID,this.serverID,this.serverType);
+				try {
+					this.client.sendAuth(this.clusterID,this.serverID,this.serverType);
+				} catch (JSONException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+					this.client=null;
+				}
 				new Thread((Runnable) this.client).start();
 				log.info("successful connected to :"+IP+":"+port+",serverID:"+this.serverID+",serverType:"+this.serverType);
 				break;

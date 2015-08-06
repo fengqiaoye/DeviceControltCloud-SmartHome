@@ -284,22 +284,20 @@ public String toString(){
 			   dataout.write(	BytesUtil.getBytes(	this.cookie,"UTF-8")		          )   ; 
 			   dataout.write(	BytesUtil.getBytes(	this.json.toString(),"UTF-8") )	; 
 			   dataout.flush();
+			   dataout.close();
 			
 		} catch (IOException e) {
 			e.printStackTrace();
 		}    	
     }*/
     
-    public void writeBytesToSock2(Socket sock){
-    	try {
+    public void writeBytesToSock2(Socket sock) throws IOException{
 			DataOutputStream dataout= new DataOutputStream(sock.getOutputStream());
 			dataout.write(this.toBytes());
 			dataout.flush();
 			// 2015-05-04
 			//dataout.close();
-		} catch (IOException e) {
-			e.printStackTrace();		
-		}    	
+    	
     }
     
    /*public void writeToSock(Socket sock){
@@ -316,7 +314,8 @@ public String toString(){
 			   dataout.writeInt(		this.reserve	)	       ;  
 			   dataout.writeBytes(		this.cookie)		             ; 
 			   dataout.writeBytes(		this.json.toString()   ) 	;
-			   dataout.flush();		
+			   dataout.flush();	
+			   dataout.close();	
 		} catch (IOException e) {
 			e.printStackTrace();
 		}    	

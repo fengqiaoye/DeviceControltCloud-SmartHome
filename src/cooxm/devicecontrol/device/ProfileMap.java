@@ -125,10 +125,19 @@ public class ProfileMap extends HashMap<String, Profile>{
 	 *重写父类的方法，当向这个map删除一个情景模式时，自动把这个情景模式从数据库删除
 	 *  */
 	@Override
-	public Profile remove(Object key) {
-		Profile profile = super.get(key);
-		Profile.deleteFromDB(mysql, profile.getCtrolID(), profile.getProfileID());
-		return super.remove(key);
+	public Profile remove(Object key) {		
+		Profile profile = this.get(key);
+		if(profile!=null){
+			int x=Profile.deleteFromDB(mysql, profile.getCtrolID(), profile.getProfileID());
+			if(x>0){
+				super.remove(key, profile);
+				return profile;
+			}else{
+			   return null;	
+			}
+		}
+		return null;
+		//return super.remove(key);
 		//return profile;
 	}
 	
@@ -228,6 +237,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 			System.out.println(count+":"+entry.getKey()+","+entry.getValue().getRoomID()+","+entry.getValue().getProfileName());
 			count++;
 		}
+		pm.remove("40002_1000");
 		
 //		ProfileMap pm=new ProfileMap();
 //		Profile p =new Profile();

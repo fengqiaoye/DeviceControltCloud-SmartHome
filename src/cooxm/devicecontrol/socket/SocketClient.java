@@ -6,7 +6,10 @@
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -15,9 +18,12 @@ import java.net.UnknownHostException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.apache.log4j.Logger;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 
 
@@ -42,10 +48,11 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 	int serverType;
 	boolean actFlag; //除了重连是否还需要做其他事情
 	boolean initFlag;
+	boolean sendHeartBeatFlag;
 	
 	/**@actFlag 用来标记这个socket连接成功后是否需要readFromClient()读取数据等操作； true：需要
 	 *  */
-	public SocketClient(String IP,int port,int clusterID,	int serverID,	int serverType,boolean actFlag) 
+	public SocketClient(String IP,int port,int clusterID,	int serverID,	int serverType,boolean actFlag,boolean sendHeartBeatFlag) 
     {   //super(IP,port);
 		this.IP=IP;
         this.port=port;
@@ -54,28 +61,16 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 		this.serverType=serverType;	
 		this.actFlag=actFlag;
 		this.initFlag=false;
+		this.sendHeartBeatFlag=sendHeartBeatFlag;
 		
-//        log.info("starting connect to  message server,IP:"+IP+" port: "+port);
-//		try {
-//			this.sock=new Socket(IP,port);
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//		sendAuth(clusterID,serverID,serverType);    
-
-
     } 
 	
-	public void sendAuth(int clusterID,int  serverID ,int serverType){					
+	public void sendAuth(int clusterID,int  serverID ,int serverType) throws JSONException, IOException{					
 		Header header=Message.getOneHeaer((short)CMD__Identity_REQ);
 		String jsonStr="{\"uiClusterID\":"+clusterID+",\"usServerType\":"+serverType+",\"uiServerID\":"+serverID+"}";
 		String cookie=System.currentTimeMillis()/1000+"_"+serverID;
 		Message authMsg=null;
-		try {
-			authMsg = new Message(header, cookie, jsonStr);
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+		authMsg = new Message(header, cookie, jsonStr);
 		authMsg.writeBytesToSock2(this.sock);
 		log.info("Send Auth "+this.sock.getInetAddress().getHostAddress()+":"+this.sock.getPort()+":"+authMsg.toString());	
 		
@@ -83,7 +78,7 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 		 if(msg!=null){
 			int errorCode= msg.getJson().optInt("errorCode");
 			if(errorCode==0){
-				log.info("succefull connect to  message server,IP:"+this.IP+" port: "+this.port);
+				log.info("succefull connect to  server,IP:"+this.IP+" port: "+this.port);
 			}else{
 				log.info("Auth failed to:"+this.IP+" port: "+this.port+"by auth info:"+jsonStr);
 			}
@@ -91,16 +86,14 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 	}
 	
 	
-	public static void sendAuth(Socket sock,int clusterID,int  serverID ,int serverType){					
+	public static void sendAuth(Socket sock,int clusterID,int  serverID ,int serverType) throws JSONException, IOException{					
 		Header header=Message.getOneHeaer((short)CMD__Identity_REQ);
 		String jsonStr="{\"uiClusterID\":"+clusterID+",\"usServerType\":"+serverType+",\"uiServerID\":"+serverID+"}";
 		String cookie=System.currentTimeMillis()/1000+"_"+serverID;
 		Message authMsg=null;
-		try {
+
 			authMsg = new Message(header, cookie, jsonStr);
-		} catch (JSONException e) {
-			e.printStackTrace();
-		}
+
 		authMsg.writeBytesToSock2(sock);
 		System.out.println("Send Auth "+sock.getRemoteSocketAddress().toString()+":"+authMsg.toString());	
 		
@@ -134,56 +127,45 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 	@Override
 	public void run() {
         while(true){        	
-    		try {
-    			if(this.sock==null ||this.sock.isClosed()|| !this.sock.isConnected()){
-    				this.sock=new Socket(IP,port);
-    				sendAuth(this.clusterID, this.serverID, this.serverType);    				
-    			}
-    		} catch (UnknownHostException e) {
-    			e.printStackTrace();
-    		} catch (IOException e) {
-    			e.printStackTrace();
-				log.info("waiting for 120 senconds,Reconnect to  message server,IP:"+this.IP+" port: "+this.port);  			
-    		}
-			try {
-				Thread.sleep(120*1000);					
-			} catch (InterruptedException e2) {
-				e2.printStackTrace();
-			} 
-    		
-    	if (actFlag==true) {   //做一些事情
-      	   Message msg=CtrolSocketServer.readFromClient(this.sock);
-      	   if(msg!=null){
-      		   decodeMsg(msg);
-      	   }else{
-      		   try {
- 				Thread.sleep(20*1000);
- 			} catch (InterruptedException e) {
- 				e.printStackTrace();
- 			}
-      	   }
-		}	
+	    	try {
+				if(this.sock==null ||this.sock.isClosed()|| !this.sock.isConnected()){
+					this.sock=new Socket(IP,port);
+					sendAuth(this.clusterID, this.serverID, this.serverType); 
+					if(sendHeartBeatFlag==true){
+						heartBeat();
+					}
+				}  
+				Thread.sleep(100);
+				if (actFlag==true) {   //做一些事情
+			  	   Message msg=CtrolSocketServer.readFromClient(this.sock);
+			  	   if(msg!=null){
+						decodeMsg(msg);
+			  	   }else{
+						Thread.sleep(20*1000);
+			  	   }
+				}
+			} catch (UnknownHostException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+				log.info("socket closed:waiting for 20 seconds .Reconnect to  message server,IP:"+this.IP+" port: "+this.port);  
+					this.sock=null ;
+					try {
+						Thread.sleep(5*60*1000);
+					} catch (InterruptedException e1) {
+						e1.printStackTrace();
+					}
 
+			} catch (JSONException e) {
+				e.printStackTrace();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
         }
    }
 	
-/*	public  class ReadThread extends Thread
-	{
-		private Socket socket;
-		
-		public ReadThread(Socket client)
-		{socket = client;}
-		
-		public void run()
-		{
-           while(true){
-        	   Message msg=CtrolSocketServer.readFromClient(socket);
-        	   decodeMsg(msg);
-           }
-        }	
-	}	*/
 	
-	public  void decodeMsg(Message msg){
+	public  void decodeMsg(Message msg) throws JSONException, IOException{
 		short commandID=msg.commandID;
 		switch (commandID) {
 		case CMD__Identity_ACK:	
@@ -217,14 +199,54 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 			break;
 		default:
 			break;
-		}
-		
+		}		
 	}
+	
+	/**每分钟发送一次心跳，无回复则关闭socket */
+	private void heartBeat() throws IOException{
+        // 启动心跳线程  
+        Timer heartBeatTimer = new Timer();  
+        TimerTask heartBeatTask = new TimerTask() {    
+	        @Override  
+	        public void run() {  
+	            try {
+					sendOrder();
+				} catch (JSONException | IOException e) {
+					e.printStackTrace();
+				}  
+	        }  
+        };  
+        heartBeatTimer.schedule(heartBeatTask, 1*60*1000, 5*60*1000); 		
+	}
+	
+	private void sendOrder() throws JSONException, IOException{  
+		long time=new Date().getTime()/1000;
+    	JSONObject json=new JSONObject();
+    	json.put("uiTime", time);
+    	String cookie=new Date().getTime()+"_5";
+    	Message msg=new Message(CMD__HEARTBEAT_REQ, cookie, json);
+        msg.writeBytesToSock2(sock); 	
+        log.info("HeartBeat "+this.sock.getRemoteSocketAddress()+":"+msg.toString());
+		try {
+			this.sock.setSoTimeout(10000);
+			Message msgAck=CtrolSocketServer.readFromClient(this.sock);
+			log.info("Heart ACK "+this.sock.getRemoteSocketAddress()+":"+msgAck.toString());
+			this.sock.setSoTimeout(0);
+		} catch (Exception e) {
+			log.info("Receive heartBeat timeOut, socket "+this.sock.getRemoteSocketAddress()+" closed, reconnecting ...");
+			this.sock.close();
+			this.sock=null;
+
+		}
+
+		
+	}  
+	
 	
 	public void start(SocketClient msgSock){
 	    while (true) {
 			if(this==null ||this.sock.isClosed()){
-				//msgSock= new SocketClient(IP, port);
+
 			}else{
 				new Thread(msgSock).start();
 			}
@@ -234,7 +256,7 @@ public class SocketClient /*extends Socket*/ implements Runnable {
    
     public static void main(String [] args) throws UnknownHostException, IOException, InterruptedException       
     {  
-		SocketClient msgSock= new SocketClient("172.16.35.173", 20190,1,5,200,false);
+		SocketClient msgSock= new SocketClient("120.24.81.23", 20190,1,5,200,false,true);
 		if(msgSock!=null){
 	    	//msgSock.sendAuth(1,5,200);
 			new Thread(msgSock).start();
@@ -244,23 +266,22 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 		
 		//Message msg1=new Message(commandID, cookie, json)
 
-		Message msg=CtrolSocketServer.readFromClient(msgSock.sock);
-		if(msg!=null)
-		System.out.println(msg.toString());
-       Message msg2=Message.getOneMsg();
-       msg2.writeBytesToSock2(msgSock.sock);
-       
-       Thread.sleep(20000);
-    	
-    	Socket sock =new Socket("172.16.35.173", 20190);
-      Message msg3=Message.getOneMsg();
-      msg3.writeBytesToSock2(msgSock.sock);
+//		Message msg=CtrolSocketServer.readFromClient(msgSock.sock);
+//		if(msg!=null)
+//		System.out.println(msg.toString());
+//       Message msg2=Message.getOneMsg();
+//       msg2.writeBytesToSock2(msgSock.sock);
+//       
+//       Thread.sleep(20000);
+//    	
+//    	Socket sock =new Socket("172.16.35.173", 20190);
+//      Message msg3=Message.getOneMsg();
+//      msg3.writeBytesToSock2(msgSock.sock);
+//      
+//      Thread.sleep(20000);
       
-      Thread.sleep(20000);
       
-      
-//      Socket sock =new Socket("172.16.35.173", 20190);
-      
+
       
     	
 

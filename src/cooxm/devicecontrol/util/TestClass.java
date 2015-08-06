@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectOutputStream.PutField;
+import java.math.BigDecimal;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
@@ -16,6 +17,7 @@ import java.net.UnknownHostException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.Statement;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -410,10 +412,24 @@ public class TestClass {
 		
 	}
 	
+	public static void testDecimal(){
+		DecimalFormat    df   = new DecimalFormat("######0.00");   
+
+		double d1 = 3.23566 ; 
+		double d3 = 2.0;
+		String x = df.format(d1); 
+		String y = df.format(d3); 
+		
+		BigDecimal   b   =   new   BigDecimal(d1); 
+		BigDecimal c = b.setScale(2,  BigDecimal.ROUND_HALF_UP);
+		System.out.println(c);
+	}
+
+	
 
 	public static void main(String[] args) throws UnknownHostException, IOException {
 //		String str1="{\"student\":[{\"name\":\"leilei\",\"age\":23},{\"name\":\"leilei02\",\"age\":23}]}";
-//		Jedis jedis=new Jedis("172.16.35.170", 6379,200);
+//		Jedis jedis=new Jedis("172.16.35.170", 6379,5000);
 //		jedis.select(9);
 //		 writeObj( jedis,"student",str1);
 //		 getObj(jedis,"student");
@@ -437,7 +453,9 @@ public class TestClass {
 
 	//	testRefrence();
 		
-		test();
+		//test();
+		
+		testDecimal();
 		
 
 

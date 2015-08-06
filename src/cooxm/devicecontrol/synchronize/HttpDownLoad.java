@@ -87,9 +87,9 @@ public class HttpDownLoad {
 	public static void main(String[] args) {
 		HttpDownLoad hd=new HttpDownLoad();
 		Date start=new Date();
-		//hd.download("http://120.24.81.23/keyfiles3/AC/codes/84.txt");
+		//hd.download("http://120.24.81.23/keyfiles5/AC/codes/84.txt");
 		//hd.download("http://172.16.45.99/gtzn/download.php");
-//		String tes=AESUtil2.encodeAES("keyfiles3/AC/codes/84.txt","token_key");
+//		String tes=AESUtil2.encodeAES("keyfiles5/AC/codes/84.txt","token_key");
 //		String url="http://120.24.81.23/file/download.php?info="+tes;
 		TuringCatAesCrypto crypto = new TuringCatAesCrypto();
 		crypto.setToken("token_key");

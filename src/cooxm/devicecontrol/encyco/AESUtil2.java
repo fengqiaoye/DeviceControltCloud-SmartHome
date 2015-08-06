@@ -123,7 +123,7 @@ public class AESUtil2 {
 	public static void main(String[] args) {
 
 		
-		String tes=AESUtil2.encodeAES("keyfiles3/AC/codes/85.txt","token_key");
+		String tes=AESUtil2.encodeAES("keyfiles5/AC/codes/85.txt","token_key");
 		String encyco=AESUtil2.decodeAES(tes,"token_key");
 		System.out.println("encyco = "+tes);
 		System.out.println("decyco = "+encyco);
