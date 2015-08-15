@@ -111,7 +111,7 @@ public class Room {
 			this.deviceList=deviceList*/;			
 
 			this.createTime=sdf.parse(roomJson.getString("createTime"));
-			this.setModifyTime(sdf.parse(roomJson.getString("createTime")));	
+			this.setModifyTime(sdf.parse(roomJson.getString("modifyTime")));	
 		} catch (JSONException | ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

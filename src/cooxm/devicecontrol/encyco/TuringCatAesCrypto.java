@@ -126,10 +126,10 @@ public class TuringCatAesCrypto {
 		String src = "keyfiles5/AC/codes/85.txt";//"keyfiles5/AC/codes/85.txt";
 		TuringCatAesCrypto crypto = new TuringCatAesCrypto();
 		crypto.setToken("token_key");
-		System.out.println("src: " + src);
+		//System.out.println("src: " + src);
 		String encrypted = crypto.encrypt(src);
-		System.out.println("encrypted: " + encrypted);
-		String dec="UU5UV2RoYzN1Z2ZiVks0dEdDRkZoU3pOdlJpUFNZcEcxa0xnUklSTzlnV2xmOG96b3AwL24wWDIxWk09";
+		//System.out.println("encrypted: " + encrypted);
+		String dec="ajhZVzZ3dDB4RllKNGpDd1B4NGFxczIrTlgzc21Cd1BYaHRmRkxvNmJ3c3pUODZSL3l4NWFBTEladTA9";
 		String decrypted = crypto.decrypt(dec);
 		System.out.println("decrypted: " + decrypted);
 		

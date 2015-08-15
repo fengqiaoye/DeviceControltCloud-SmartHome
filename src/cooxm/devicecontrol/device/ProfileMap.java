@@ -65,6 +65,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 		+"roomid        ,"
 		+"roomtype      ,"
 		+"sttemplateid  ,"
+		+"stsetid  ,"
 		+"date_format(createtime,'%Y-%m-%d %H:%i:%S'),"
 		+"date_format(modifytime,'%Y-%m-%d %H:%i:%S')"
 		+ "  from "				
@@ -89,9 +90,10 @@ public class ProfileMap extends HashMap<String, Profile>{
 			int roomID=Integer.parseInt(index[3]);
 			int roomType=Integer.parseInt(index[4]);
 			profile.setProfileTemplateID(Integer.parseInt(index[5])); 
+			profile.setProfileSetID(Integer.parseInt(index[6])); 
 			try {
-				profile.setCreateTime(sdf.parse(index[6]));
-				profile.setModifyTime(sdf.parse(index[7]));
+				profile.setCreateTime(sdf.parse(index[7]));
+				profile.setModifyTime(sdf.parse(index[8]));
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}			
@@ -196,15 +198,14 @@ public class ProfileMap extends HashMap<String, Profile>{
 	 * @param: roomID
 	 * @param: ctrolID 
 	 * */
-	public List<Profile> getProfileByRoomIDTemplateID(int ctrolID,int roomID,int templateID){	
-		List<Profile> profileList=new ArrayList<Profile>();
+	public Profile getProfileByRoomIDTemplateID(int ctrolID,int roomID,int templateID){	
 		for (Entry<String, Profile> entry : this.entrySet()) {
 			Profile profile=entry.getValue();
-			if(profile.getCtrolID()==ctrolID && profile.getRoomID()==roomID){
-					profileList.add(profile);			
+			if(profile.getCtrolID()==ctrolID && profile.getRoomID()==roomID && profile.getProfileTemplateID()==templateID){
+				return profile;			
 			}
 		}
-		return profileList;
+		return null;
 	}
 	
 	/*** 获取全家所有同一类型的情景模式集
@@ -229,7 +230,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 
 	public static void main(String[] args) throws SQLException {
 		
-		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
+		MySqlClass mysql=new MySqlClass("120.24.81.226","3306","cooxm_device_control", "cooxm", "cooxm");
 		ProfileMap pm=new ProfileMap(mysql);
 		System.out.println(pm.size());
 		int count=1;
@@ -237,7 +238,9 @@ public class ProfileMap extends HashMap<String, Profile>{
 			System.out.println(count+":"+entry.getKey()+","+entry.getValue().getRoomID()+","+entry.getValue().getProfileName());
 			count++;
 		}
-		pm.remove("40002_1000");
+		//pm.remove("40002_1000");
+		
+		Profile p=pm.getProfileByRoomIDTemplateID(10004, 3000, 3);
 		
 //		ProfileMap pm=new ProfileMap();
 //		Profile p =new Profile();

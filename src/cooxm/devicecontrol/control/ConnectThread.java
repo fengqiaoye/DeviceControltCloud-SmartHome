@@ -21,25 +21,27 @@ public class ConnectThread extends Thread{
 	String IP ;
 	int port ;
 	int clusterID;
+	int targetServerID;
 	int serverID;
 	int serverType;
 	boolean actFlag;
 	
 	
-	public ConnectThread(	String IP ,	int port ,	int clusterID,	int serverID,	int serverType,boolean actFlag){
+	public ConnectThread(	String IP ,	int port ,	int clusterID,int targetServerID,	int serverID,	int serverType,boolean actFlag){
 		this.IP=IP;
 		this.port=port;	
 		this.clusterID=clusterID;
 		this.serverID=serverID;
 		this.serverType=serverType;		
 		this.actFlag=actFlag;
+		this.targetServerID=targetServerID;
 	}
 	
 	@Override
 	public void run(){
 		while (true){
 			if(this.client==null){
-				this.client=new SocketClient(IP, port,clusterID,serverID,serverType,false,false);
+				this.client=new SocketClient(IP, port,clusterID,targetServerID,serverID,serverType,false,false);
 			}else{				
 				try {
 					this.client.sendAuth(this.clusterID,this.serverID,this.serverType);
@@ -57,7 +59,7 @@ public class ConnectThread extends Thread{
 	}
 	
     public static void main(String [] args)  {
-    	ConnectThread th=new ConnectThread("172.16.35.16",20190,1,5,200,false);
+    	ConnectThread th=new ConnectThread("172.16.35.16",20190,1,1,5,200,false);
     	th.start();   	
     	
     	System.out.println("11");

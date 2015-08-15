@@ -115,6 +115,7 @@ public class RedisClient {
     /** 删除 key*/
     public static void reConstructRedis(){
     	Jedis jedis= new Jedis("120.24.81.226", 6379,5000);
+    	jedis.select(9);
     	Set<String> keys = jedis.keys("*");
     	for (Iterator iterator = keys.iterator(); iterator.hasNext();) {
 			String key = (String) iterator.next();

@@ -38,6 +38,9 @@ public class DeviceState {
 	
 	int keyType;
 	
+	//空调恒定的温度，若不是恒温，则stable=0
+	int stable;
+	
 	
 	public int getKeyType() {
 		return keyType;
@@ -86,6 +89,7 @@ public class DeviceState {
 	public void setTempreature(int tempreature) {
 		this.tempreature = tempreature;
 	}
+	
 
 	/*public int getChannel() {
 		return channel;
@@ -112,6 +116,14 @@ public class DeviceState {
 	}*/
 	
 
+	public int getStable() {
+		return stable;
+	}
+
+	public void setStable(int stable) {
+		this.stable = stable;
+	}
+
 	public Date getModifyTime() {
 		return modifyTime;
 	}
@@ -131,6 +143,7 @@ public class DeviceState {
 		this.volumn = -1;
 		this.brightness = -1;*/
 		this.modifyTime=new Date();
+		this.stable=-1;
 	}
 	/** <pre> 开关   0：打开状态；  1：关闭状态 ; -1:未知 
 	模式  0=自动； 1=制冷； 2=除湿， 3=送风， 4=制热; -1:未知 
@@ -142,7 +155,7 @@ public class DeviceState {
 	音量的值 
 	 屏幕亮度值 */
 	public DeviceState(int onOff, int mode, int windSpeed, int windDirection,
-			int tempreature /*, int channel, int volumn, int brightness*/,int keyType) {
+			int tempreature /*, int channel, int volumn, int brightness*/,int keyType,int stable) {
 		this.onOff = onOff;
 		this.mode = mode;
 		this.windSpeed = windSpeed;
@@ -153,6 +166,7 @@ public class DeviceState {
 		this.brightness = brightness;*/
 		this.modifyTime=new Date();
 		this.keyType=keyType;
+		this.stable=stable;
 	}
 	
 	public JSONObject toJson(){
@@ -167,8 +181,9 @@ public class DeviceState {
 			/*json.put("channel", this.channel);
 			json.put("volumn", this.volumn);
 			json.put("brightness", this.brightness);*/
-			json.put("modifyTime", sdf.format(new Date()));
+			//json.put("modifyTime", sdf.format(new Date()));
 			json.put("keyType", keyType);
+			json.put("stable", stable);
 			
 		} catch (JSONException e) {
 			e.printStackTrace();
@@ -195,13 +210,9 @@ public class DeviceState {
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}*/
-		if(json.has("modifyTime")){
-			this.modifyTime=sdf.parse(json.getString("modifyTime"));
-		}else{
-			this.modifyTime=new Date();
-		}
 		
 		this.keyType=json.optInt("keyType");
+		this.stable=json.optInt("stable");
 	}
 	
 	/**<pre> 将一个旧的状态和一个新的状态叠加
@@ -214,12 +225,13 @@ public class DeviceState {
 		this.windDirection=(newState.windDirection==-1)	?this.windDirection	:newState.windDirection;
 		this.tempreature=(newState.tempreature==-1)	?	this.tempreature	:newState.tempreature;
 		this.keyType=(newState.keyType==-1)				?	this.keyType		:newState.keyType;	
+		this.stable=(newState.stable==-1)				?	this.stable		:newState.stable;	
 		return this;		
 	}
 
 	public static void main(String[] args) throws ParseException, JSONException {
-    DeviceState old=new DeviceState(-1, 0, -1, 5, -1, -1);
-    DeviceState newd=new DeviceState(1, 0, -1, 6, 25, 4);
+    DeviceState old=new DeviceState(-1, 0, -1, 5, -1, -1,0);
+    DeviceState newd=new DeviceState(1, 0, -1, 6, 25, 4,0);
     old.replaceAdd(newd);
 
 	}

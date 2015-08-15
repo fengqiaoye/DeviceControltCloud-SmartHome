@@ -44,6 +44,7 @@ public class SocketClient /*extends Socket*/ implements Runnable {
     String IP;
     int port;
 	int clusterID;
+	int targetServerID;
 	int serverID;
 	int serverType;
 	boolean actFlag; //除了重连是否还需要做其他事情
@@ -52,12 +53,14 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 	
 	/**@actFlag 用来标记这个socket连接成功后是否需要readFromClient()读取数据等操作； true：需要
 	 *  */
-	public SocketClient(String IP,int port,int clusterID,	int serverID,	int serverType,boolean actFlag,boolean sendHeartBeatFlag) 
+	public SocketClient(String IP,int port,int clusterID,	int targetServerID,int myserverID,	int serverType,boolean actFlag,boolean sendHeartBeatFlag) 
     {   //super(IP,port);
 		this.IP=IP;
         this.port=port;
 		this.clusterID=clusterID;
-		this.serverID=serverID;
+		this.serverID=myserverID;
+		this.targetServerID=targetServerID;
+		
 		this.serverType=serverType;	
 		this.actFlag=actFlag;
 		this.initFlag=false;
@@ -78,6 +81,8 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 		 if(msg!=null){
 			int errorCode= msg.getJson().optInt("errorCode");
 			if(errorCode==0){
+				CtrolSocketServer.sockMap.put(targetServerID,sock);
+				CtrolSocketServer.printSocketMap();			
 				log.info("succefull connect to  server,IP:"+this.IP+" port: "+this.port);
 			}else{
 				log.info("Auth failed to:"+this.IP+" port: "+this.port+"by auth info:"+jsonStr);
@@ -101,7 +106,9 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 		 if(msg!=null){
 			int errorCode= msg.getJson().optInt("errorCode");
 			if(errorCode==0){
-				log.info("succefull connect to  message server,IP:"+sock.getRemoteSocketAddress().toString());
+//				CtrolSocketServer.sockMap.put(targetServerID,sock);
+//				CtrolSocketServer.printSocketMap();
+				log.info("succefull connect to   server,IP:"+sock.getRemoteSocketAddress().toString());
 			}else{
 				log.info("Auth failed to:"+sock.getRemoteSocketAddress().toString()+"by auth info:"+jsonStr);
 			}
@@ -141,17 +148,20 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 			  	   if(msg!=null){
 						decodeMsg(msg);
 			  	   }else{
-						Thread.sleep(20*1000);
+						log.info("socket closed:"+this.sock.getRemoteSocketAddress());
+						this.sock.close();
+						this.sock=null;
+						Thread.sleep(5*1000);
 			  	   }
 				}
 			} catch (UnknownHostException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
-				log.info("socket closed:waiting for 20 seconds .Reconnect to  message server,IP:"+this.IP+" port: "+this.port);  
+				log.info("socket closed:waiting for 5 seconds .Reconnect to  message server,IP:"+this.IP+" port: "+this.port);  
 					this.sock=null ;
 					try {
-						Thread.sleep(5*60*1000);
+						Thread.sleep(5*1000);
 					} catch (InterruptedException e1) {
 						e1.printStackTrace();
 					}
@@ -167,6 +177,7 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 	
 	public  void decodeMsg(Message msg) throws JSONException, IOException{
 		short commandID=msg.commandID;
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		switch (commandID) {
 		case CMD__Identity_ACK:	
 			int ack_res=-1;
@@ -176,6 +187,8 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 				e1.printStackTrace();
 			}
 			if(ack_res==0){
+				CtrolSocketServer.sockMap.put(targetServerID,sock);
+				CtrolSocketServer.printSocketMap();
 				//System.out.println("Recv from "+sock.getInetAddress().getHostAddress()+":"+sock.getPort()+":"+msg.msgToString());
 			}else{
 				log.error("Get authenrize failed: myIP:"+this.sock.getLocalSocketAddress().toString()
@@ -186,7 +199,7 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 			}			
 			break;
 		case CMD__HEARTBEAT_REQ:
-			DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			
 			try {
 				msg.getJson().put("uiTime", sdf.format(new Date()));
 				msg.msgLen=msg.getMsgLength();
@@ -197,7 +210,22 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 			msg.writeBytesToSock2(this.sock);
 			System.out.println("HeartBeat "+this.sock.getRemoteSocketAddress()+":"+msg.toString());
 			break;
+		case CMD__HEARTBEAT_ACK:
+
+			System.out.println("Heart ACK "+this.sock.getRemoteSocketAddress()+":"+msg.toString());
+			break;
 		default:
+			if(msg.getJson().has("errorCode")){
+				int errorCode=msg.getJson().getInt("errorCode");
+				if(errorCode==0){
+					log.info("Success: "+this.sock.getRemoteSocketAddress()+":"+msg.toString());
+				}else{
+					log.info("Faild : "+this.sock.getRemoteSocketAddress()+":"+msg.toString());
+				}
+			}else{
+				log.info("Recv frm "+this.sock.getRemoteSocketAddress()+":"+msg.toString());
+			}
+			
 			break;
 		}		
 	}
@@ -223,7 +251,7 @@ public class SocketClient /*extends Socket*/ implements Runnable {
 		long time=new Date().getTime()/1000;
     	JSONObject json=new JSONObject();
     	json.put("uiTime", time);
-    	String cookie=new Date().getTime()+"_5";
+    	String cookie=new Date().getTime()+"_"+this.serverID;
     	Message msg=new Message(CMD__HEARTBEAT_REQ, cookie, json);
         msg.writeBytesToSock2(sock); 	
         log.info("HeartBeat "+this.sock.getRemoteSocketAddress()+":"+msg.toString());
@@ -256,7 +284,7 @@ public class SocketClient /*extends Socket*/ implements Runnable {
    
     public static void main(String [] args) throws UnknownHostException, IOException, InterruptedException       
     {  
-		SocketClient msgSock= new SocketClient("120.24.81.23", 20190,1,5,200,false,true);
+		SocketClient msgSock= new SocketClient("120.24.81.23", 20190,1,6,5,200,false,true);
 		if(msgSock!=null){
 	    	//msgSock.sendAuth(1,5,200);
 			new Thread(msgSock).start();

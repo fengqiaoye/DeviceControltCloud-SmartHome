@@ -10,10 +10,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.log4j.Logger;
+
+import com.hp.hpl.sparta.xpath.ThisNodeTest;
 
 import cooxm.devicecontrol.control.Configure;
 import cooxm.devicecontrol.control.MainEntry;
@@ -31,9 +35,10 @@ public class IRMatch2 {
 	static Logger log= Logger.getLogger(IRMatch.class);
 	private File fileDir;//
 	/** < 疑或后1的个数，文件名> */
-	Map<Integer, String> fileScoreMap;//=new TreeMap<Integer, String>() ;	
-	/** Map< Type,Map<fileName,List<String>>> */
-	Map<String, HashMap<String, ArrayList<String>>> dirMap;
+	Map<Integer, String> fileScoreMap;//=new TreeMap<Integer, String>() ;
+	
+	/** Map< AC,Map<fileName,List<String> CODE >> */
+	Map<String, HashMap<String, HashSet<String>>> dirMap;
 	static SQLiteUtil sqlite;
 	int deviceType;
 	String rawCode;
@@ -57,6 +62,7 @@ public class IRMatch2 {
 	public void init(String rawCode,int deviceType){
 		this.rawCode=rawCode;
 		this.deviceType=deviceType;
+		this.deviceTypeStr=getDeviceTypeStr(deviceType);
 	}
 
 	public IRMatch2(){
@@ -64,8 +70,9 @@ public class IRMatch2 {
 		Configure cf=MainEntry.getConfig();
 		fileDir=new File(cf.getValue("ir_file_path"));
 		String sqlLibFile=cf.getValue("ird_sql_path");
-		this.dirMap=new HashMap<String, HashMap<String, ArrayList<String>>>();
+		this.dirMap=new HashMap<String, HashMap<String, HashSet<String>>>();
 		this.sqlite=new SQLiteUtil(sqlLibFile);//("./ird5.db");
+		initFileMap(fileDir);//
 	}
 	
 	public void getTop5(){
@@ -119,7 +126,7 @@ public class IRMatch2 {
 		}
 		String rs=sqlite.select(sql);
 		//System.out.println(rs);
-     if(rs.length()>=20){
+     if(rs!=null && rs.length()>=20){
 		String frequency=rs.substring(18,20);
 		String C3length=getC3Length(rs);
 		String[] freStr={frequency,C3length};
@@ -196,10 +203,6 @@ public class IRMatch2 {
 							if(score<=8){	  //加入map列表
 								//System.out.print("score="+score+" ");
 								//System.out.println("score=0,thisfrenquency="+dbFrenquency+",file="+abstract_path);
-//								String fid=abstract_path.substring(pos+1,abstract_path.length()-4);
-//								String[] dbFeature=this.getDBFeature(Integer.parseInt(fid),deviceType);
-//								String rawFrenquency=this.getRawCodeFrequency();								
-//								String rawC3length=this.getC3Length(rawCode);
 								//if(dbFeature[0].equals(rawFrenquency) && dbFeature[1].equals(rawC3length)){
 									fileScoreMap.put(score, abstract_path+"|"+line);
 									if(score==0){
@@ -219,6 +222,54 @@ public class IRMatch2 {
             	}
             } 
         } 
+    }
+	
+	
+	/** 将匹配的结果按相差位数从小到大排序，结果保存在 map中
+	 * deviceType 设备类型
+	 * */
+	public  void match(String c3code) {	
+    	Map<Integer, String> lineScoreMap= new TreeMap<Integer, String>();
+    	HashMap<String,HashSet<String>> fileMap=this.dirMap.get(this.deviceTypeStr);
+    	if(fileMap==null){
+    		return;
+    	}
+    	for (Map.Entry<String,HashSet<String>> entry : fileMap.entrySet()) {
+    		String file=entry.getKey();
+        	//System.out.println("matching:"+this.deviceTypeStr+"/"+file+"---------------------");
+        	int score=Integer.MAX_VALUE;
+        	int byteLen=c3code.split(",").length;   	
+			int dot = file.lastIndexOf('.'); 
+			String fid=file.substring(0,dot);
+			String[] dbFeature=this.getDBFeature(Integer.parseInt(fid),deviceType);
+			String rawFrenquency=this.getRawCodeFrequency();								
+			String rawC3length=this.getC3Length(rawCode);			
+        	if(byteLen==getColumnNum(entry.getValue()) /*&&dbFeature[0]!=null  &&dbFeature[1]!=null  && dbFeature[0].equals(rawFrenquency) && dbFeature[1].equals(rawC3length)*/){
+        		for(String line  : entry.getValue()){
+					int diff= differceBitCount(line,c3code);
+					if(diff<score){
+						lineScoreMap.put(diff, line);
+						score=Math.min(score, diff);
+					}
+					if(score<=8){	  //加入map列表
+//						String fid=file.substring(0,dot);
+//						String[] dbFeature=this.getDBFeature(Integer.parseInt(fid),deviceType);
+//						String rawFrenquency=this.getRawCodeFrequency();								
+//						String rawC3length=this.getC3Length(rawCode);
+						if(dbFeature[0]!=null  &&dbFeature[1]!=null  && dbFeature[0].equals(rawFrenquency) && dbFeature[1].equals(rawC3length)){
+							fileScoreMap.put(score, this.deviceTypeStr+"/codes/"+fid+".txt"+"|"+line);
+							if(score==0){
+								return_flag=true;
+								return;
+							}
+						}
+
+					}
+				}	
+				//System.out.println("SIZE of scoreMAP="+fileScoreMap.size()+",the top one is:"+abstract_path);
+        	}
+		}   	
+ 
     }
 	
 	
@@ -277,6 +328,17 @@ public class IRMatch2 {
 			e.printStackTrace();
 		}
 		return -1;		
+	}
+	
+	public  int getColumnNum(HashSet<String> codeList){
+		for (String code : codeList) {
+			if(code==null){
+				return -1;
+			}
+			String[] cells=code.split(",");
+			return cells.length;
+		}
+		return -1;
 	}
 	
 	public int differceBitCount(String code1,String code2){
@@ -341,7 +403,7 @@ public class IRMatch2 {
 		String C3code=im.getC3(this.rawCode);
 		System.out.println("C3CODE="+C3code);
 		//System.out.println("C3CODE len="+len);
-		im.match(file, C3code);
+		im.match(/*file,*/ C3code);
 		String res=im.getTop1();
 		if(res==null){
     		if(C3code.charAt(C3code.length()-1)!=','){
@@ -357,7 +419,7 @@ public class IRMatch2 {
 				int count=StringUtility.getSubCount_2(C3code,subStr);  // 重复子串 重复的次数
 				for (int j = count-1; j >=1; j--) {
 					String C2code2=StringUtility.getNthDuplicateStr(subStr,j);      //子串重复j次
-					im.match(file, C2code2);
+					im.match(/*file,*/ C2code2);
 					res=im.getTop1();
 					if(res!=null)           //找到了 退出
 						break;
@@ -386,10 +448,10 @@ public class IRMatch2 {
 		System.out.println("fid="+fid);
 		
 		int pos2=fileName.indexOf('\\');
-		if(pos<0){
-			pos=fileName.indexOf('/');
+		if(pos2<0){
+			pos2=fileName.indexOf('/');
 		}
-		
+		//System.out.println(fileName);
 		String deviceTypeStr=fileName.substring(0,pos2);
 		System.out.println("TYPE="+deviceTypeStr);
 		int devType=getDeviceType(deviceTypeStr);
@@ -475,9 +537,9 @@ public class IRMatch2 {
     			}    			
     			String deviceTypeStr=fileName.substring(0,pos2);
     			
-    			HashMap<String,ArrayList<String>> fileMap=dirMap.get(deviceTypeStr);
+    			HashMap<String,HashSet<String>> fileMap=dirMap.get(deviceTypeStr);
     			if(fileMap==null){
-    				fileMap=new HashMap<String,ArrayList<String>>();
+    				fileMap=new HashMap<String,HashSet<String>>();
     			}            	
     			int pos=fileName.lastIndexOf('\\');
     			if(pos<0){
@@ -486,7 +548,7 @@ public class IRMatch2 {
     			String fid=fileName.substring(pos+1,fileName.length());
     			
             	String line=null;
-            	ArrayList<String> codeList=new ArrayList<String> ();
+            	HashSet<String> codeList=new HashSet<String> ();
 				BufferedReader br;
 				try {
 					br = new BufferedReader(new FileReader(file));
@@ -520,7 +582,7 @@ public class IRMatch2 {
 		int windDirection =-1;
 		int tempreature = -1;
 		int keyType=-1;
-		DeviceState state=new DeviceState(onOff, mode, windSpeed, windDirection, tempreature, keyType);
+		DeviceState state=new DeviceState(onOff, mode, windSpeed, windDirection, tempreature, keyType,0);
 		switch (maxLineNo) {
 		case 3000:
 			lineNo=lineNo-1;
@@ -533,7 +595,7 @@ public class IRMatch2 {
 			mode= lineNo % 5;//  模式
 			lineNo=lineNo/5;
 			onOff= lineNo % 2;//  开关
-			state=new DeviceState(onOff, mode, windSpeed, windDirection, tempreature+16, keyType);
+			state=new DeviceState(onOff, mode, windSpeed, windDirection, tempreature+16, keyType,0);
 			break;
 		case 15000:
 			lineNo=lineNo-1;
@@ -548,7 +610,7 @@ public class IRMatch2 {
 			mode=lineNo % 5;
 			lineNo=lineNo/5;
 			onOff= lineNo % 2;//  开关
-			state=new DeviceState(onOff, mode, windSpeed, windDirection, tempreature+16, keyType);
+			state=new DeviceState(onOff, mode, windSpeed, windDirection, tempreature+16, keyType,0);
 			break;
 		case 14:
 			switch (lineNo) {
@@ -609,7 +671,7 @@ public class IRMatch2 {
 				break;
 			}
 			keyType=lineNo;
-			state=new DeviceState(onOff, mode, windSpeed, windDirection, tempreature, keyType);
+			state=new DeviceState(onOff, mode, windSpeed, windDirection, tempreature, keyType,0);
 			break;			
 		default:
 			break;
@@ -622,71 +684,70 @@ public class IRMatch2 {
 		raw[0]="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
 		raw[1]="1e,04,00,00,24,00,26,82,a0,02,a0,82,a0,06,86,c1,23,4d,c2,00,11,85,c3,00,23,04,0c,00,50,02,00";
 		raw[2]="29,04,00,00,24,00,26,82,79,02,28,82,79,06,6f,c1,22,d6,c2,00,11,67,c3,00,23,08,09,20,50,02,c2,00,4d,25,c3,00,20,00,20,00,d0,00,";
-
 		raw[3]="33,04,00,00,24,00,26,82,4e,01,f7,82,4e,6,3f,c1,11,76,c2,00,11,76,c3,00,30,4d,b2,f8,07,1b,e4,c2,00,14,a6,c1,11,76,c2,00,11,76,c3,00,30,4d,b2,f8,07,1b,e4,00,";
 		raw[4]="2e,04,00,00,24,00,26,82,11,02,45,82,11,06,6a,c1,0b,c8,c2,00,0b,c8,c1,0b,c8,c2,00,11,4c,c3,00,70,65,01,00,00,02,35,00,00,00,00,00,00,a0,e8,00";
 		raw[5]="24,04,00,00,24,00,26,81,b0,02,bd,81,b0,06,fc,c1,0b,d1,c2,00,11,8f,c3,00,58,65,01,00,00,35,00,00,00,00,00,4b,00";
 		raw [6]="27,04,00,00,24,00,26,81,f8,01,f8,81,f8,04,8d,c1,0e,11,c2,00,05,ff,c3,00,70,23,cb,26,01,00,20,08,07,09,00,00,00,00,4d,00";
 		raw [7]="47,04,00,00,24,00,26,82,88,02,88,82,88,06,79,c1,23,4d,c2,00,11,87,c3,00,23,18,09,20,50,02,c2,00,4e,1d,c3,00,20,00,20,00,e0,c2,00,9c,51,c1,23,4d,c2,00,11,87,c3,00,23,18,09,20,70,02,c2,00,4e,1d,c3,00,20,00,00,18,c0,00";
 		raw [8]="1e,04,00,00,24,00,26,82,6d,02,6d,82,6d,06,7c,c1,23,02,c2,00,11,63,c3,00,23,08,00,00,50,02,00";
-		raw[12]="33,04,00,00,24,00,26,82,34,02,34,82,34,06,5b,c1,14,a9,c2,00,14,a9,c3,00,30,4d,b2,f8,07,1b,e4,c2,00,14,a9,c1,14,a9,c2,00,14,a9,c3,00,30,4d,b2,f8,07,1b,e4,00";
-	    raw[13]="27,04,00,00,24,00,26,82,16,02,16,82,16,04,70,c1,0e,34,c2,00,04,70,c3,00,70,23,cb,26,01,00,20,08,07,09,00,00,00,00,4d,00";
-	    raw[14]="47,04,00,00,24,00,26,82,6b,02,6b,82,6b,06,93,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,50,02,c2,00,4e,3d,c3,00,20,00,20,00,e0,c2,00,9c,6f,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,70,02,c2,00,4e,3d,c3,00,20,00,00,18,c0,00";
-	    raw[15]="47,04,00,00,24,00,26,82,6b,02,6b,82,6b,06,93,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,50,02,c2,00,4e,3a,c3,00,20,00,20,00,d0,c2,00,9c,6c,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,70,02,c2,00,4e,3a,c3,00,20,00,00,18,c0,00";
-        raw[16]="47,04,00,00,24,00,26,82,A0,02,A0,82,A0,06,61,C1,23,66,C2,00,11,70,C3,00,23,18,09,20,50,02,C2,00,4E,06,C3,00,20,00,20,00,E0,C2,00,9C,3A,C1,23,66,C2,00,11,70,C3,00,23,18,09,20,70,02,C2,00,4E,06,C3,00,20,00,00,18,C0,00";
-        raw[17]="2E,04,00,00,24,00,26,82,40,02,40,82,40,06,3C,C1,0B,FC,C2,00,0B,FC,C1,0B,FC,C2,00,11,1C,C3,00,70,65,01,00,00,02,35,00,00,00,00,00,00,A0,E8,00";
-        raw[18]="2A,04,00,00,24,00,26,81,8E,01,8E,81,8E,06,8F,C1,D,6F,C2,00,06,8F,C3,00,88,40,00,14,80,43,02,A8,EE,23,00,68,00,00,02,00,00,55,00";
-        raw[19]="33,04,00,00,24,00,26,82,35,02,35,82,35,06,58,C1,11,5E,C2,00,11,5E,C3,00,30,4D,B2,F8,07,1B,E4,C2,00,11,5E,C1,11,5E,C2,00,11,5E,C3,00,30,4D,B2,F8,07,1B,E4,00";
-        raw[20]="27,04,00,00,24,00,26,81,FC,01,FC,81,FC,05,F8,C1,0E,1B,C2,00,05,F8,C3,00,70,23,CB,26,01,00,24,8,07,09,00,00,00,00,51,00";
-        raw[21]="33,04,00,00,24,00,26,81,AE,02,81,81,AE,06,D4,C1,10,BD,C2,00,11,94,C3,00,30,4D,B2,DE,21,07,F8,C2,00,14,C3,C1,10,BC,C2,00,11,92,C3,00,30,4D,B2,DE,21,07,F8,00";
-        raw[22]="33,04,00,00,24,00,26,81,9F,02,93,81,9F,06,E3,C1,10,AE,C2,00,11,A0,C3,00,30,4D,B2,F8,07,1A,E5,C2,00,14,D4,C1,10,AA,C2,00,11,A4,C3,00,30,4D,B2,F8,07,1A,E5,00";
-		raw[23]="33,04,00,00,24,00,26,81,9a,02,96,81,99,06,e8,c1,10,ac,c2,00,11,a5,c3,00,30,4d,b2,f8,07,1b,e4,c2,00,14,d7,c1,10,a9,c2,00,11,a3,c3,00,30,4d,b2,f8,07,1b,e4,00";   
-		raw[24]="29,04,00,00,24,00,26,82,10,02,41,81,f5,06,6f,c1,17,75,c2,00,1c,88,c3,00,5f,ff,00,ff,00,ff,00,f7,08,f6,09,2a,55,c2,00,1d,28,00,";
-	    raw[25]="1e,04,00,00,24,00,26,82,09,02,1e,81,ec,06,a9,c1,23,4f,c2,00,11,98,c3,00,28,c3,02,0c,10,aa,00";
-		// 以下为电视码  /
-	    raw[26]="1d,04,00,00,24,00,26,82,86,01,e3,82,85,06,31,c1,23,4d,c2,00,11,60,c3,00,20,40,bf,12,ed,00";
-	    raw[27]="28,04,00,00,24,00,26,82,6d,01,fb,82,83,06,34,c1,11,b9,c2,00,11,64,c3,00,20,18,18,b,f4,c2,00,be,63,c1,11,b5,c2,00,11,65,00";
-	    raw[9]="2e,04,00,00,24,00,26,82,3e,02,3e,82,3e,06,3a,c1,0b,dc,c2,00,0b,dc,c1,0b,dc,c2,00,11,1c,c3,00,70,65,01,00,00,02,35,00,00,00,00,00,00,a0,e8,00";
-	    raw[10]="2b,04,00,00,24,00,26,81,e1,02,8d,81,e1,06,cc,c1,0b,fd,c2,00,0b,fd,c1,0b,fd,c2,00,11,5d,c3,00,58,65,81,00,00,35,00,00,00,00,00,cb,00";
-	    raw[11]="2a,04,00,00,24,00,26,81,8c,01,8c,81,8c,04,f9,c1,0d,6e,c2,00,04,f9,c3,00,88,40,00,14,80,43,01,a8,ee,03,00,68,00,00,02,00,00,52,00";
-	    
+		raw[9]="33,04,00,00,24,00,26,82,34,02,34,82,34,06,5b,c1,14,a9,c2,00,14,a9,c3,00,30,4d,b2,f8,07,1b,e4,c2,00,14,a9,c1,14,a9,c2,00,14,a9,c3,00,30,4d,b2,f8,07,1b,e4,00";
+	    raw[10]="27,04,00,00,24,00,26,82,16,02,16,82,16,04,70,c1,0e,34,c2,00,04,70,c3,00,70,23,cb,26,01,00,20,08,07,09,00,00,00,00,4d,00";
+	    raw[11]="47,04,00,00,24,00,26,82,6b,02,6b,82,6b,06,93,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,50,02,c2,00,4e,3d,c3,00,20,00,20,00,e0,c2,00,9c,6f,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,70,02,c2,00,4e,3d,c3,00,20,00,00,18,c0,00";
+	    raw[12]="47,04,00,00,24,00,26,82,6b,02,6b,82,6b,06,93,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,50,02,c2,00,4e,3a,c3,00,20,00,20,00,d0,c2,00,9c,6c,c1,23,2f,c2,00,11,a5,c3,00,23,18,09,20,70,02,c2,00,4e,3a,c3,00,20,00,00,18,c0,00";
+        raw[13]="47,04,00,00,24,00,26,82,A0,02,A0,82,A0,06,61,C1,23,66,C2,00,11,70,C3,00,23,18,09,20,50,02,C2,00,4E,06,C3,00,20,00,20,00,E0,C2,00,9C,3A,C1,23,66,C2,00,11,70,C3,00,23,18,09,20,70,02,C2,00,4E,06,C3,00,20,00,00,18,C0,00";
+        raw[14]="2E,04,00,00,24,00,26,82,40,02,40,82,40,06,3C,C1,0B,FC,C2,00,0B,FC,C1,0B,FC,C2,00,11,1C,C3,00,70,65,01,00,00,02,35,00,00,00,00,00,00,A0,E8,00";
+        raw[15]="2A,04,00,00,24,00,26,81,8E,01,8E,81,8E,06,8F,C1,D,6F,C2,00,06,8F,C3,00,88,40,00,14,80,43,02,A8,EE,23,00,68,00,00,02,00,00,55,00";
+        raw[16]="33,04,00,00,24,00,26,82,35,02,35,82,35,06,58,C1,11,5E,C2,00,11,5E,C3,00,30,4D,B2,F8,07,1B,E4,C2,00,11,5E,C1,11,5E,C2,00,11,5E,C3,00,30,4D,B2,F8,07,1B,E4,00";
+        raw[17]="27,04,00,00,24,00,26,81,FC,01,FC,81,FC,05,F8,C1,0E,1B,C2,00,05,F8,C3,00,70,23,CB,26,01,00,24,8,07,09,00,00,00,00,51,00";
+        raw[18]="33,04,00,00,24,00,26,81,AE,02,81,81,AE,06,D4,C1,10,BD,C2,00,11,94,C3,00,30,4D,B2,DE,21,07,F8,C2,00,14,C3,C1,10,BC,C2,00,11,92,C3,00,30,4D,B2,DE,21,07,F8,00";
+        raw[19]="33,04,00,00,24,00,26,81,9F,02,93,81,9F,06,E3,C1,10,AE,C2,00,11,A0,C3,00,30,4D,B2,F8,07,1A,E5,C2,00,14,D4,C1,10,AA,C2,00,11,A4,C3,00,30,4D,B2,F8,07,1A,E5,00";
+		raw[20]="33,04,00,00,24,00,26,81,9a,02,96,81,99,06,e8,c1,10,ac,c2,00,11,a5,c3,00,30,4d,b2,f8,07,1b,e4,c2,00,14,d7,c1,10,a9,c2,00,11,a3,c3,00,30,4d,b2,f8,07,1b,e4,00";   
+	    raw[21]="1e,04,00,00,24,00,26,82,09,02,1e,81,ec,06,a9,c1,23,4f,c2,00,11,98,c3,00,28,c3,02,0c,10,aa,00";
+		
+		raw[22]="29,04,00,00,24,00,26,82,10,02,41,81,f5,06,6f,c1,17,75,c2,00,1c,88,c3,00,5f,ff,00,ff,00,ff,00,f7,08,f6,09,2a,55,c2,00,1d,28,00,";
+	    // 以下为电视码  /
+	    raw[23]="1d,04,00,00,24,00,26,82,86,01,e3,82,85,06,31,c1,23,4d,c2,00,11,60,c3,00,20,40,bf,12,ed,00";
+	    raw[24]="28,04,00,00,24,00,26,82,6d,01,fb,82,83,06,34,c1,11,b9,c2,00,11,64,c3,00,20,18,18,b,f4,c2,00,be,63,c1,11,b5,c2,00,11,65,00";
+	    raw[25]="2e,04,00,00,24,00,26,82,3e,02,3e,82,3e,06,3a,c1,0b,dc,c2,00,0b,dc,c1,0b,dc,c2,00,11,1c,c3,00,70,65,01,00,00,02,35,00,00,00,00,00,00,a0,e8,00";
+	    raw[26]="2b,04,00,00,24,00,26,81,e1,02,8d,81,e1,06,cc,c1,0b,fd,c2,00,0b,fd,c1,0b,fd,c2,00,11,5d,c3,00,58,65,81,00,00,35,00,00,00,00,00,cb,00";
+	    raw[27]="2a,04,00,00,24,00,26,81,8c,01,8c,81,8c,04,f9,c1,0d,6e,c2,00,04,f9,c3,00,88,40,00,14,80,43,01,a8,ee,03,00,68,00,00,02,00,00,52,00";
+	    raw[28]="60,04,00,00,24,00,26,82,44,03,9b,82,43,07,81,c1,0f,ec,c2,00,0f,4a,c3,00,18,4f,05,ab,c2,00,20,b4,c1,0f,ec,c2,00,0f,4c,c3,00,18,4f,05,ab,c2,00,20,da,c1,0f,ca,c2,00,0f,66,c3,00,18,4f,05,ab,c2,00,20,d9,c1,0f,ca,c2,00,0f,6a,c3,00,18,4f,05,ab,c2,00,20,e7,c1,0f,bf,c2,00,0f,6f,c3,00,18,4f,05,ab,00";
+	    raw[29]="a8,04,00,00,24,00,26,82,14,03,c9,82,14,07,ad,c1,02,13,c2,00,03,ca,c3,00,09,56,01,c1,0f,c3,c2,00,0f,72,c3,00,18,4f,05,ab,c2,00,20,e2,c1,0f,bd,c2,00,0f,70,c3,00,18,4f,05,ab,c2,00,20,df,c1,0f,be,c2,00,0f,71,c3,00,18,4f,05,ab,c1,0f,c3,c2,00,0f,72,c3,00,18,4f,05,ab,c2,00,20,e2,c1,0f,bd,c2,00,0f,70,c3,00,18,4f,05,ab,c2,00,20,df,c1,0f,be,c2,00,0f,71,c3,00,18,4f,05,ab,c1,0f,c3,c2,00,0f,72,c3,00,18,4f,05,ab,c2,00,20,e2,c1,0f,bd,c2,00,0f,70,c3,00,18,4f,05,ab,c2,00,20,df,c1,0f,be,c2,00,0f,71,c3,00,18,4f,05,ab,00";
+	    raw[30]="3e,04,00,00,24,00,26,81,f5,03,ea,81,f6,07,d0,c1,0f,9f,c2,00,0f,93,c3,00,18,4f,05,ab,c2,00,21,05,c1,0f,9d,c2,00,0f,93,c3,00,18,4f,05,ab,c2,00,21,03,c1,0f,9d,c2,00,0f,92,c3,00,18,4f,05,ab,00";
+	    raw[31]="3e,04,00,00,24,00,26,81,ea,03,f5,81,ea,07,db,c1,0f,94,c2,00,0f,9f,c3,00,18,4f,05,ab,c2,00,20,f2,c1,0f,91,c2,00,0f,a0,c3,00,18,4f,05,ab,c2,00,21,10,c1,0f,c1,c2,00,0f,6f,c3,00,18,4f,05,ab,00";
 	    // 以下为机顶盒  /
-	    raw[28]="1d,04,00,00,24,00,26,82,49,02,1f,82,4a,06,6c,c1,23,29,c2,00,11,84,c3,00,20,20,8d,1a,e5,00";
-	    raw[29]="28,04,00,00,24,00,26,82,89,01,df,82,8a,06,2e,c1,23,67,c2,00,11,44,c3,00,20,01,fe,3,fc,c2,00,9b,b3,c1,23,43,c2,00,8,91,00";
+	    raw[32]="1d,04,00,00,24,00,26,82,49,02,1f,82,4a,06,6c,c1,23,29,c2,00,11,84,c3,00,20,20,8d,1a,e5,00";
+	    raw[33]="28,04,00,00,24,00,26,82,89,01,df,82,8a,06,2e,c1,23,67,c2,00,11,44,c3,00,20,01,fe,3,fc,c2,00,9b,b3,c1,23,43,c2,00,8,91,00";
 	    // 以下为DVD  /
-	    raw[30]="1d,04,00,00,24,00,26,82,63,02,04,82,66,06,51,c1,23,46,c2,00,11,66,c3,00,20,49,b6,1a,e5,00";
-	    raw[31]="1d,04,00,00,24,00,26,82,46,02,21,82,45,06,70,c1,23,26,c2,00,11,85,c3,00,20,20,df,b,f4,00";
-	    raw[32]="3e,04,00,00,24,00,26,81,ea,03,f5,81,ec,07,da,c1,0f,99,c2,00,0f,9d,c3,00,18,4f,05,ab,c2,00,21,0f,c1,0f,94,c2,00,0f,9e,c3,00,18,4f,05,ab,c2,00,21,0f,c1,0f,93,c2,00,0f,9d,c3,00,18,4f,05,ab,00,";
-	    raw[33]="4f,04,00,00,24,00,38,82,41,03,9e,82,27,07,9e,c1,0f,d5,c2,00,0f,61,c3,00,18,4f,05,ab,c2,00,20,d2,c1,0f,d4,c2,00,0f,5f,c3,00,18,4f,05,ab,c2,00,20,d4,c1,0f,d3,c2,00,0f,60,c3,00,18,4f,05,ab,c2,00,20,d2,c1,0f,ea,c2,00,0f,49,c3,00,18,4f,05,ab,00";
-	    raw[35]="60,04,00,00,24,00,26,81,f7,03,e8,81,f9,07,cd,c1,0f,a2,c2,00,0f,90,c3,00,18,4f,05,ab,c2,00,21,05,c1,0f,9f,c2,00,0f,93,c3,00,18,4f,05,ab,c2,00,21,04,c1,0f,9f,c2,00,0f,91,c3,00,18,4f,05,ab,c2,00,21,03,c1,0f,9f,c2,00,0f,91,c3,00,18,4f,05,ab,c2,00,21,05,c1,0f,a0,c2,00,0f,93,c3,00,18,4f,05,ab,00";
-	    raw[36]="82,04,00,00,24,00,26,82,43,03,9d,82,3f,07,80,c1,0f,e8,c2,00,0f,4e,c3,00,18,4f,05,ab,c2,00,20,ba,c1,0f,e8,c2,00,0f,4b,c3,00,18,4f,05,ab,c2,00,20,b6,c1,0f,eb,c2,00,0f,46,c3,00,18,4f,05,ab,c2,00,20,d4,c1,0f,ec,c2,00,0f,4c,c3,00,18,4f,05,ab,c2,00,20,b6,c1,0f,e9,c2,00,0f,4c,c3,00,18,4f,05,ab,c2,00,20,da,c1,0f,c6,c2,00,0f,78,c3,00,18,4f,05,ab,c2,00,20,d3,c1,0f,cc,c2,00,0f,65,c3,00,18,4f,05,ab,00";
-	    raw[37]="60,04,00,00,24,00,26,81,fb,03,e3,81,fb,07,c9,c1,0f,a7,c2,00,0f,8d,c3,00,18,4f,05,ab,c2,00,20,fd,c1,0f,a4,c2,00,0f,8c,c3,00,18,4f,05,ab,c2,00,20,fd,c1,0f,a3,c2,00,0f,8c,c3,00,18,4f,05,ab,c2,00,20,fd,c1,0f,a4,c2,00,0f,8d,c3,00,18,4f,05,ab,c2,00,20,fd,c1,0f,a5,c2,00,0f,8d,c3,00,18,4f,05,ab,00";
-	    raw[38]="ad,04,00,00,24,00,26,82,3c,03,9a,82,43,07,86,c1,0f,ec,c2,00,0f,48,c3,00,18,4f,05,ab,c2,00,20,b5,c1,0f,eb,c2,00,0f,44,c3,00,18,4f,05,ab,c2,00,20,ec,c1,0f,d8,c2,00,0f,46,c3,00,18,4f,05,ab,c1,0f,ec,c2,00,0f,48,c3,00,18,4f,05,ab,c2,00,20,b5,c1,0f,eb,c2,00,0f,44,c3,00,18,4f,05,ab,c2,00,20,ec,c1,0f,d8,c2,00,0f,46,c3,00,18,4f,05,ab,c1,0f,ec,c2,00,0f,48,c3,00,18,4f,05,ab,c2,00,20,b5,c1,0f,eb,c2,00,0f,44,c3,00,18,4f,05,ab,c2,00,20,ec,c1,0f,d8,c2,00,0f,46,c3,00,18,4f,05,ab,c2,00,20,da,c1,0f,c5,c2,00,0f,6b,c3,00,18,4f,05,ab,00";
-	    raw[39]="3e,04,00,00,24,00,26,82,1c,03,c8,82,1b,07,aa,c1,0f,c2,c2,00,0f,70,c3,00,18,4f,05,ab,c2,00,20,e0,c1,0f,c1,c2,00,0f,6f,c3,00,18,4f,05,ab,c2,00,20,df,c1,0f,c1,c2,00,0f,70,c3,00,18,4f,05,ab,00";
+	    raw[34]="1d,04,00,00,24,00,26,82,63,02,04,82,66,06,51,c1,23,46,c2,00,11,66,c3,00,20,49,b6,1a,e5,00";
+	    raw[35]="1d,04,00,00,24,00,26,82,46,02,21,82,45,06,70,c1,23,26,c2,00,11,85,c3,00,20,20,df,b,f4,00";
+	    //raw[35]="4f,04,00,00,24,00,38,82,41,03,9e,82,27,07,9e,c1,0f,d5,c2,00,0f,61,c3,00,18,4f,05,ab,c2,00,20,d2,c1,0f,d4,c2,00,0f,5f,c3,00,18,4f,05,ab,c2,00,20,d4,c1,0f,d3,c2,00,0f,60,c3,00,18,4f,05,ab,c2,00,20,d2,c1,0f,ea,c2,00,0f,49,c3,00,18,4f,05,ab,00";
+	    raw[36]="60,04,00,00,24,00,26,81,f7,03,e8,81,f9,07,cd,c1,0f,a2,c2,00,0f,90,c3,00,18,4f,05,ab,c2,00,21,05,c1,0f,9f,c2,00,0f,93,c3,00,18,4f,05,ab,c2,00,21,04,c1,0f,9f,c2,00,0f,91,c3,00,18,4f,05,ab,c2,00,21,03,c1,0f,9f,c2,00,0f,91,c3,00,18,4f,05,ab,c2,00,21,05,c1,0f,a0,c2,00,0f,93,c3,00,18,4f,05,ab,00";
+	    raw[37]="82,04,00,00,24,00,26,82,43,03,9d,82,3f,07,80,c1,0f,e8,c2,00,0f,4e,c3,00,18,4f,05,ab,c2,00,20,ba,c1,0f,e8,c2,00,0f,4b,c3,00,18,4f,05,ab,c2,00,20,b6,c1,0f,eb,c2,00,0f,46,c3,00,18,4f,05,ab,c2,00,20,d4,c1,0f,ec,c2,00,0f,4c,c3,00,18,4f,05,ab,c2,00,20,b6,c1,0f,e9,c2,00,0f,4c,c3,00,18,4f,05,ab,c2,00,20,da,c1,0f,c6,c2,00,0f,78,c3,00,18,4f,05,ab,c2,00,20,d3,c1,0f,cc,c2,00,0f,65,c3,00,18,4f,05,ab,00";
+	    raw[38]="60,04,00,00,24,00,26,81,fb,03,e3,81,fb,07,c9,c1,0f,a7,c2,00,0f,8d,c3,00,18,4f,05,ab,c2,00,20,fd,c1,0f,a4,c2,00,0f,8c,c3,00,18,4f,05,ab,c2,00,20,fd,c1,0f,a3,c2,00,0f,8c,c3,00,18,4f,05,ab,c2,00,20,fd,c1,0f,a4,c2,00,0f,8d,c3,00,18,4f,05,ab,c2,00,20,fd,c1,0f,a5,c2,00,0f,8d,c3,00,18,4f,05,ab,00";
+	    raw[39]="ad,04,00,00,24,00,26,82,3c,03,9a,82,43,07,86,c1,0f,ec,c2,00,0f,48,c3,00,18,4f,05,ab,c2,00,20,b5,c1,0f,eb,c2,00,0f,44,c3,00,18,4f,05,ab,c2,00,20,ec,c1,0f,d8,c2,00,0f,46,c3,00,18,4f,05,ab,c1,0f,ec,c2,00,0f,48,c3,00,18,4f,05,ab,c2,00,20,b5,c1,0f,eb,c2,00,0f,44,c3,00,18,4f,05,ab,c2,00,20,ec,c1,0f,d8,c2,00,0f,46,c3,00,18,4f,05,ab,c1,0f,ec,c2,00,0f,48,c3,00,18,4f,05,ab,c2,00,20,b5,c1,0f,eb,c2,00,0f,44,c3,00,18,4f,05,ab,c2,00,20,ec,c1,0f,d8,c2,00,0f,46,c3,00,18,4f,05,ab,c2,00,20,da,c1,0f,c5,c2,00,0f,6b,c3,00,18,4f,05,ab,00";
 	    raw[40]="4e,04,00,00,24,00,26,81,e1,02,52,81,e3,06,a1,c1,10,f2,c2,00,11,60,c3,00,30,4d,b2,de,21,07,f8,c2,00,14,8e,c1,10,f1,c2,00,11,60,c3,00,30,4d,b2,de,21,07,f8,c1,10,f2,c2,00,11,60,c3,00,30,4d,b2,de,21,07,f8,c2,00,14,8e,c1,10,f1,c2,00,11,60,00";
 	    raw[41]="33,04,00,00,24,00,38,82,4d,01,fa,82,51,06,0d,c1,11,52,c2,00,10,f4,c3,00,30,4d,b2,de,21,07,f8,c2,00,14,1e,c1,11,51,c2,00,10,f2,c3,00,30,4d,b2,de,21,07,f8,00";
-	    //TV
-	    raw[42]="a8,04,00,00,24,00,26,82,14,03,c9,82,14,07,ad,c1,02,13,c2,00,03,ca,c3,00,09,56,01,c1,0f,c3,c2,00,0f,72,c3,00,18,4f,05,ab,c2,00,20,e2,c1,0f,bd,c2,00,0f,70,c3,00,18,4f,05,ab,c2,00,20,df,c1,0f,be,c2,00,0f,71,c3,00,18,4f,05,ab,c1,0f,c3,c2,00,0f,72,c3,00,18,4f,05,ab,c2,00,20,e2,c1,0f,bd,c2,00,0f,70,c3,00,18,4f,05,ab,c2,00,20,df,c1,0f,be,c2,00,0f,71,c3,00,18,4f,05,ab,c1,0f,c3,c2,00,0f,72,c3,00,18,4f,05,ab,c2,00,20,e2,c1,0f,bd,c2,00,0f,70,c3,00,18,4f,05,ab,c2,00,20,df,c1,0f,be,c2,00,0f,71,c3,00,18,4f,05,ab,00";
-	    //TV
-	    raw[43]="3e,04,00,00,24,00,26,81,f5,03,ea,81,f6,07,d0,c1,0f,9f,c2,00,0f,93,c3,00,18,4f,05,ab,c2,00,21,05,c1,0f,9d,c2,00,0f,93,c3,00,18,4f,05,ab,c2,00,21,03,c1,0f,9d,c2,00,0f,92,c3,00,18,4f,05,ab,00";
-	    //AC
 	    raw[44]="33,04,00,00,24,00,26,82,50,01,f8,82,54,06,08,c1,11,56,c2,00,10,f1,c3,00,30,4d,b2,de,21,07,f8,c2,00,14,19,c1,11,55,c2,00,10,f0,c3,00,30,4d,b2,de,21,07,f8,00";
 	     //AC
 	    raw[45]="29,04,00,00,24,00,26,82,40,02,21,82,41,06,54,c1,17,f2,c2,00,1c,b7,c3,00,60,ff,00,ff,00,ff,00,fb,04,f6,09,2a,d5,c2,00,1c,a5,00";
 
-	    Date date =new Date();
+
 
     	
-	    for (int i = 44; i < 45; i++) {
+    	IRMatch2 im=new IRMatch2();
+	    for (int i = 31; i < 32; i++) {
 	    	System.out.println(i);
-	    	IRMatch2 im=new IRMatch2();
-	    	im.init(raw[i], 541);		
+	    	Date date =new Date();
+
+	    	im.init(raw[i], 501);		
 	    	im.recursiveMatch(im);
+	    	System.out.println("IR match finished in :"+(new Date().getTime()-date.getTime())+" miliseconds");
 		}
 
 
         
-    System.out.println("IR match finished in :"+(new Date().getTime()-date.getTime())+" miliseconds");
+    
 
     
 	}

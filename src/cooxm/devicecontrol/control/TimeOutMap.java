@@ -68,6 +68,7 @@ public class TimeOutMap extends HashMap<String,Message> implements Runnable {
 					e.printStackTrace();
 				}
 				msg.setJson(json);
+				msg.setServerID(originMsg.getServerID());
 		    	try {
 		    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 				} catch (InterruptedException e) {
@@ -94,14 +95,15 @@ public class TimeOutMap extends HashMap<String,Message> implements Runnable {
 				int  time_diff =(int) ((nowTime-createTime)/(1000));
 				if(time_diff>=timeOut){      //超时，返回超时错误
                     Message msg=entry.getValue();
-					int sender=0;
-					if(msg.getJson().has("sender")){
-						   sender=msg.getJson().optInt("sender");
-					}
+
 					JSONObject json=msg.getJson();
 					try {
+						/*int sender=0;
+						if(msg.getJson().has("sender")){
+							   sender=msg.getJson().optInt("sender");
+						}
 						json.put("sender",2);
-						json.put("receiver",sender);
+						json.put("receiver",sender);*/
 						json.put("errorCode", LogicControl.TIME_OUT);
 						log.error("Timeout, havn't received ACK for msg: "+msg.toString());
 					} catch (JSONException e) {

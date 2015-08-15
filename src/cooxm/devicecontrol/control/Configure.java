@@ -85,7 +85,8 @@ public class Configure extends Properties {
 
 	public static void main(String[] args) {		
 		Configure cf= new Configure();
-		System.out.println(cf.getValue("server_port"));	
+		//System.out.println(cf.getValue("server_port"));	
+		cf.getMysql();
 
 	}
 

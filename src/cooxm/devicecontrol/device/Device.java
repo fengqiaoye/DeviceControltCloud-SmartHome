@@ -10,6 +10,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -183,6 +184,9 @@ public class Device {
 	
 
 	
+	public String getDeviceName() {
+		return deviceName;
+	}
 	public int getState() {
 		return state;
 	}
@@ -463,8 +467,17 @@ public class Device {
 			if(p.getRoomID()==roomID && p.getCtrolID()==ctrolID){
 				jedis.del(LogicControl.roomBind+ctrolID);
 			}				
-		}
-		
+		}		
+	}
+	
+	public static void deleteDeviceStateByRoomIDFromRedis(Jedis jedis,int ctrolID,int roomID) throws JSONException, ParseException{
+		Map<String, String> DeviceMap = jedis.hgetAll(LogicControl.currentDeviceState+ctrolID);
+		for (Map.Entry<String, String> entry:DeviceMap.entrySet()) {
+			Device p=new Device(new JSONObject(entry.getValue()));
+			if(p.getRoomID()==roomID && p.getCtrolID()==ctrolID){
+				jedis.del(LogicControl.roomBind+ctrolID);
+			}				
+		}		
 	}
 	
 	
@@ -488,9 +501,9 @@ public class Device {
 				+" where ctr_id="+ctrolID
 				+" and deviceid="+deviceID
 				+ ";";
-		System.out.println("query:"+sql);
+		//System.out.println("query:"+sql);
 		String res=mysql.select(sql);
-		System.out.println("get from mysql:\n"+res);
+		//System.out.println("get from mysql:\n"+res);
 		if(res==null|| res==""){
 			System.err.println("ERROR:empty query by : "+sql);
 			return null;
@@ -521,6 +534,32 @@ public class Device {
 			deviceList.add(device);
 		}
 
+		return deviceList;
+	}
+	
+	public static  List<Device> getDeviceFromRedisByType(Jedis jedis, int ctrolID,int roomID,int deviceType){
+		List<Device> deviceList=new ArrayList<Device>();
+		Set<String> deviceIDSet = jedis.hkeys(LogicControl.roomBind+ctrolID);
+		if(deviceIDSet.size()==0){
+			return null;
+		}
+		for (String deviceID:deviceIDSet) {
+			Device device=new Device();
+			String s=jedis.hget(LogicControl.roomBind+ctrolID, deviceID);
+			if(s==null){
+				return null;
+			}
+			try {
+				device = new Device(new JSONObject(s));
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+			if (device.getDeviceType()==deviceType && device.getRoomID()==roomID) {
+				deviceList.add(device);
+			}
+		}
 		return deviceList;
 	}
 	

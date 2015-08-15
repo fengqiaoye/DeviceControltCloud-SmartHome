@@ -19,6 +19,7 @@ import java.sql.DriverManager;
 import java.sql.Statement;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -455,7 +456,11 @@ public class TestClass {
 		
 		//test();
 		
-		testDecimal();
+		//testDecimal();
+		
+		int c = Calendar.HOUR_OF_DAY;
+		int a=Calendar.getInstance().get(c);
+		System.out.println(a);
 		
 
 

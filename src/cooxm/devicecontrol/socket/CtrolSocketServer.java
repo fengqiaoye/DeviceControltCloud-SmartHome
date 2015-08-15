@@ -21,6 +21,8 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.hp.hpl.sparta.xpath.ThisNodeTest;
+
 import cooxm.devicecontrol.control.Configure;
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.JsonValidator;
@@ -91,7 +93,7 @@ public class CtrolSocketServer {
         String msg_server_IP=configure.getValue("msg_server_IP"); //configure.getProperty("msg_server_IP", "172.16.35.173");
         int msg_server_port =Integer.parseInt(configure.getValue("msg_server_port")); 
         log.info("Connecting to msg server,IP:"+msg_server_IP+":"+msg_server_port);
-        this.msgSock=new SocketClient(msg_server_IP, msg_server_port, cluster_id, server_id, 201,false,false);  
+        this.msgSock=new SocketClient(msg_server_IP, msg_server_port, cluster_id,4, server_id, 201,false,false);  
         Thread connectMsgServerThread = new Thread((Runnable) this.msgSock);
         connectMsgServerThread.setName("connectMsgServer");
         connectMsgServerThread.start();   
@@ -130,7 +132,7 @@ public class CtrolSocketServer {
        		log.info(" Create ReadThread for socket:"+remoteSock.toString()
        				 +",threadID="+rt.getId()+",threadName="+rt.getName()+",state="+rt.getState()); 
        		
-       		Thread.sleep(100); 
+       		Thread.sleep(150); 
        		
        		WriteThread wr=new  WriteThread(sock);
        		wr.setName(remoteSock.toString().replace("/", "")+"_Wt");
@@ -139,9 +141,7 @@ public class CtrolSocketServer {
       				 +",threadID="+wr.getId()+",threadName="+wr.getName()+",state="+wr.getState());
        		
 //       		ProcessThread pt2= new  ProcessThread();
-//       		pt2.start();
-       				
-       		
+//       		pt2.start();       		
         }
 	}
 	
@@ -179,6 +179,9 @@ public class CtrolSocketServer {
 		
 		public void run()
 		{
+			if(this.socket==null){
+				return;  //线程终止
+			}
 	        while (this.socket!=null && !this.socket.isClosed())  
 	        { 
 	          Message  msg= readFromClient(socket);	          
@@ -202,19 +205,41 @@ public class CtrolSocketServer {
 						} catch (JSONException e1) {
 							e1.printStackTrace();
 						}
-						if(ack_res==0){
-							if(this.serverID>0){
-							Server server= getServerInfo(this.serverID);
+						if(ack_res==0 && this.serverID>0){
+							if(sockMap.containsKey(this.serverID)){
+								Socket oldSock=sockMap.get(this.serverID);
+								log.error("Accept a new socket, the same serverID="+this.serverID+"from "+socket.getRemoteSocketAddress()
+										+",the old socket will be closed:"+oldSock.getRemoteSocketAddress());
+								try {
+									oldSock.close();
+									oldSock=null;
+									sockMap.remove(this.serverID);
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+								sockMap.put(this.serverID, socket);								
+							}							
+							Server server= getServerInfo(this.serverID);							
 							severMap.put(this.serverID, server);
-							sockMap.put(this.serverID, socket);
-							printSocketMap();
-							}
+
+
 						}else{
 							log.error("Get authenrize failed: myIP:"+socket.getLocalSocketAddress()
 									+",remoteIP:"+socket.getRemoteSocketAddress().toString());
 						}			
 						break;
 					default:
+						if(!sockMap.containsValue(this.socket)){
+							log.info("socket hase been removed from SockMap :"+this.socket.getRemoteSocketAddress().toString()+",serverID: "+this.serverID);
+							sockMap.remove(this.serverID, this.socket);
+							try {
+								this.socket.close();
+								log.info("socket hase been closed :"+this.socket.getRemoteSocketAddress().toString()+",serverID: "+this.serverID);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							return;  //线程终止
+						}
 			            try {
 			            	if(msg.isValid()){
 			            		boolean falg=CtrolSocketServer.receiveCommandQueue.offer(msg,200, TimeUnit.MICROSECONDS);
@@ -234,8 +259,7 @@ public class CtrolSocketServer {
 						severMap.remove(this.serverID);	
 						if(res==true){
 							log.info("socket hase been removed from SockMap :"+this.socket.getRemoteSocketAddress().toString()+",serverID: "+serverID);
-						}
-						
+						}						
 						this.socket.close();
 						this.socket=null;
 	            		Thread.sleep(5);						
@@ -257,18 +281,13 @@ public class CtrolSocketServer {
 		public WriteThread(Socket client)
 		{sock = client;}
 	
-		public synchronized void run()
+		public  void run()
 		{
 			if(this.sock==null){
-	    		try {
-					Thread.sleep(5);
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
-				}
 				return;  //线程终止
 			}
     		try {
-				Thread.sleep(100);
+				Thread.sleep(10);
 			} catch (InterruptedException e1) {
 				e1.printStackTrace();
 			}
@@ -279,54 +298,70 @@ public class CtrolSocketServer {
 				} catch (InterruptedException e1) {
 					e1.printStackTrace();
 				}
+				if(!sockMap.containsValue(this.sock)){  //sockMap已把当前socket删除
+					try {
+						log.error("can't find this sock in SockMap,sock:"+this.sock.getRemoteSocketAddress()+",socket closed!");
+						this.sock.close();
+						this.sock=null;
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					
+					return;
+				}
 	    		if(!CtrolSocketServer.sendCommandQueue.isEmpty()){
 		    		Message outMsg=null;
+		    		Socket targetSock=null;
+		    		int serverID=-1;
 					try {
-						outMsg=CtrolSocketServer.sendCommandQueue.peek();
-						if(null!=outMsg){
-							//System.out.println("Thread="+this.getName()+",Size of sendCommandQueue="+sendCommandQueue.size()+",ServerID="+outMsg.getServerID()+",head of queue:"+outMsg.toString());
-							int serverID=-1;
-							if(outMsg.commandID>=0x2000 &&  outMsg.commandID<=0x21FF){ //消息服务器
-								serverID=4;
-							}else{
-								 serverID=outMsg.getServerID();	
-							}
-							
-							Socket  targetSock= sockMap.get(serverID);
-							 if(serverID>0 && this.sock.equals(targetSock) ){	
-								outMsg = CtrolSocketServer.sendCommandQueue.take();
-								//System.out.println("size of sendCommandQueue ="+CtrolSocketServer.sendCommandQueue.size());
-								outMsg.writeBytesToSock2(this.sock);
-								DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-								if(outMsg.getCommandID()==20738){  //心跳
-									log.debug("HeartBeat "+sock.getRemoteSocketAddress().toString()
-											+",serverID: "+outMsg.serverID+",Msg:"+outMsg.toString());
-								}else{
-								    log.debug("Send  to "+sock.getRemoteSocketAddress().toString()+":"+outMsg.toString());	
-								}
-							}else if(serverID<0 || !sockMap.containsValue(this.sock)){ //找不到对对应的socket 就把头部的 移走
-								log.error("Message has been disposed:"+outMsg.toString()+",because can't find sock in SockMap,sock:"+this.sock.getRemoteSocketAddress()+",outMsg.serverID="+serverID);
-								CtrolSocketServer.sendCommandQueue.remove();
+						
+						synchronized(CtrolSocketServer.sendCommandQueue){ //锁定队列
+							outMsg=CtrolSocketServer.sendCommandQueue.peek();
+							if(null!=outMsg){
+								//System.out.println("Thread="+this.getName()+",Size of sendCommandQueue="+sendCommandQueue.size()+",ServerID="+outMsg.getServerID()+",head of queue:"+outMsg.toString());
 								
+								if(outMsg.commandID>=0x2000 &&  outMsg.commandID<=0x21FF){ //消息服务器
+									serverID=4;
+								}else{
+									 serverID=outMsg.getServerID();	
+								}								
+								targetSock= sockMap.get(serverID);
+								if(targetSock==null || serverID<0){ //找不到serverID对应的socket
+									log.error("Message has been disposed:"+outMsg.toString()+",because can't find sock in SockMap,sock:"+this.sock.getRemoteSocketAddress()+",outMsg.serverID="+serverID);
+									CtrolSocketServer.sendCommandQueue.remove();
+								}					
+
+								//if( this.sock.equals(targetSock) ){	
+									outMsg = CtrolSocketServer.sendCommandQueue.take();
+									if(outMsg.getCommandID()==20738){  //心跳
+										log.debug("HeartBeat "+sock.getRemoteSocketAddress().toString()+",serverID: "+outMsg.serverID+",Msg:"+outMsg.toString());
+									}else{
+									    log.debug("Send  to "+targetSock.getRemoteSocketAddress().toString()+":"+outMsg.toString());	
+									}
+									outMsg.writeBytesToSock2(targetSock);
+
+								//}
 							}
 						}
+
 					} catch (InterruptedException e) {
 						e.printStackTrace();
 						return;
 					} catch (IOException e) {
 						e.printStackTrace();
 						try {
-							this.sock.close();
-							log.error("Socket has been closed,serverID :"+outMsg.serverID+",sock :"+sock.getRemoteSocketAddress().toString());
+							//this.sock.close();
+							targetSock.close();
+							log.error("Socket has been closed,serverID :"+serverID+",sock :"+targetSock.getRemoteSocketAddress().toString());
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}
-						this.sock=null;
+						targetSock=null;
 						return;
 					} 				
 		    	}
 	    	}
-	    	log.error("Write thread terminate, can't find sock in SockMap,sock:"+this.sock.getRemoteSocketAddress());
+	    	log.error("Write thread terminate, sock=null,"+this.sock.getRemoteSocketAddress());
 	    	return;
 		}
 	} 
@@ -435,14 +470,15 @@ public class CtrolSocketServer {
 				serverID= msg.getJson().getInt("uiServerID");
 			}
 			if(serverID<0){
+
 				JSONObject json=new JSONObject();
 				json.put("errorCode",-1);
 				Message replyMsg=new Message(msg);
 				replyMsg.setCommandID((short) (msg.getCommandID()+Message.COMMAND_ACK_OFFSET));
 				replyMsg.setJson(json);
-
 				CtrolSocketServer.sendCommandQueue.offer(msg,100, TimeUnit.MICROSECONDS);
 				log.info("anth faild: "+replyMsg.toString());
+
 				Thread.sleep(5);
 				sock.close();
 				return serverID;
@@ -476,7 +512,7 @@ public class CtrolSocketServer {
 		}
 		return serverID; 	
 	}      
-	public void printSocketMap(){
+	public static void printSocketMap(){
 		for (Entry<Integer, Socket> sock : sockMap.entrySet()) {
 			log.info("sockMap,ID:"+sock.getKey()+",sock:"+sock.getValue().getRemoteSocketAddress());
 		}
@@ -583,7 +619,7 @@ public class CtrolSocketServer {
 	        return msg;
 		} catch (IOException e) {
 			e.printStackTrace();
-			log.error("IOException socket:"+clientRequest.getRemoteSocketAddress().toString()+" , socket will be closed.");
+			log.error(" IOException socket:"+clientRequest.getRemoteSocketAddress().toString()+" , socket will be closed.");
 			try {
 				in.close();
 			} catch (IOException e1) {

@@ -48,7 +48,7 @@ public class Warn {
 	int operationType;	
 	
 	/**告警内容 中文UTF-8
-	 * 当opTyep=3011时，此处填写 房间名字+墙名字+设备名字*/	
+	 * 当opTyep=3016时，设备掉线，此处填写 房间名字+墙名字+设备名字*/	
 	String msgContent; 
 
 	
@@ -168,7 +168,7 @@ public class Warn {
 	madeFrom	告警产生系统:1：中控系统；2：安防系统;3：云端
 	wanrType:	告警类型:1：有害气体过高；2：PM2.5指标严重；3：温度过高 ；4：火警；5：入侵告警；6：防盗大门未关；7：台风告警；8：暴雨告警*/
 	public Warn(int ctrolID, int channel, int target, int timeOut,
-			Date createTime, int madeFrom, int warnType, int severity,int operationType) {
+			Date createTime, int madeFrom, int warnType, int severity,int operationType,String msgContent) {
 		this.ctrolID = ctrolID;
 		this.channel = channel;
 		this.target = target;
@@ -176,8 +176,9 @@ public class Warn {
 		this.createTime = createTime;
 		this.madeFrom = madeFrom;
 		this.warnType = warnType;
-		this.severity=severity;
+		this.severity=severity;		
 		this.operationType=operationType;
+		this.msgContent=msgContent;
 	}
 	
 	public Warn(JSONObject warnJson) {
@@ -222,7 +223,7 @@ public class Warn {
 
 	public static void main(String[] args) {
 		
-		Warn warn =new Warn(40008, 1, 2, 0, new Date(), 1, 2, 3,0);
+		Warn warn =new Warn(40008, 1, 2, 0, new Date(), 1, 2, 3,0,"");
 		System.out.println(warn.toJsonObject().toString());
 
 	}

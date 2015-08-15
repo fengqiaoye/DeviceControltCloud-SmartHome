@@ -602,7 +602,7 @@ public class Profile  {
 					+" where ctr_id="+ctrolID
 					+" and userroomstid="+profileID
 					+ ";";
-			System.out.println("query:"+sql);
+			//System.out.println("query:"+sql);
 			int res=mysql.query(sql);
 			//System.out.println("deleted "+ res + " rows of records from table:"+profileDetailTable);
 			if(res<=0 ) {
@@ -618,7 +618,7 @@ public class Profile  {
 			+ ";";
 			System.out.println("query:"+sql2);
 			res2=mysql.query(sql2);
-			System.out.println("deleted "+ res + " rows of records from table:"+profileIndexTable);
+			//System.out.println("deleted "+ res + " rows of records from table:"+profileIndexTable);
 			if(res2<0){
 				log.error("ERROR:exception happened: "+sql2);
 				return -1;
@@ -652,7 +652,7 @@ public class Profile  {
 						+ ";";
 				System.out.println("query:"+sql);
 				int res=mysql.query(sql);
-				System.out.println("deleted "+ res + " rows of records from table:"+profileDetailTable);
+				//System.out.println("deleted "+ res + " rows of records from table:"+profileDetailTable);
 				if(res<=0 ) {
 					System.err.println("ERROR: empty result: "+sql);
 					return 0;
@@ -665,7 +665,7 @@ public class Profile  {
 				+ ";";
 				System.out.println("query:"+sql2);
 				int res2=mysql.query(sql2);
-				System.out.println("deleted "+ res + " rows of records from table:"+profileIndexTable);
+				//System.out.println("deleted "+ res + " rows of records from table:"+profileIndexTable);
 				if(res2<0){
 					log.error("ERROR:exception happened: "+sql2);
 					return 0;
