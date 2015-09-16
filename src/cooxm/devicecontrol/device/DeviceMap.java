@@ -66,7 +66,9 @@ public class DeviceMap extends HashMap<String, Device> {
 				+"wall         ,"
 				+"relateddevid ,"
 				+"createtime   ,"
-				+"modifytime   "
+				+"modifytime,   "
+				+"state, "
+				+"remoteControl"
 				+ " from "				
 				+Device.deviceBindTable
 				//+" where ctr_id="+ctrolID
@@ -101,6 +103,8 @@ public class DeviceMap extends HashMap<String, Device> {
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
+			device.state=Integer.parseInt(index[11]);
+			device.remoteControl=Integer.parseInt(index[12]);
 			deviceMap.put(device.ctrolID+"_"+device.deviceID, device);
 		}
 		log.info("Initialize deviceMap finished !");
@@ -146,6 +150,21 @@ public class DeviceMap extends HashMap<String, Device> {
 				Device.DeleteOneDeviceFromDB(mysql, ctrolID, entry.getValue().getDeviceID());
 			}			
 		}
+	}
+	
+	/*** 删除 该家庭所有设备，包含加电和 传感器
+	 * 
+	 * */
+	public List<Device> getDevicesByroomIDDevType(int ctrolID,int roomID,int deviceType){
+		List<Device> deviceList= new ArrayList<Device>();
+		Iterator<Map.Entry<String, Device>> it = this.entrySet().iterator();  
+        while(it.hasNext()){  
+            Map.Entry<String, Device> entry=it.next();  
+			if(entry.getValue().getRoomID()==roomID && entry.getValue().getCtrolID()==ctrolID && entry.getValue().getDeviceType()==deviceType){
+				deviceList.add(entry.getValue());
+			}			
+		}
+        return deviceList;
 	}
 	
 	

@@ -193,6 +193,7 @@ public class Warn {
 			this.warnType=warnJson.getInt("warnType");
 			this.severity=warnJson.optInt("severity");	
 			this.operationType=warnJson.optInt("operationType");
+			this.msgContent=warnJson.optString("msgContent");;
 		} catch (JSONException e) {
 			e.printStackTrace();
 		} catch (ParseException e) {
@@ -214,16 +215,24 @@ public class Warn {
 		    warnJson.put("warnType",       this.warnType        );
 		    warnJson.put("severity",    this.severity       );
 		    warnJson.put("opType",    this.operationType    );
-		    warnJson.put("msgContent",    "warn"       );		    
+		    try {
+				JSONObject json=new JSONObject(this.msgContent) ;
+				warnJson.put("msgContent",      json  );		
+			} catch (Exception e) {
+				warnJson.put("msgContent",      this.msgContent  );	
+			}
+		        
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}	    
 	    return warnJson;
 	}
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws JSONException {
+		JSONObject json =new JSONObject();
+		json.put("test",122);
 		
-		Warn warn =new Warn(40008, 1, 2, 0, new Date(), 1, 2, 3,0,"");
+		Warn warn =new Warn(40008, 1, 2, 0, new Date(), 1, 2, 3,0,json.toString());
 		System.out.println(warn.toJsonObject().toString());
 
 	}

@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.apache.cassandra.thrift.Cassandra.AsyncProcessor.system_add_column_family;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -195,11 +196,11 @@ public class DeviceState {
 	
 	public DeviceState (JSONObject json) throws ParseException, JSONException{
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		this.onOff=json.optInt("onOff");
-		this.mode=json.optInt("mode");
-		this.windSpeed=json.optInt("windSpeed");
-		this.windDirection=json.optInt("windDirection");
-		this.tempreature=json.optInt("tempreature");
+		this.onOff=json.getInt("onOff");
+		this.mode=json.getInt("mode");
+		this.windSpeed=json.getInt("windSpeed");
+		this.windDirection=json.getInt("windDirection");
+		this.tempreature=json.getInt("tempreature");
 		/*this.channel=json.optInt("channel");
 		this.volumn=json.optInt("volumn");
 		this.brightness=json.optInt("brightness");*/
@@ -211,8 +212,8 @@ public class DeviceState {
 			e.printStackTrace();
 		}*/
 		
-		this.keyType=json.optInt("keyType");
-		this.stable=json.optInt("stable");
+		this.keyType=json.getInt("keyType");
+		this.stable=json.optInt("stable",0);
 	}
 	
 	/**<pre> 将一个旧的状态和一个新的状态叠加
@@ -225,7 +226,7 @@ public class DeviceState {
 		this.windDirection=(newState.windDirection==-1)	?this.windDirection	:newState.windDirection;
 		this.tempreature=(newState.tempreature==-1)	?	this.tempreature	:newState.tempreature;
 		this.keyType=(newState.keyType==-1)				?	this.keyType		:newState.keyType;	
-		this.stable=(newState.stable==-1)				?	this.stable		:newState.stable;	
+		this.stable=(newState.stable>=16)				?	newState.stable:this.stable		;	
 		return this;		
 	}
 
@@ -233,6 +234,10 @@ public class DeviceState {
     DeviceState old=new DeviceState(-1, 0, -1, 5, -1, -1,0);
     DeviceState newd=new DeviceState(1, 0, -1, 6, 25, 4,0);
     old.replaceAdd(newd);
+    
+    DeviceState d=new DeviceState();
+    String dd=d.toString();
+    System.out.println(dd);
 
 	}
 

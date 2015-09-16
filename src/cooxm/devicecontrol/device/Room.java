@@ -12,6 +12,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import redis.clients.jedis.Jedis;
+import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.MySqlClass;
 
 
@@ -342,6 +344,26 @@ public class Room {
 				+ ";";
 		System.out.println("query:"+sql2);
 		return mysql.query(sql2);		
+	}
+	
+	
+	public static  Room getRoomFromRedisByRoomID(Jedis jedis, int ctrolID,int roomID){
+
+			String s=jedis.hget(LogicControl.roomList+ctrolID, roomID+"");
+			if(s==null){
+				return null;
+			}
+			Room room =new Room();
+			try {
+				room = new Room(new JSONObject(s));
+				if (room.getRoomID()==roomID) {
+					return room;
+				}
+			} catch (JSONException e1) {
+				e1.printStackTrace();
+			}
+
+		return null;
 	}
 	
 	public static void main(String[] args) throws SQLException, IOException {

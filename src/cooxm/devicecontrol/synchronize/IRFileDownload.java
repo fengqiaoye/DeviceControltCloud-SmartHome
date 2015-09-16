@@ -13,6 +13,7 @@ import cooxm.devicecontrol.control.Configure;
 import cooxm.devicecontrol.control.MainEntry;
 import cooxm.devicecontrol.encode.ChineseToSpell;
 import cooxm.devicecontrol.encode.SQLiteUtil;
+import cooxm.devicecontrol.encyco.TuringCatAesCrypto;
 
 /** 
  * @author Chen Guanghua E-mail: richard@cooxm.com
@@ -43,6 +44,7 @@ public class IRFileDownload {
 		Configure cf=MainEntry.getConfig();
 		//file=new File(cf.getValue("ir_file_path"));
 		DOWNLOAD_FTP_IP=cf.getValue("ir_file_ip");
+		
 	}	
 	
 	
@@ -57,9 +59,19 @@ public class IRFileDownload {
 	
 	/** 如果初始化时候 filename的文件含没有.txt后缀，用这个函数
 	 */
-	public String getURL(){	
-		String url=DOWNLOAD_FTP_IP+"/keyfiles5/"+this.getFilename()+".txt"; 		
+	public String getLocalURL(){	
+		String url=DOWNLOAD_FTP_IP+"/keyfiles6/"+this.getFilename()+".txt"; 		
 		return url;		
+	}
+	
+	/** 如果初始化时候 filename的文件含没有.txt后缀，用这个函数
+	 */
+	public String getEncycroURL(){	
+		TuringCatAesCrypto crypto = new TuringCatAesCrypto();
+		crypto.setToken("token_key");
+		String url="keyfiles6/"+getDevTypeStr()+"/codes/"+this.getFilename()+".txt"; 	
+		String encrypted = crypto.encrypt(url);
+		return DOWNLOAD_FTP_IP+encrypted;		
 	}
 	
 	/**
@@ -69,11 +81,11 @@ public class IRFileDownload {
 	* @return String    
 	*/
 	public String getURLWithoutExtention(){	
-		String url=DOWNLOAD_FTP_IP+"/keyfiles5/"+this.getFilename(); 
+		String url=DOWNLOAD_FTP_IP+"/keyfiles6/"+this.getFilename(); 
 		return url;		
 	}
 	
-	public String getPath(){
+	public String getDevTypeStr(){
 		String appliceTypeStr="";
 		switch (applianceType) {
 		case 541: //空调
@@ -148,7 +160,7 @@ public class IRFileDownload {
         Date start=new Date();
 		ir.downlaod();		
 		System.out.println("finished in "+(new Date().getTime()-start.getTime())/1000 +"secods");
-		System.out.println(ir.getURL());		
+		System.out.println(ir.getEncycroURL());		
 
 	}
 

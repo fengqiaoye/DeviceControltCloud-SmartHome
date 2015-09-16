@@ -438,7 +438,7 @@ public class ProfileSet {
 		profileSet.profileList=profileIDList;
 		
 		profileSet.ctrolID=Integer.parseInt(cells[2]);
-		profileSet.profileSetID=Integer.parseInt(cells[5]);
+		profileSet.profileSetID=Integer.parseInt(cells[5]);  //就是模板ID
 		profileSet.profileSetName=cells[1];
 		profileSet.profileSetTemplateID=Integer.parseInt(cells[5]);
 		try {

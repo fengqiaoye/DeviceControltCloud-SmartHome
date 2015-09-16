@@ -110,10 +110,18 @@ public class Device {
 	
 	/** 1.设备是好的；  0，设备是坏的 */
 	int state;
+	/** 1 可以遥控，0 不可以遥控*/
+	int remoteControl ;
 	
 	public static final String deviceBindTable="info_user_room_bind";
 	
 	
+	public int getRemoteControl() {
+		return remoteControl;
+	}
+	public void setRemoteControl(int remoteControl) {
+		this.remoteControl = remoteControl;
+	}
 	public int getDeviceID() {
 		return deviceID;
 	}
@@ -210,7 +218,8 @@ public class Device {
 			int relatedDevType, 
 			Date createTime,
 			Date modifyTime,
-			int state
+			int state,
+			int remoteControl 
 			) {		
 		this.deviceID              =   deviceID      ; 
 		this.deviceName            =   deviceName;
@@ -225,6 +234,7 @@ public class Device {
 		this.createTime              = createTime    ;
 		this.modifyTime              = modifyTime    ;
 		this.state=state;
+		this.remoteControl=remoteControl;
 	}
 	
 
@@ -240,13 +250,23 @@ public class Device {
 			this.deviceType=deviceJson.getInt("deviceType");
 			this.type=deviceJson.getInt("type");
 			this.wall=deviceJson.getInt("wall");
-			this.relatedDevType=deviceJson.getInt("relatedDevType");
+			if (deviceJson.has("relatedDevID")) {
+				this.relatedDevType=deviceJson.getInt("relatedDevID");
+			}else{
+				this.relatedDevType=deviceJson.getInt("relatedDevType");
+			}			
 			this.createTime=sdf.parse(deviceJson.getString("createTime"));
 			this.modifyTime=sdf.parse(deviceJson.getString("modifyTime"));	
 			if(deviceJson.has("state")){
 				this.state=deviceJson.getInt("state");
 			}else{
 				this.state=1;
+			}
+			
+			if(deviceJson.has("remoteControl")){
+				this.remoteControl=deviceJson.getInt("remoteControl");
+			}else{
+				this.remoteControl=1;
 			}
 	}
 	
@@ -267,8 +287,8 @@ public class Device {
 		    deviceJson.put("createTime",      sdf.format(this.createTime    ));
 		    deviceJson.put("modifyTime",      sdf.format(this.modifyTime    ));
 		    deviceJson.put("state",      this.state);
+		    deviceJson.put("remoteControl", remoteControl);
 		} catch (JSONException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}	    
 	    return deviceJson;
@@ -297,7 +317,8 @@ public class Device {
 				+"relateddevid ,"
 				+"createtime   ,"
 				+"modifytime,   "
-				+"state   "
+				+"state,   "
+				+"remoteControl "
 				+ ")"				
 				+"values "
 				+ "("
@@ -313,9 +334,10 @@ public class Device {
 				+relatedDevType+",'"
 				+sdf.format(createTime)+"','"
 				+sdf.format(createTime)	+"',"
-				+state
+				+state+","
+				+remoteControl
 				+ ");";
-		System.out.println(sql);
+		//System.out.println(sql);
 		return mysql.query(sql);		
 	}
 
@@ -339,7 +361,8 @@ public class Device {
 				+"relateddevid ,"
 				+"createtime   ,"
 				+"modifytime,   "
-				+"state   "
+				+"state ,  "
+				+"remoteControl "
 				+ " from "				
 				+Device.deviceBindTable
 				+" where ctr_id="+ctrolID
@@ -398,7 +421,8 @@ public class Device {
 				+"relateddevid ,"
 				+"createtime   ,"
 				+"modifytime,   "
-				+"state   "
+				+"state,   "
+				+" remoteControl "
 				+ " from "				
 				+Device.deviceBindTable
 				+" where ctr_id="+ctrolID
@@ -495,7 +519,8 @@ public class Device {
 				+"relateddevid ,"
 				+"createtime   ,"
 				+"modifytime,   "
-				+"state   "
+				+"state,   "
+				+"remoteControl "
 				+ " from "				
 				+Device.deviceBindTable
 				+" where ctr_id="+ctrolID
@@ -551,14 +576,15 @@ public class Device {
 			}
 			try {
 				device = new Device(new JSONObject(s));
+				if (device.getDeviceType()==deviceType && device.getRoomID()==roomID) {
+					deviceList.add(device);
+				}
 			} catch (JSONException e1) {
 				e1.printStackTrace();
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
-			if (device.getDeviceType()==deviceType && device.getRoomID()==roomID) {
-				deviceList.add(device);
-			}
+
 		}
 		return deviceList;
 	}
@@ -598,8 +624,8 @@ public class Device {
 				e.printStackTrace();
 			}
 			System.out.println(d.getRoomID());
-			d.saveToDB(mysql);
-			getOneDeviceFromDB(mysql, 40004, 1);
+			//d.saveToDB(mysql);
+			Device c = getOneDeviceFromDB(mysql, 10003, 1);
 		  
 		  
 

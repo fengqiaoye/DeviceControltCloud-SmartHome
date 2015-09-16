@@ -5,6 +5,8 @@ import java.sql.SQLException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import redis.clients.jedis.Jedis;
+import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.MySqlClass;
 
 /** 
@@ -164,7 +166,7 @@ public class EnviromentState {
 			this.lux=new State(json.getJSONObject("lux"));
 			this.pm25=new State(json.getJSONObject("pm25"));
 			//this.infrared=new State(json.getJSONObject("infrared"));
-			this.temprature=new State(json.getJSONObject("temprature"));
+			this.temprature=new State(json.getJSONObject("temperature"));
 			this.moisture=new State(json.getJSONObject("moisture"));
 			this.noise=new State(json.getJSONObject("noise"));
 			this.harmfulGas=new State(json.getJSONObject("harmfulGas"));
@@ -172,6 +174,41 @@ public class EnviromentState {
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}		
+	}
+	
+	
+	public static double getFactorStateByRoomIDfactorID(int ctrolID,int roomID,int factorID,Jedis jedis) throws JSONException{
+		String str=jedis.hget(LogicControl.houseState+ctrolID, roomID+"");
+		if(str!=null){
+			JSONObject json=new JSONObject(str);
+			EnviromentState es=new EnviromentState(json);
+			double value=-1;
+			switch (factorID) {
+			//2015-05-04 richard 重新定义
+			case 2501: //光
+				value=json.getJSONObject("lux").getDouble("value");
+				break;
+			case 2502: //PM2.5
+				value=json.getJSONObject("pm25").getDouble("value");;
+				break;
+			case 2504:  //湿度
+				value=json.getJSONObject("moisture").getDouble("value");;
+				break;
+			case 2505:  //温度
+				value=json.getJSONObject("temperature").getDouble("value");;
+				break;
+			case 2506:  //噪音 
+				value=json.getJSONObject("noise").getDouble("value");;
+				break;
+			case 2507:  // 空气质量-6合1
+				value=json.getJSONObject("harmfulGas").getDouble("value");;
+				break; 
+			default:
+				break; 
+		   }
+		   return value;				
+		}
+		return -1;	
 	}
 	
 	public static void main(String[] args) throws SQLException {

@@ -129,7 +129,7 @@ public class ProfileMap extends HashMap<String, Profile>{
 	@Override
 	public Profile remove(Object key) {		
 		Profile profile = this.get(key);
-		if(profile!=null){
+		if(profile !=null){
 			int x=Profile.deleteFromDB(mysql, profile.getCtrolID(), profile.getProfileID());
 			if(x>0){
 				super.remove(key, profile);

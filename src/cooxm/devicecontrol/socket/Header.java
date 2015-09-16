@@ -3,6 +3,9 @@
 import java.io.UnsupportedEncodingException;
 import java.security.KeyStore.ProtectionParameter;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.BytesUtil;
 
@@ -160,20 +163,7 @@ public class Header{
 
 		}
 	 
-  public  void	 printHeader(){
-	  
-	  System.out.print(
-			"headTag=" + this.headTag    + " "+	
-			"mainVersion=" +   this.mainVersion+ " "+	
-			"subVersion=" +   this.subVersion + " "+	
-			"msgLen=" + this.msgLen     + " "+
-			"commandID=" +this.commandID  + " "+	
-			"sequeeceNo=" +this.sequeeceNo + " "+	
-			"encType=" + this.encType    + " "+	
-			"cookieLen=" +this.cookieLen  + " "+	
-			"reserve="  + this.reserve    + " "			  
-			  );		 
-	 }
+
   
   public boolean isValid() {   
   	int commandID=this.commandID;
@@ -202,6 +192,42 @@ public class Header{
 		return true;
 	}
     return false;
+  }
+  
+  public  void	 printHeader(){	  
+	  System.out.print(
+			"headTag=" + this.headTag    + " "+	
+			"mainVersion=" +   this.mainVersion+ " "+	
+			"subVersion=" +   this.subVersion + " "+	
+			"msgLen=" + this.msgLen     + " "+
+			"commandID=" +this.commandID  + " "+	
+			"sequeeceNo=" +this.sequeeceNo + " "+	
+			"encType=" + this.encType    + " "+	
+			"cookieLen=" +this.cookieLen  + " "+	
+			"reserve="  + this.reserve    + " "			  
+			  );		 
+	 }
+  
+  public JSONObject toJson() {
+	  JSONObject json=new JSONObject();
+	  try {
+		  json.put("headTag", this.headTag);
+		  json.put("mainVersion", this.mainVersion);
+		  json.put("subVersion", this.subVersion);
+		  json.put("msgLen", this.msgLen);
+		  json.put("commandID", this.commandID);
+		  json.put("sequeeceNo", this.sequeeceNo);
+		  json.put("encType", this.encType);
+		  json.put("cookieLen", this.cookieLen);
+		  json.put("reserve", this.reserve);
+	} catch (JSONException e) {
+		e.printStackTrace();
+	}
+
+	  
+	  return json;
+	  
+	  
   }
   
   

@@ -25,6 +25,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.function.Predicate;
 
 import org.json.JSONException;
@@ -426,7 +427,17 @@ public class TestClass {
 		System.out.println(c);
 	}
 
-	
+	public static void testQueue(){
+		ArrayBlockingQueue< Integer> t=new ArrayBlockingQueue<Integer>(3);
+		t.offer(1);
+		t.offer(2);
+		t.offer(3);
+		for (int i = 0; i < 3; i++) {
+			System.out.println(t.peek());
+			
+		}
+		
+	}
 
 	public static void main(String[] args) throws UnknownHostException, IOException {
 //		String str1="{\"student\":[{\"name\":\"leilei\",\"age\":23},{\"name\":\"leilei02\",\"age\":23}]}";
@@ -458,11 +469,17 @@ public class TestClass {
 		
 		//testDecimal();
 		
-		int c = Calendar.HOUR_OF_DAY;
-		int a=Calendar.getInstance().get(c);
-		System.out.println(a);
-		
+//		int c = Calendar.HOUR_OF_DAY;
+//		int a=Calendar.getInstance().get(c);
+//		System.out.println(a);
+//		
+		Boolean a=false;
 
+		boolean b= true || (Boolean)a;
+		
+		System.out.println(b);
+		
+		testQueue();
 
 	
 		

@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.apache.cassandra.thrift.Cassandra.AsyncProcessor.system_add_column_family;
 import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -508,6 +509,7 @@ public class Profile  {
 					return null;
 				}else{
 					String[] index=res2.split(",");
+					profile.profileID=Integer.parseInt(index[0]);
 					profile.profileName=index[1];	
 					roomID=Integer.parseInt(index[3]);	
 					roomType=Integer.parseInt(index[4]);	
@@ -535,11 +537,11 @@ public class Profile  {
 						+ "  from  "				
 						+profileDetailTable
 						+" where ctr_id="+ctrolID
-						+" and sttemplateid="+templateID
+						+" and userroomstid="+profile.profileID
 						+ ";";
-				System.out.println("query:"+sql);
+				//System.out.println("query:"+sql);
 				String res=mysql.select(sql);
-				System.out.println("get from mysql:\n"+res);
+				//System.out.println("get from mysql:\n"+res);
 				if(res==null || res=="" ) {
 					System.err.println("ERROR:query result is empty: "+sql);
 					return null;
@@ -605,9 +607,9 @@ public class Profile  {
 			//System.out.println("query:"+sql);
 			int res=mysql.query(sql);
 			//System.out.println("deleted "+ res + " rows of records from table:"+profileDetailTable);
-			if(res<=0 ) {
+			if(res<0 ) {
 				//System.err.println("ERROR: empty result: "+sql);
-				return 0;
+				return -1;
 			}
 			
 			String sql2="delete   "
@@ -616,7 +618,7 @@ public class Profile  {
 			+" where ctr_id="+ctrolID
 			+" and userroomstid="+profileID
 			+ ";";
-			System.out.println("query:"+sql2);
+			//System.out.println("query:"+sql2);
 			res2=mysql.query(sql2);
 			//System.out.println("deleted "+ res + " rows of records from table:"+profileIndexTable);
 			if(res2<0){
@@ -896,8 +898,8 @@ public class Profile  {
 
 	
 	public static void main(String[] args) throws SQLException, JSONException {
-//		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
-//		Profile p =new Profile();
+		MySqlClass mysql=new MySqlClass("120.24.81.226","3306","cooxm_device_control", "cooxm", "cooxm");
+		Profile p =new Profile();
 //		p=Profile.getFromDBByProfileID(mysql, 12345677, 123456789);
 //		p.getFactorList().remove(0);
 //		p.setProfileName("离家模式111");
@@ -905,10 +907,14 @@ public class Profile  {
 		//System.out.println(p.toJsonObj().toString());
 	    //JSONObject jo=p.toJsonObj();
 		
-		Jedis jedis =new Jedis("120.24.81.226",6379, 5000);
-		jedis.select(9);
-		Map<Integer, Set<Integer>> x = getCurrentProfileTemplateID(jedis,10002);
-		String x2=getOneProfile(jedis,10002);
+//		Jedis jedis =new Jedis("120.24.81.226",6379, 5000);
+//		jedis.select(9);
+//		Map<Integer, Set<Integer>> x = getCurrentProfileTemplateID(jedis,10002);
+//		String x2=getOneProfile(jedis,10002);
+		
+		
+		p=Profile.getFromDBByTemplateID(mysql, 10003, 1000, 2);
+		System.out.println(p.getProfileName());
 		
 	}
 
