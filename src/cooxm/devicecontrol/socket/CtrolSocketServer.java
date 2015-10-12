@@ -15,6 +15,9 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
@@ -29,7 +32,7 @@ import cooxm.devicecontrol.util.JsonValidator;
 import cooxm.devicecontrol.util.MySqlClass;
 
 public class CtrolSocketServer {
-	
+	static Logger log =Logger.getLogger(CtrolSocketServer.class);
 	private static final short ACK_OFFSET = 0x4000;
 	private static final short CMDCODE_RESERVED_FOR_COMMON_BEGIN 		= 0x1100;
 	private static final short CMD__Identity_REQ 		= CMDCODE_RESERVED_FOR_COMMON_BEGIN + 1;  //身份标识请求
@@ -55,8 +58,10 @@ public class CtrolSocketServer {
 	public LogicControl lcontrol;
 	private SocketClient msgSock;
 	MySqlClass mysql_main;
+	
+	private static final ConcurrentLinkedQueue<Message> messageQueue = new ConcurrentLinkedQueue<>();
     
-	static Logger log =Logger.getLogger(CtrolSocketServer.class);	
+	
 	
 	/***@param serverPort: 从配置文件中读取: ./conf/control.conf */
 	public CtrolSocketServer(Configure configure /*, LogicControl lcontrol */) {
@@ -132,7 +137,7 @@ public class CtrolSocketServer {
        		log.info(" Create ReadThread for socket:"+remoteSock.toString()
        				 +",threadID="+rt.getId()+",threadName="+rt.getName()+",state="+rt.getState()); 
        		
-       		Thread.sleep(200); 
+       		Thread.sleep(500); 
        		
        		WriteThread wr=new  WriteThread(sock);
        		wr.setName(remoteSock.toString().replace("/", "")+"_Wt");
@@ -169,13 +174,155 @@ public class CtrolSocketServer {
 		}
 	}
 	
-	public class ReadThread extends Thread
+	public class ReadThread extends Thread {
+
+		private Socket clientSocket;
+
+		private int serverID = -1;
+
+		public ReadThread(Socket clientSocket) {
+			this.clientSocket = clientSocket;
+		}
+
+		public void run() {
+			ExecutorService executorService = Executors.newSingleThreadExecutor();
+
+			while (null != clientSocket && !clientSocket.isClosed()) {
+				Message msg = null;
+				if (!messageQueue.isEmpty()) {
+					msg = messageQueue.poll();
+				} else {
+					msg = readFromClient(clientSocket);
+				}
+
+				try {
+					if (clientSocket.getInputStream().available() > 23) {
+						executorService.submit(new Runnable() {
+							@Override
+							public void run() {
+								try {
+									while (clientSocket.getInputStream().available() > 23) {
+										Message msg = readFromClient(clientSocket);
+										if (null != msg) {
+											messageQueue.add(msg);
+										}
+									}
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+
+							}
+						});
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+				if (msg != null) {
+					short commandID = msg.getCommandID();
+					msg.setServerID(serverID);
+					switch (commandID) {
+					case CMD__Identity_REQ: // 0x1101:
+						int authServerID = authenrize(msg, clientSocket);
+						if (authServerID > 0) {
+							serverID = authServerID;
+						}
+						break;
+					case CMD__HEARTBEAT_REQ: // 0x1102
+						replyHeartBeat(msg);
+						break;
+					case CMD__Identity_ACK:
+						int ack_res = -1;
+						try {
+							ack_res = msg.getJson().getInt("errorCode");
+						} catch (JSONException e) {
+							e.printStackTrace();
+						}
+						if (ack_res == 0 && serverID > 0) {
+							if (sockMap.containsKey(serverID)) {
+								Socket oldClientSocket = sockMap.get(serverID);
+								log.error("Accept a new socket , the same serverID = " + serverID + " from "
+										+ clientSocket.getRemoteSocketAddress() + " , the old socket will be closed : "
+										+ oldClientSocket.getRemoteSocketAddress());
+								try {
+									oldClientSocket.close();
+									sockMap.remove(serverID);
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+								// replace the old client socket
+								sockMap.put(serverID, clientSocket);
+							}
+							Server server = getServerInfo(serverID);
+							severMap.put(serverID, server);
+						} else {
+							log.error("Get authenrize failed: myIP:" + clientSocket.getLocalSocketAddress()
+									+ ",remoteIP:" + clientSocket.getRemoteSocketAddress().toString());
+						}
+						break;
+					default:
+						if (!sockMap.containsValue(clientSocket)) {
+							log.info("Socket hase been removed from SockMap : "
+									+ clientSocket.getRemoteSocketAddress().toString() + " , rverID : " + serverID);
+							sockMap.remove(serverID, clientSocket);
+							try {
+								if (!clientSocket.isClosed()) {
+									clientSocket.close();
+								}
+								log.info("Socket has been closed : " + clientSocket.getRemoteSocketAddress().toString()
+										+ " , serverID : " + serverID);
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							executorService.shutdown();
+							return; // 线程终止
+						}
+						try {
+							if (msg.isValid()) {
+								receiveCommandQueue.offer(msg, 200, TimeUnit.MICROSECONDS);
+								if (CMD__Identity_REQ == msg.getCommandID()) {
+
+								}
+							} else {
+								return;
+							}
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+						break;
+					}
+				} else {
+					try {
+						log.info("socket has been closed :" + clientSocket.getRemoteSocketAddress().toString()
+								+ ",serverID: " + serverID);
+						boolean result = sockMap.remove(serverID, clientSocket);
+						severMap.remove(serverID);
+						if (true == result) {
+							log.info("Socket has been removed from SockMap : "
+									+ clientSocket.getRemoteSocketAddress().toString() + " , serverID : " + serverID);
+						}
+						if (!clientSocket.isClosed()) {
+							clientSocket.close();
+						}
+						executorService.shutdown();
+						return;
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+			executorService.shutdown();
+		}
+	}
+	
+/*	public class ReadThread extends Thread
 	{
 		private Socket socket;
 		private int serverID=-1;
 		
 		public ReadThread(Socket client)
-		{socket = client;}
+		{socket = client;
+		}
 		
 		public void run()
 		{
@@ -275,7 +422,7 @@ public class CtrolSocketServer {
 	            }
 	        }	
 		}
-	}
+	}*/
 	
 	public class WriteThread extends Thread
 	{
@@ -339,27 +486,31 @@ public class CtrolSocketServer {
 								//if( this.sock.equals(targetSock) ){	
 									outMsg = CtrolSocketServer.sendCommandQueue.take();
 									if(outMsg.getCommandID()==20738){  //心跳
+										log.debug("Start to send HeartBeat "+targetSock.getRemoteSocketAddress().toString()+",serverID: "+outMsg.serverID+",Msg:"+outMsg.toString());
+									}
+									outMsg.writeBytesToSock2(targetSock);
+									if(outMsg.getCommandID()==20738){  //心跳
 										log.debug("HeartBeat "+targetSock.getRemoteSocketAddress().toString()+",serverID: "+outMsg.serverID+",Msg:"+outMsg.toString());
 									}else{
 									    log.debug("Send  to "+targetSock.getRemoteSocketAddress().toString()+":"+outMsg.toString());	
 									}
-									outMsg.writeBytesToSock2(targetSock);
 
 								//}
 							}
 						}
 
 					} catch (InterruptedException e) {
-						e.printStackTrace();
+						//e.printStackTrace();
+						log.error("IOException:Socket has been closed,serverID :"+serverID+",sock :"+targetSock.getRemoteSocketAddress().toString());
+						log.error(e);
 						return;
 					} catch (IOException e) {
-						e.printStackTrace();
+						//e.printStackTrace();
 						try {
-							//this.sock.close();
-							targetSock.getOutputStream().close();
 							targetSock.close();
-							targetSock=null;
-							log.error("Socket has been closed,serverID :"+serverID+",sock :"+targetSock.getRemoteSocketAddress().toString());
+							targetSock=null;							
+							log.error("IOException:Socket has been closed,serverID :"+serverID+",sock :"+targetSock.getRemoteSocketAddress().toString());
+							log.error(e);
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}
@@ -459,14 +610,16 @@ public class CtrolSocketServer {
 				log.error("can't find sock from sockMap by serverID:"+replyMsg.serverID+",this message will be disposed,cookieID="+heartBeatMsg.getCookie());
 				return;
 			}else{
-				replyMsg.writeBytesToSock2(sock);
+				//replyMsg.writeBytesToSock2(sock);
+				sendCommandQueue.offer(replyMsg, 200, TimeUnit.MILLISECONDS);
+				
 			}
 
 			//boolean flag=CtrolSocketServer.sendCommandQueue.offer(replyMsg,100, TimeUnit.MICROSECONDS);
 			
 		} catch (JSONException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
+		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}		
 	}

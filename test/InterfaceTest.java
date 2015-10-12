@@ -3,22 +3,11 @@
 
 
 import java.io.IOException;
-import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import javax.naming.InitialContext;
-
-import org.apache.commons.net.nntp.NewGroupsOrNewsQuery;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import com.mongodb.util.JSON;
-
-import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.socket.Message;
 import cooxm.devicecontrol.socket.SocketClient;
@@ -49,8 +38,8 @@ public class InterfaceTest {
 	static String recognize_ir_code="{\"ircode\":\"33,04,00,00,24,00,26,82,50,01,f8,82,54,06,08,c1,11,56,c2,00,10,f1,c3,00,30,4d,b2,de,21,07,f8,c2,00,14,19,c1,11,55,c2,00,10,f0,c3,00,30,4d,b2,de,21,07,f8,00\",\"applianceType\":541,\"ctrolID\":0}";
 	
 	static String get_active_profile="{\"receiver\":2,\"sender\":1,\"ctrolID\":10004}";
-	static String switch_device_state="{\"deviceType\":421,\"receiver\":0,\"sender\":1,\"ctrolID\":10005,\"keyType\":501,\"deviceID\":6,\"roomID\":1001}";
-	static String switch_device_state2="{\"deviceType\":421,\"receiver\":0,\"sender\":5,\"ctrolID\":10003,\"keyType\":501,\"deviceID\":13,\"roomID\":1000}";
+	static String switch_device_state="{\"deviceType\":421,\"receiver\":0,\"sender\":1,\"ctrolID\":10005,\"keyType\":501,\"deviceID\":5,\"roomID\":1000}";
+	static String switch_device_state2="{\"deviceType\":421,\"receiver\":0,\"sender\":5,\"ctrolID\":10003,\"keyType\":501,\"deviceID\":5,\"roomID\":1000}";
     static String set_device_list="{\"deviceArray\":[{\"modifyTime\":\"2015-07-20 11:45:37\",\"deviceID\":1},{\"modifyTime\":\"2015-07-20 11:45:37\","
     		+ "\"deviceID\":2},{\"modifyTime\":\"2015-07-20 11:45:37\",\"deviceID\":3},{\"modifyTime\":\"2015-07-20 11:45:37\",\"deviceID\":4},{\"modifyTime\":\"2015-07-20 11:45:37\",\"deviceID\":5}],\"receiver\":2,\"sender\":0,\"ctrolID\":10005}";
     static String warn_msg="{\"warn\":{\"severity\":2,\"msgContent\":\"warn\",\"createTime\":1439558074,\"warnType\":2,\"opType\":14,\"channel\":3,\"ctrolID\":10000,\"madeFrom\":2,\"target\":3,\"timeOut\":0},\"receiver\":0,\"originalSenderRole\":5,\"sender\":6,\"ctrolID\":10005}";
@@ -113,11 +102,11 @@ public class InterfaceTest {
 			//recognize_ir_code();
 
 		
-		switch_room_profile();
+		//switch_room_profile();
 
 		//get_profile_template_list();
 		
-		//switch_device_state();
+		switch_device_state();
 		
 		//switch_profileSet();
 		

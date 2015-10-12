@@ -215,7 +215,7 @@ public class Header{
 		  json.put("mainVersion", this.mainVersion);
 		  json.put("subVersion", this.subVersion);
 		  json.put("msgLen", this.msgLen);
-		  json.put("commandID", this.commandID);
+		  json.put("commandID", Integer.toHexString(this.commandID));
 		  json.put("sequeeceNo", this.sequeeceNo);
 		  json.put("encType", this.encType);
 		  json.put("cookieLen", this.cookieLen);

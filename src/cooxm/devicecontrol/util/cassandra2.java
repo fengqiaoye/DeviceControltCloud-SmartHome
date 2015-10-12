@@ -15,7 +15,7 @@ public class cassandra2 {
     try {
       Class.forName("org.bigsql.cassandra2.jdbc.CassandraDriver");
       Connection con = DriverManager
-          .getConnection("jdbc:cassandra://120.24.81.226:9042/system_auth");
+          .getConnection("jdbc:cassandra://172.16.35.16:9042/system_auth"); //120.24.81.226
 
       String query = "select * from demo.users";
 

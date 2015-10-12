@@ -21,7 +21,7 @@ import cooxm.devicecontrol.util.BytesUtil;
  */
 public class Message extends Header {
 	public static final short COMMAND_ACK_OFFSET       		   =  0x4000;
-	static Logger log= Logger.getLogger(LogicControl.class);
+	static Logger log= Logger.getLogger(Message.class);
 	 //public Header header;
 	 private String cookie=null;
 	 private JSONObject json;
@@ -291,7 +291,7 @@ public String toString(){
 		}    	
     }*/
     
-    public void writeBytesToSock2(Socket sock) throws IOException{
+    public synchronized void writeBytesToSock2(Socket sock) throws IOException{
 			DataOutputStream dataout= new DataOutputStream(sock.getOutputStream());
 			dataout.write(this.toBytes());
 			dataout.flush();

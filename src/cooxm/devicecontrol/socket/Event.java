@@ -164,6 +164,12 @@ public class Event {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		String jsonStr="";
+		if (this.json.length()>=8000) {			
+			jsonStr=this.json.substring(0, 8000);
+		}else {
+			jsonStr=this.json;
+		}
 			String sql="replace into "+receiveTable
 					+" ( "
 				    + "month  ,"  
@@ -193,7 +199,7 @@ public class Event {
 					+this.errorCode+",'"
 					+sdf.format(this.receiveTime)+"','"
 					+sdf.format(this.replyTime)+"','"
-					+this.json
+					+jsonStr
 					+"')";
 			//System.out.println(sql);
 			mysql.query(sql);		
