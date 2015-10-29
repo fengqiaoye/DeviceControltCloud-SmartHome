@@ -10,13 +10,11 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.*;
-import redis.clients.jedis.Jedis;
 
 
 /** 
@@ -477,16 +475,15 @@ public class Device {
 		//System.out.println("query:"+sql);
 		int res2=mysql.query(sql);
 		//System.out.println("deleted "+ res2 + " rows of recodes");
-		if(res2<=0){
-			System.err.println("ERROR:  "+sql);
+		if(res2<=0){			
 			return 0;
 		} 
 		return 1;
 	}
 	
-	public static void deleteDeviceByRoomIDFromRedis(Jedis jedis,int ctrolID,int roomID) throws JSONException, ParseException{
-		Map<String, String> DeviceMap = jedis.hgetAll(LogicControl.roomBind+ctrolID);
-		for (Map.Entry<String, String> entry:DeviceMap.entrySet()) {
+	public static void getDeviceByRoomIDFromRedis(JedisUtil jedis,int ctrolID,int roomID) throws JSONException, ParseException{
+		Map<String, String> deviceMap = jedis.hgetAll(LogicControl.roomBind+ctrolID);
+		for (Map.Entry<String, String> entry:deviceMap.entrySet()) {
 			Device p=new Device(new JSONObject(entry.getValue()));
 			if(p.getRoomID()==roomID && p.getCtrolID()==ctrolID){
 				jedis.del(LogicControl.roomBind+ctrolID);
@@ -494,28 +491,43 @@ public class Device {
 		}		
 	}
 	
-	public static void deleteDeviceStateByRoomIDFromRedis(Jedis jedis,int ctrolID,int roomID) throws JSONException, ParseException{
-		Map<String, String> DeviceMap = jedis.hgetAll(LogicControl.currentDeviceState+ctrolID);
-		for (Map.Entry<String, String> entry:DeviceMap.entrySet()) {
+	public static void deleteDeviceByRoomIDFromRedis(JedisUtil jedis,int ctrolID,int roomID) throws JSONException, ParseException{
+		Map<String, String> deviceMap = jedis.hgetAll(LogicControl.roomBind+ctrolID);
+		for (Map.Entry<String, String> entry:deviceMap.entrySet()) {
 			Device p=new Device(new JSONObject(entry.getValue()));
 			if(p.getRoomID()==roomID && p.getCtrolID()==ctrolID){
 				jedis.del(LogicControl.roomBind+ctrolID);
 			}				
 		}		
 	}
+	
+	public static void deleteDeviceStateByRoomIDFromRedis(JedisUtil jedis,int ctrolID,int roomID) throws JSONException, ParseException{
+		Map<String, String> stateMap = jedis.hgetAll(LogicControl.currentDeviceState+ctrolID);
+		Map<String, String> deviceMap = jedis.hgetAll(LogicControl.roomBind+ctrolID);
+		for (Map.Entry<String, String> entry:stateMap.entrySet()) {
+			for (Map.Entry<String, String> entry2:deviceMap.entrySet()) {
+				Device p=new Device(new JSONObject(entry2.getValue()));
+				if(p.getRoomID()==roomID && p.getCtrolID()==ctrolID && entry.getKey().equals(entry2.getKey())){
+					jedis.hdel(LogicControl.currentDeviceState+ctrolID,entry.getKey());
+				}	
+			}
+		}		
+	}
+	
+
 	
 	
 	public List<Device> getDevicesByRoomIDFromDB(MySqlClass mysql,int ctrolID,int deviceID ){
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		//Device device=new Device();
 		String sql="select  "
-				+" ctr_id       ,"     
-				+"devid        ,"
-				+"devsn        ,"
-				+"devtype      ,"
-				+"type         ,"
-				+"roomid       ,"
-				+"wall         ,"
+				+" ctr_id   ,"     
+				+"devid     ,"
+				+"devsn     ,"
+				+"devtype   ,"
+				+"type      ,"
+				+"roomid    ,"
+				+"wall      ,"
 				+"relateddevid ,"
 				+"createtime   ,"
 				+"modifytime,   "
@@ -552,7 +564,6 @@ public class Device {
 				device.createTime=sdf.parse(index[9]);
 				device.modifyTime=sdf.parse(index[10]);
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			deviceList=new ArrayList<Device>();
@@ -562,7 +573,7 @@ public class Device {
 		return deviceList;
 	}
 	
-	public static  List<Device> getDeviceFromRedisByType(Jedis jedis, int ctrolID,int roomID,int deviceType){
+	public static  List<Device> getDeviceFromRedisByType(JedisUtil jedis, int ctrolID,int roomID,int deviceType){
 		List<Device> deviceList=new ArrayList<Device>();
 		Set<String> deviceIDSet = jedis.hkeys(LogicControl.roomBind+ctrolID);
 		if(deviceIDSet.size()==0){
@@ -589,12 +600,43 @@ public class Device {
 		return deviceList;
 	}
 	
+	/** 批量更改redis currentDeviceState中全部家电最后一次执行者角色角色
+	 * @throws JSONException */
+	public static  void batchSwitchRole(JedisUtil jedis,int ctrolID,int role) throws JSONException{
+		Map<String, String> deviceMap = jedis.hgetAll(LogicControl.currentDeviceState+ctrolID);
+		for (Map.Entry<String, String>  entry : deviceMap.entrySet()) {
+			JSONObject json =new JSONObject(entry.getValue());	
+			json.put("sender", role);
+			jedis.hset(LogicControl.currentDeviceState+ctrolID, entry.getKey(), json.toString());
+		}	
+	}
+	
+	
+	/** 批量更改redis currentDeviceState中最后一次执行者角色角色
+	 * @throws ParseException 
+	 * @throws JSONException */
+	public static  void batchSwitchRoleByRoomID(JedisUtil jedis,int ctrolID,int role,int roomID) throws JSONException, ParseException{
+		Map<String, String> stateMap = jedis.hgetAll(LogicControl.currentDeviceState+ctrolID);
+		Map<String, String> deviceMap = jedis.hgetAll(LogicControl.roomBind+ctrolID);
+		for (Map.Entry<String, String> entry:stateMap.entrySet()) {
+			for (Map.Entry<String, String> entry2:deviceMap.entrySet()) {
+				Device p=new Device(new JSONObject(entry2.getValue()));
+				if(p.getRoomID()==roomID && p.getCtrolID()==ctrolID && entry.getKey().equals(entry2.getKey())){
+					JSONObject json =new JSONObject(entry.getValue());	
+					json.put("sender", role);
+					jedis.hset(LogicControl.currentDeviceState+ctrolID, entry.getKey(), json.toString());
+				}	
+			}
+		}
+	}
+	
+
 	
 	
 	
 	  public static void main(String[] args) throws SQLException{
 		  MySqlClass mysql=new MySqlClass("120.24.81.226","3306","cooxm_device_control", "cooxm", "cooxm");
-		  Jedis jedis= new Jedis("120.24.81.226", 6379,5000);
+		  JedisUtil jedis= new JedisUtil("120.24.81.226", 6379,5000);
 		  jedis.select(9);
 		  
 		  /*Date date=new Date();

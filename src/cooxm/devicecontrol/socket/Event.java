@@ -165,8 +165,8 @@ public class Event {
 			e.printStackTrace();
 		}
 		String jsonStr="";
-		if (this.json.length()>=8000) {			
-			jsonStr=this.json.substring(0, 8000);
+		if (this.json.length()>=6000) {			
+			jsonStr=this.json.substring(0, 6000);
 		}else {
 			jsonStr=this.json;
 		}
@@ -213,40 +213,45 @@ public class Event {
 	public void toReplyDB(MySqlClass mysql) throws SQLException {
 		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		mysql.conn.setAutoCommit(false);
-
-			String sql="replace into "+replyTable
-					+" ("
-				    + "month  ,"  
-					+ "date  ," 
-					+ "cookie  ,"     
-					+"commandid ,"
-					+"ctrolid ,"
-					+"roomid ,"
-					//+"sender ,"
-					+"receiverrole ,"
-					+"origin_senderrole,"
-					+"errorcode ,"
-					+"receivetime ,"
-					+"replytime ,"
-					+"json "
-					+ ")"				
-					+"values "
-					+ "("
-					+this.month+","
-					+this.date+",'"
-					+this.eventID+"',"
-					+this.commandID+","
-					+this.ctrolID+","
-					+this.roomID+","
-					+this.receiveRole+","
-					+this.originalSenderRole+","
-					+this.errorCode+",'"
-					+sdf.format(this.receiveTime)+"','"
-					+sdf.format(this.replyTime)+"','"
-					+this.json
-					+"')";
-			//System.out.println(sql);
-			mysql.query(sql);		
+		String jsonStr="";
+		if (this.json.length()>=6000) {			
+			jsonStr=this.json.substring(0, 6000);
+		}else {
+			jsonStr=this.json;
+		}
+		String sql="replace into "+replyTable
+				+" ("
+			    + "month  ,"  
+				+ "date  ," 
+				+ "cookie  ,"     
+				+"commandid ,"
+				+"ctrolid ,"
+				+"roomid ,"
+				//+"sender ,"
+				+"receiverrole ,"
+				+"origin_senderrole,"
+				+"errorcode ,"
+				+"receivetime ,"
+				+"replytime ,"
+				+"json "
+				+ ")"				
+				+"values "
+				+ "("
+				+this.month+","
+				+this.date+",'"
+				+this.eventID+"',"
+				+this.commandID+","
+				+this.ctrolID+","
+				+this.roomID+","
+				+this.receiveRole+","
+				+this.originalSenderRole+","
+				+this.errorCode+",'"
+				+sdf.format(this.receiveTime)+"','"
+				+sdf.format(this.replyTime)+"','"
+				+jsonStr
+				+"')";
+		//System.out.println(sql);
+		mysql.query(sql);		
 		mysql.conn.commit();		
 	}
 

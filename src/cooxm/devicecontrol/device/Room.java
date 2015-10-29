@@ -12,7 +12,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import redis.clients.jedis.Jedis;
+import cooxm.devicecontrol.util.JedisUtil;
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.MySqlClass;
 
@@ -347,7 +347,7 @@ public class Room {
 	}
 	
 	
-	public static  Room getRoomFromRedisByRoomID(Jedis jedis, int ctrolID,int roomID){
+	public static  Room getRoomFromRedisByRoomID(JedisUtil jedis, int ctrolID,int roomID){
 
 			String s=jedis.hget(LogicControl.roomList+ctrolID, roomID+"");
 			if(s==null){

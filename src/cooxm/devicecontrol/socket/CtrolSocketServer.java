@@ -1,6 +1,7 @@
 ﻿package cooxm.devicecontrol.socket;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -137,7 +138,7 @@ public class CtrolSocketServer {
        		log.info(" Create ReadThread for socket:"+remoteSock.toString()
        				 +",threadID="+rt.getId()+",threadName="+rt.getName()+",state="+rt.getState()); 
        		
-       		Thread.sleep(500); 
+       		Thread.sleep(400); 
        		
        		WriteThread wr=new  WriteThread(sock);
        		wr.setName(remoteSock.toString().replace("/", "")+"_Wt");
@@ -221,6 +222,7 @@ public class CtrolSocketServer {
 				if (msg != null) {
 					short commandID = msg.getCommandID();
 					msg.setServerID(serverID);
+					msg.setCreateTime(new Date());
 					switch (commandID) {
 					case CMD__Identity_REQ: // 0x1101:
 						int authServerID = authenrize(msg, clientSocket);
@@ -262,14 +264,14 @@ public class CtrolSocketServer {
 						break;
 					default:
 						if (!sockMap.containsValue(clientSocket)) {
-							log.info("Socket hase been removed from SockMap : "
-									+ clientSocket.getRemoteSocketAddress().toString() + " , rverID : " + serverID);
+							log.fatal("msg="+msg.toString()+",can't find socket in sockMap,Socket hase been removed from SockMap:"
+									+ clientSocket.getRemoteSocketAddress().toString() + " , serverID : " + serverID);
 							sockMap.remove(serverID, clientSocket);
 							try {
 								if (!clientSocket.isClosed()) {
 									clientSocket.close();
 								}
-								log.info("Socket has been closed : " + clientSocket.getRemoteSocketAddress().toString()
+								log.fatal("Socket has been closed : " + clientSocket.getRemoteSocketAddress().toString()
 										+ " , serverID : " + serverID);
 							} catch (IOException e) {
 								e.printStackTrace();
@@ -485,14 +487,16 @@ public class CtrolSocketServer {
 
 								//if( this.sock.equals(targetSock) ){	
 									outMsg = CtrolSocketServer.sendCommandQueue.take();
-									if(outMsg.getCommandID()==20738){  //心跳
-										log.debug("Start to send HeartBeat "+targetSock.getRemoteSocketAddress().toString()+",serverID: "+outMsg.serverID+",Msg:"+outMsg.toString());
-									}
 									outMsg.writeBytesToSock2(targetSock);
 									if(outMsg.getCommandID()==20738){  //心跳
 										log.debug("HeartBeat "+targetSock.getRemoteSocketAddress().toString()+",serverID: "+outMsg.serverID+",Msg:"+outMsg.toString());
 									}else{
-									    log.debug("Send  to "+targetSock.getRemoteSocketAddress().toString()+":"+outMsg.toString());	
+									    log.debug("Send  to "+targetSock.getRemoteSocketAddress().toString()+":"+outMsg.toString());
+									    
+									    if (outMsg.getCreateTime()!=null) {
+									    	long delay=new Date().getTime()-outMsg.getCreateTime().getTime();
+									    	//log.debug("commandID="+Integer.toHexString(outMsg.getCommandID())+",cookieID=" + outMsg.getCookie() + ",Delay time:"+ delay);	
+										}									    
 									}
 
 								//}
@@ -500,7 +504,6 @@ public class CtrolSocketServer {
 						}
 
 					} catch (InterruptedException e) {
-						//e.printStackTrace();
 						log.error("IOException:Socket has been closed,serverID :"+serverID+",sock :"+targetSock.getRemoteSocketAddress().toString());
 						log.error(e);
 						return;
@@ -508,9 +511,10 @@ public class CtrolSocketServer {
 						//e.printStackTrace();
 						try {
 							targetSock.close();
-							targetSock=null;							
-							log.error("IOException:Socket has been closed,serverID :"+serverID+",sock :"+targetSock.getRemoteSocketAddress().toString());
+							targetSock=null;	
 							log.error(e);
+							
+
 						} catch (IOException e1) {
 							e1.printStackTrace();
 						}
@@ -524,31 +528,36 @@ public class CtrolSocketServer {
 		}
 	} 
 	
-	public class ProcessThread extends Thread
-	{	
-		
-		public void run()
-		{
-			while(true){
-				Message msg;
+
+	
+	public class ProcessThread extends Thread {  //2015-10-14 多线程
+		public void run() {
+			// int cpuNums = Runtime.getRuntime().availableProcessors();
+			ExecutorService executorService = Executors.newCachedThreadPool();
+			while (true) {
 				try {
-					Thread.sleep(5);
-					msg = CtrolSocketServer.receiveCommandQueue.poll(200, TimeUnit.MICROSECONDS);					
-					if(msg!=null){
-						try {
-							lcontrol.decodeCommand(msg);	
-						} catch (Exception e) {
-							e.printStackTrace(); 
-							LogicControl.logException(e);
-							
-					   		ProcessThread pt= new  ProcessThread(); //创建一个新的线程
-					   		pt.setName("ProcessThread");
-					   		pt.start();
-					   		return;
-						}						
+					Message msg = receiveCommandQueue.poll(200, TimeUnit.MICROSECONDS);
+					if (null != msg) {
+						executorService.submit(new Runnable() {
+							@Override
+							public void run() {
+								long startTime = System.currentTimeMillis();
+								lcontrol.decodeCommand(msg);
+								long endTime = System.currentTimeMillis();
+								//log.info("commandID="+Integer.toHexString(msg.getCommandID())+",cookieID=" + msg.getCookie() + ",Delay: "+ (endTime - startTime));
+							}
+						});
 					}
-				} catch (InterruptedException e) {
-					log.error(e);
+				} catch (Exception e) {
+					e.printStackTrace();
+					LogicControl.logException(e);
+					LogicControl.logException(new Exception("Restart new process thread !"));
+
+					executorService.shutdown();
+					ProcessThread processThread = new ProcessThread();
+					processThread.setName("ProcessThread");
+					processThread.start();
+					return;
 				}
 			}
 		}
@@ -610,16 +619,15 @@ public class CtrolSocketServer {
 				log.error("can't find sock from sockMap by serverID:"+replyMsg.serverID+",this message will be disposed,cookieID="+heartBeatMsg.getCookie());
 				return;
 			}else{
-				//replyMsg.writeBytesToSock2(sock);
-				sendCommandQueue.offer(replyMsg, 200, TimeUnit.MILLISECONDS);
-				
+				replyMsg.writeBytesToSock2(sock);
+				log.debug("HeartBeat "+sock.getRemoteSocketAddress().toString()+",serverID: "+replyMsg.serverID+",Msg:"+replyMsg.toString());
 			}
 
 			//boolean flag=CtrolSocketServer.sendCommandQueue.offer(replyMsg,100, TimeUnit.MICROSECONDS);
 			
 		} catch (JSONException e) {
 			e.printStackTrace();
-		} catch (InterruptedException e) {
+		} catch (IOException e) {
 			e.printStackTrace();
 		}		
 	}
@@ -639,7 +647,9 @@ public class CtrolSocketServer {
 				Message replyMsg=new Message(msg);
 				replyMsg.setCommandID((short) (msg.getCommandID()+Message.COMMAND_ACK_OFFSET));
 				replyMsg.setJson(json);
-				CtrolSocketServer.sendCommandQueue.offer(msg,100, TimeUnit.MICROSECONDS);
+				//2015-10-12 不放队列，直接写回去
+				//CtrolSocketServer.sendCommandQueue.offer(msg,100, TimeUnit.MICROSECONDS);
+				replyMsg.writeBytesToSock2(sock);
 				log.info("anth faild: "+replyMsg.toString());
 
 				Thread.sleep(5);
@@ -661,8 +671,9 @@ public class CtrolSocketServer {
 				replyMsg.setCommandID((short) (msg.getCommandID()+Message.COMMAND_ACK_OFFSET));
 				replyMsg.setJson(json);
 				replyMsg.setServerID(serverID);
-				Thread.sleep(200);
-				boolean flag=CtrolSocketServer.sendCommandQueue.offer(replyMsg,100, TimeUnit.MICROSECONDS);
+				Thread.sleep(10);
+				//boolean flag=CtrolSocketServer.sendCommandQueue.offer(replyMsg,100, TimeUnit.MICROSECONDS);
+				replyMsg.writeBytesToSock2(sock);
 				log.debug("Send AuRs "+sock.getRemoteSocketAddress().toString()
 						+",serverID: "+replyMsg.serverID+",serverType: "+server.getServerType()+":"+replyMsg.toString());
 				return serverID;
@@ -760,15 +771,29 @@ public class CtrolSocketServer {
 				
 			}
 	    	String cookieStr=new String(cookie);
-	    	
+	    	int commandLen=head.msgLen-head.cookieLen;
 	    	byte[] commnad=new byte[head.msgLen-head.cookieLen];
-			clientRequest.getInputStream().read(commnad,0,head.msgLen-head.cookieLen);
+	    	int nIdx=0;
+	    	int nReadLen = 0; 
+	    	while (nIdx < commandLen)   
+	          {   
+	              nReadLen = clientRequest.getInputStream().read(commnad, nIdx, commandLen - nIdx);   
+	              if (nReadLen > 0)   
+	              {   
+	                  nIdx = nIdx + nReadLen;   
+	              }   
+	              else   
+	              {   
+	                  break;   
+	              }   
+	          }  
+			//clientRequest.getInputStream().read(commnad,0,head.msgLen-head.cookieLen);
 	    	String comString=new String(commnad);
 	    	if(comString.length()==0 || new JsonValidator().validate(comString)==false ){
 	    		if(comString!=null){
 	    			log.fatal("Json parse error,header="+head.toJson().toString()+",cookie="+cookieStr+",json="+comString);
 	    		}
-	    		Thread.sleep(150);
+	    		Thread.sleep(10);
 	    		return Message.getEmptyMsg();
 	    	}else{
 	    		try {

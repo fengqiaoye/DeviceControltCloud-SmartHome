@@ -33,12 +33,12 @@ import cooxm.devicecontrol.util.StringUtility;
 
 public class IRMatch2 {
 	static Logger log= Logger.getLogger(IRMatch.class);
-	private File fileDir;//
+	private static File fileDir;//
 	/** < 疑或后1的个数，文件名> */
 	Map<Integer, String> fileScoreMap;//=new TreeMap<Integer, String>() ;
 	
 	/** Map< AC,Map<fileName,List<String> CODE >> */
-	Map<String, HashMap<String, HashSet<String>>> dirMap;
+	static Map<String, HashMap<String, HashSet<String>>> dirMap;
 	static SQLiteUtil sqlite;
 	int deviceType;
 	String rawCode;
@@ -65,14 +65,16 @@ public class IRMatch2 {
 		this.deviceTypeStr=getDeviceTypeStr(deviceType);
 	}
 
+    
 	public IRMatch2(){
 		this.fileScoreMap=new TreeMap<Integer, String>() ;
 		Configure cf=MainEntry.getConfig();
 		fileDir=new File(cf.getValue("ir_file_path"));
 		String sqlLibFile=cf.getValue("ird_sql_path");
 		this.dirMap=new HashMap<String, HashMap<String, HashSet<String>>>();
-		this.sqlite=new SQLiteUtil(sqlLibFile);//("./ird5.db");
 		initFileMap(fileDir);//
+		this.sqlite=new SQLiteUtil(sqlLibFile);//("./ird5.db");
+		
 	}
 	
 	public void getTop5(){
@@ -145,9 +147,10 @@ public class IRMatch2 {
 		Object[] a =this.fileScoreMap.keySet().toArray();  
 		int len=Math.min(1, this.fileScoreMap.keySet().size());
 		if(len>0 && (int)a[0]<=10){  //位差小于等于10
-			return this.fileScoreMap.get(a[0]).split("\\|")[0]+"|"+a[0];
+			String result=this.fileScoreMap.get(a[0]).split("\\|")[0]+"|"+a[0];
+			this.fileScoreMap.clear();  //清空
+			return result;
 			//return (this.fileScoreMap.get(a[0]).split("\\|"))[0];
-
 		}else{
 			return null;
 		}
@@ -424,7 +427,21 @@ public class IRMatch2 {
 					if(res!=null)           //找到了 退出
 						break;
 				}
-			}			
+			}	
+			
+			//将C3code重复2-3次  2015-10-22
+			if (new StringUtility().getLongestSubStr(C3code)==null) {  //没有重复字串
+				String multiC3code=C3code;
+				for (int i = 2; i < 4; i++) {
+					multiC3code=multiC3code+C3code;
+					im.match( multiC3code);
+					res=im.getTop1();
+					if(res!=null)           //找到了 退出
+						break;					
+				}
+			}
+
+			
 		}
 		if(res==null){
 			log.info("infraRed code match failed !!");
@@ -521,14 +538,14 @@ public class IRMatch2 {
 		return applianceTypeStr;
 	}
 	
-	public void initFileMap(File file){		
+	public static void initFileMap(File file){		
 		if (file.isDirectory()) {
             File[] ch = file.listFiles();
             for (int i = 0; i < ch.length; i++) {
             	initFileMap(ch[i]);
             } 
         } else {
-            if (file.getName().endsWith("txt")) {
+            if (file.getName().endsWith("txt") ||file.getName().endsWith("TXT")) {
             	String path=file.getPath();
             	String fileName=path.substring(path.indexOf("keyfiles")+10,path.length() );
     			int pos2=fileName.indexOf('\\');
@@ -556,7 +573,7 @@ public class IRMatch2 {
 						codeList.add(line);
 					}
 					fileMap.put(fid, codeList);
-					this.dirMap.put(deviceTypeStr, fileMap);
+					dirMap.put(deviceTypeStr, fileMap);
 	
 				} catch (FileNotFoundException e) {
 					e.printStackTrace();
@@ -714,8 +731,8 @@ public class IRMatch2 {
 	    raw[28]="60,04,00,00,24,00,26,82,44,03,9b,82,43,07,81,c1,0f,ec,c2,00,0f,4a,c3,00,18,4f,05,ab,c2,00,20,b4,c1,0f,ec,c2,00,0f,4c,c3,00,18,4f,05,ab,c2,00,20,da,c1,0f,ca,c2,00,0f,66,c3,00,18,4f,05,ab,c2,00,20,d9,c1,0f,ca,c2,00,0f,6a,c3,00,18,4f,05,ab,c2,00,20,e7,c1,0f,bf,c2,00,0f,6f,c3,00,18,4f,05,ab,00";
 	    raw[29]="a8,04,00,00,24,00,26,82,14,03,c9,82,14,07,ad,c1,02,13,c2,00,03,ca,c3,00,09,56,01,c1,0f,c3,c2,00,0f,72,c3,00,18,4f,05,ab,c2,00,20,e2,c1,0f,bd,c2,00,0f,70,c3,00,18,4f,05,ab,c2,00,20,df,c1,0f,be,c2,00,0f,71,c3,00,18,4f,05,ab,c1,0f,c3,c2,00,0f,72,c3,00,18,4f,05,ab,c2,00,20,e2,c1,0f,bd,c2,00,0f,70,c3,00,18,4f,05,ab,c2,00,20,df,c1,0f,be,c2,00,0f,71,c3,00,18,4f,05,ab,c1,0f,c3,c2,00,0f,72,c3,00,18,4f,05,ab,c2,00,20,e2,c1,0f,bd,c2,00,0f,70,c3,00,18,4f,05,ab,c2,00,20,df,c1,0f,be,c2,00,0f,71,c3,00,18,4f,05,ab,00";
 	    raw[30]="3e,04,00,00,24,00,26,81,f5,03,ea,81,f6,07,d0,c1,0f,9f,c2,00,0f,93,c3,00,18,4f,05,ab,c2,00,21,05,c1,0f,9d,c2,00,0f,93,c3,00,18,4f,05,ab,c2,00,21,03,c1,0f,9d,c2,00,0f,92,c3,00,18,4f,05,ab,00";
-	    raw[31]="3e,04,00,00,24,00,26,81,ea,03,f5,81,ea,07,db,c1,0f,94,c2,00,0f,9f,c3,00,18,4f,05,ab,c2,00,20,f2,c1,0f,91,c2,00,0f,a0,c3,00,18,4f,05,ab,c2,00,21,10,c1,0f,c1,c2,00,0f,6f,c3,00,18,4f,05,ab,00";
-	    raw[32]="1f,04,00,00,24,00,26,81,e0,05,eb,81,e0,09,d2,c1,0b,a6,c2,00,0b,de,c3,00,10,40,d0,c2,00,0f,c6,00";
+	    raw[31]="48,04,00,00,24,00,26,81,92,02,8a,81,93,06,d1,c1,10,97,c2,00,11,76,c3,00,30,4d,b2,de,21,07,f8,c2,00,14,e0,c1,10,ab,c2,00,11,79,c3,00,30,4d,b2,de,21,07,f8,c2,00,38,88,c1,13,8e,c2,00,13,99,c1,13,75,c2,00,13,9a,c1,13,74,00";
+	    raw[32]="29,04,00,00,24,00,26,81,0b,03,13,81,0d,07,32,c1,01,0d,c3,00,0f,21,22,c2,00,b9,47,c3,00,0f,c1,5d,c2,00,a8,aa,c3,00,0f,21,22,00";
 	    raw[33]="7b,04,00,00,24,00,26,81,e1,05,f5,81,e2,09,e2,c1,0b,b6,c2,00,0b,d8,c3,00,10,40,d0,c2,00,0f,c7,c1,01,e1,c2,00,59,18,c1,0b,b2,c2,00,0b,d7,c3,00,10,40,d0,c2,00,0f,c7,c1,01,e2,c2,00,59,19,c1,0b,b3,c2,00,0b,d9,c3,00,10,40,d0,c2,00,0f,c8,c1,01,e1,c2,00,59,19,c1,0b,b2,c2,00,0b,d9,c3,00,10,40,d0,c2,00,0f,c6,c1,01,e2,c2,00,59,17,c1,0b,b3,c2,00,0b,d8,c3,00,10,40,d0,c2,00,0f,c6,00";
 	    // 以下为机顶盒  /
 	    raw[42]="1d,04,00,00,24,00,26,82,49,02,1f,82,4a,06,6c,c1,23,29,c2,00,11,84,c3,00,20,20,8d,1a,e5,00";
@@ -732,17 +749,21 @@ public class IRMatch2 {
 	    raw[51]="33,04,00,00,24,00,38,82,4d,01,fa,82,51,06,0d,c1,11,52,c2,00,10,f4,c3,00,30,4d,b2,de,21,07,f8,c2,00,14,1e,c1,11,51,c2,00,10,f2,c3,00,30,4d,b2,de,21,07,f8,00";
 	    raw[54]="33,04,00,00,24,00,26,82,50,01,f8,82,54,06,08,c1,11,56,c2,00,10,f1,c3,00,30,4d,b2,de,21,07,f8,c2,00,14,19,c1,11,55,c2,00,10,f0,c3,00,30,4d,b2,de,21,07,f8,00";
 	     //AC
-	    raw[55]="29,04,00,00,24,00,26,82,40,02,21,82,41,06,54,c1,17,f2,c2,00,1c,b7,c3,00,60,ff,00,ff,00,ff,00,fb,04,f6,09,2a,d5,c2,00,1c,a5,00";
+	    raw[55]="33,04,00,00,24,00,26,82,1b,02,40,82,17,06,40,c1,11,1a,c2,00,11,2a,c3,00,30,4d,b2,fc,03,00,ff,c2,00,14,3a,c1,11,15,c2,00,11,2a,c3,00,30,4d,b2,fc,03,00,ff,00";
+	    
+	    //FAN
+	    raw[56]="26,04,00,00,24,00,26,82,15,02,44,82,2d,06,a2,c1,22,e0,c2,00,11,9e,c3,00,30,01,fe,03,fc,03,fc,c2,00,34,ad,c1,23,17,00";
+	    raw[57]="41,04,00,00,24,00,26,84,dc,01,95,81,ab,04,c1,c3,00,0b,e4,07,c2,00,1b,13,c3,00,0b,e4,07,c2,00,1b,10,c3,00,0b,e4,07,c2,00,1b,13,c3,00,0b,e4,07,c2,00,1b,60,c3,00,0b,e4,07,c2,00,1b,77,c3,00,0b,e4,07,00";
 
 
 
     	
     	IRMatch2 im=new IRMatch2();
-	    for (int i = 33; i < 34; i++) {
+	    for (int i = 56; i < 58; i++) {
 	    	System.out.println(i);
 	    	Date date =new Date();
 
-	    	im.init(raw[i], 501);		
+	    	im.init(raw[i], 601);		
 	    	im.recursiveMatch(im);
 	    	System.out.println("IR match finished in :"+(new Date().getTime()-date.getTime())+" miliseconds");
 		}

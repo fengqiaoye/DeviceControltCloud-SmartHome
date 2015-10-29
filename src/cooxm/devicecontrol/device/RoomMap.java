@@ -18,7 +18,7 @@ import org.json.JSONException;
 
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.MySqlClass;
-import redis.clients.jedis.Jedis;
+import cooxm.devicecontrol.util.JedisUtil;
 
 
 /*** Map< ctrolID_RoomID,Room >*/
@@ -26,14 +26,14 @@ public class RoomMap  extends HashMap<String, Room>{
 	static Logger log= Logger.getLogger(RoomMap.class);
 	private static final long serialVersionUID = 1L;
 	MySqlClass mysql;
-	Jedis jedis;
+	JedisUtil jedis;
 
 	RoomMap(){}
 	RoomMap(Map<String, Room> roomMap){
 		super(roomMap);		
 	}
 	
-	public RoomMap(MySqlClass mysql,Jedis jedis) throws SQLException{
+	public RoomMap(MySqlClass mysql,JedisUtil jedis) throws SQLException{
 		super(getRoomMapFromDB(mysql));
 		this.mysql=mysql;
 		this.jedis=jedis;
@@ -153,7 +153,7 @@ public class RoomMap  extends HashMap<String, Room>{
 	
 	public static void main (String[] args) throws SQLException{
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
-		Jedis jedis=new Jedis("172.16.35.170", 6379,5000);
+		JedisUtil jedis=new JedisUtil("172.16.35.170", 6379,5000);
 		jedis.select(9);
 		RoomMap p = new RoomMap(mysql,jedis);
 		

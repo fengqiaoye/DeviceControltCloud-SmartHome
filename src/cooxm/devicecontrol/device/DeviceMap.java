@@ -21,7 +21,7 @@ import org.json.JSONException;
 
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.MySqlClass;
-import redis.clients.jedis.Jedis;
+import cooxm.devicecontrol.util.JedisUtil;
 
 /*** Map< ctrolID_deviceID,Device >*/
 public class DeviceMap extends HashMap<String, Device> {
@@ -31,14 +31,14 @@ public class DeviceMap extends HashMap<String, Device> {
 
 	private static final long serialVersionUID = 1L;
 	private MySqlClass mysql;
-	Jedis jedis;
+	JedisUtil jedis;
 	
 	public DeviceMap(){}
 	public DeviceMap(Map<String, Device> profileSetMap){
 		super(profileSetMap);	
 	}
 	
-	public DeviceMap(MySqlClass mysql,Jedis jedis) throws SQLException{
+	public DeviceMap(MySqlClass mysql,JedisUtil jedis) throws SQLException{
 		super(getDeviceMapFromDB(mysql));
 		this.mysql=mysql;
 		this.jedis=jedis;
@@ -236,7 +236,7 @@ public class DeviceMap extends HashMap<String, Device> {
 	 */
 	public static void main(String[] args) throws SQLException {
 		MySqlClass mysql=new MySqlClass("172.16.35.170","3306","cooxm_device_control", "cooxm", "cooxm");
-		Jedis jedis=new Jedis("172.16.35.170", 6379,5000);
+		JedisUtil jedis=new JedisUtil("172.16.35.170", 6379,5000);
 		jedis.select(9);
 		DeviceMap dm=new DeviceMap(mysql,jedis);
 		System.out.println(dm.size());

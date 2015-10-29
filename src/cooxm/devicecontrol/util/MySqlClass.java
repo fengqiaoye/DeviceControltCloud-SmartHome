@@ -64,7 +64,7 @@ public class MySqlClass {
    
   
    public synchronized String select(String sqlStatement){
-       String result=new String();
+       StringBuffer result=new StringBuffer();
        int size=0;
        try{
            rs=st.executeQuery(sqlStatement);
@@ -72,14 +72,13 @@ public class MySqlClass {
            
            while(rs!=null && rs.next()){
         	   for(int i=0;i<size;i++){
-        		   result=result+rs.getString(i+1);
+        		   result=result.append(rs.getString(i+1));
         		   if(i!=size-1){
-        			   result=result+",";
+        			   result=result.append(",");
         		   }
         	   }
-        	   result=result+"\n";
+        	   result=result.append("\n");
            }           
-           //rs.close();
            if(result.length()>=1){
         	   return result.substring(0, result.length()-1);
            }else{
@@ -100,11 +99,8 @@ public class MySqlClass {
        int row=-1;
        try{
            row=st.executeUpdate(sqlStatement);
-           //this.close();
            return row;
        }catch(Exception e){
-           //System.out.println("Executing SQL: "+e.toString());
-           //logger.error(e.getMessage(),e);
     	   logger.error(e.toString(),e);
            return row;
        }
@@ -140,8 +136,8 @@ public class MySqlClass {
 	   System.out.println(mysql==null?false:true);  
 	   
        //mysql=new MySqlClass("172.20.36.247","3306","realTimeTraffic", "ghchen", "ghchen");
-	   String s=mysql.select("show databases like 'information_schema';");
-	   System.out.print(s);System.out.print(s);
+	   String s=mysql.select("show tables ;");
+	   System.out.print(s);
 
 	   
  	   

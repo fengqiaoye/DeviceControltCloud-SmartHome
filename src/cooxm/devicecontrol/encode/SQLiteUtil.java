@@ -45,14 +45,13 @@ public class SQLiteUtil {
        }	       
    }
    
-   public String select(String sqlStatement){
+   public synchronized String select(String sqlStatement){
 	   ResultSet rs=null;
        String result=new String();
        int size=0;
        try{
            rs=stat.executeQuery(sqlStatement);
-           size=rs.getMetaData().getColumnCount();
-           
+           size=rs.getMetaData().getColumnCount();           
            while(rs!=null && rs.next()){
         	   for(int i=0;i<size;i++){
         		   result=result+rs.getString(i+1);//+",";
@@ -67,8 +66,7 @@ public class SQLiteUtil {
         	   return result.substring(0, result.length()-1);
            }else{
         	   return null;
-           }
-           
+           }        
        }catch(Exception e){
            //System.out.println("ERROR:"+e.toString());
     	   logger.error(e.toString(),e);

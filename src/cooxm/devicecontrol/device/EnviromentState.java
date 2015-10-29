@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import redis.clients.jedis.Jedis;
+import cooxm.devicecontrol.util.JedisUtil;
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.MySqlClass;
 
@@ -177,7 +177,7 @@ public class EnviromentState {
 	}
 	
 	
-	public static double getFactorStateByRoomIDfactorID(int ctrolID,int roomID,int factorID,Jedis jedis) throws JSONException{
+	public static double getFactorStateByRoomIDfactorID(int ctrolID,int roomID,int factorID,JedisUtil jedis) throws JSONException{
 		String str=jedis.hget(LogicControl.houseState+ctrolID, roomID+"");
 		if(str!=null){
 			JSONObject json=new JSONObject(str);

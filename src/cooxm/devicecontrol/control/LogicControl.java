@@ -7,14 +7,12 @@
  */
 
 
-import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.time.chrono.JapaneseChronology;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -32,15 +30,19 @@ import org.json.JSONObject;
 
 
 
+
+
+import cooxm.devicecontrol.constant.Role;
+import cooxm.devicecontrol.constant.WarnID;
 import cooxm.devicecontrol.device.Device;
 import cooxm.devicecontrol.device.DeviceMap;
 import cooxm.devicecontrol.device.DeviceState;
 import cooxm.devicecontrol.device.EnviromentState;
 import cooxm.devicecontrol.device.Factor;
+import cooxm.devicecontrol.device.FactorDict;
 import cooxm.devicecontrol.device.Profile;
 import cooxm.devicecontrol.device.ProfileMap;
 import cooxm.devicecontrol.device.ProfileSet;
-import cooxm.devicecontrol.device.ProfileSetMap;
 import cooxm.devicecontrol.device.ProfileTemplate;
 import cooxm.devicecontrol.device.Room;
 import cooxm.devicecontrol.device.RoomMap;
@@ -51,16 +53,15 @@ import cooxm.devicecontrol.device.TriggerTemplate;
 import cooxm.devicecontrol.device.TriggerTemplateMap;
 import cooxm.devicecontrol.device.Warn;
 import cooxm.devicecontrol.encyco.TuringCatAesCrypto;
+import cooxm.devicecontrol.security.MonitorStatus;
 import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.socket.Message;
 import cooxm.devicecontrol.socket.SocketClient;
 import cooxm.devicecontrol.synchronize.IRFileDownload;
 import cooxm.devicecontrol.synchronize.IRMatch2;
-import cooxm.devicecontrol.util.KeyDef;
 import cooxm.devicecontrol.util.MySqlClass;
-import cooxm.devicecontrol.util.Role;
 import cooxm.devicecontrol.util.StringUtility;
-import redis.clients.jedis.Jedis;
+import cooxm.devicecontrol.util.JedisUtil;
 
 public class LogicControl {	
 	
@@ -219,6 +220,11 @@ public class LogicControl {
 	/*** 请求一个用户家里所有家电列表 的回复*/
 	private static final short SET_DEVICE_LIST_ACK			=	COMMAND_START+49+COMMAND_ACK_OFFSET;
 	
+	/*** 请求设备字典*/
+	private static final short GET_DEVICE_DICTIONARY				=	COMMAND_START+50;
+	/*** 请求设备字典ack*/
+	private static final short GET_DEVICE_DICTIONARY_ACK			=	COMMAND_START+50+COMMAND_ACK_OFFSET;
+	
 	/*** 请求家电列表*/
 	private static final short GET_ONE_ROOM				=	COMMAND_START+51;
 	/*** 请求家电列表 的回复*/
@@ -247,8 +253,7 @@ public class LogicControl {
 	/*** 请求房间列表*/
 	private static final short GET_ROOM_LIST				=	COMMAND_START+56;
 	/*** 请求房间列表 的回复*/
-	private static final short GET_ROOM_LIST_ACK			=	COMMAND_START+56+COMMAND_ACK_OFFSET;
-	
+	private static final short GET_ROOM_LIST_ACK			=	COMMAND_START+56+COMMAND_ACK_OFFSET;	
 	
 	/*** 请求触发规则模板 */
 	private static final short GET_TRIGGER_TEMPLATE				=	COMMAND_START+61;	
@@ -329,6 +334,26 @@ public class LogicControl {
     /*** 取消告警消息  的回复  */
 	private static final short REPORT_CONTROL_MSG_ACK		=	COMMAND_START+102+COMMAND_ACK_OFFSET;
 	
+    /*** 请求语言   */
+	private static final short GET_LANGUAGE		    	=	COMMAND_START+103;
+    /*** 请求语言ACK   */
+	private static final short GET_LANGUAGE_ACK		    =	COMMAND_START+103+COMMAND_ACK_OFFSET;
+	
+    /*** 设置语言 */
+	private static final short SET_LANGUAGE		  	 	=	COMMAND_START+104;
+    /*** 设置语言ack */
+	private static final short SET_LANGUAGE_ACK		    =	COMMAND_START+104+COMMAND_ACK_OFFSET;
+	
+    /*** 请求布防状态 */
+	private static final short GET_MONITOR_STATUS		  	 	=	COMMAND_START+105;
+    /*** 请求布防状态 */
+	private static final short GET_MONITOR_STATUS_ACK		    =	COMMAND_START+105+COMMAND_ACK_OFFSET;
+	
+    /*** 上报布防状态 */
+	private static final short SET_MONITOR_STATUS		  	 	=	COMMAND_START+106;
+    /*** 上报布防状态 */
+	private static final short SET_MONITOR_STATUS_ACK		    =	COMMAND_START+106+COMMAND_ACK_OFFSET;
+	
 	
 
 	
@@ -398,33 +423,36 @@ public class LogicControl {
 	public static final int TIME_PARSE_ERROR	     = -50062;
 	
 	/** 云后台SQL发生错误*/
-	public static final int SQL_ERROR	     = -50063;
+	public static final int SQL_ERROR	     		= -50063;
 	
 	/**  房间不存在*/
-	public static final int ROOM_NOT_EXIST	     = -50071;
+	public static final int ROOM_NOT_EXIST	     	= -50071;
 	
 	
 	/** 房间陈旧，云端比较新*/
-	public static final int ROOM_OBSOLETE	     = -50072;
+	public static final int ROOM_OBSOLETE	     	= -50072;
 	
 	
 	/**  用户家里 环境因素不存在*/
 	public static final int HOUSE_STATE_NOT_EXIST = -50081;
 	
 	/**  情景模式不存在或者MYSQL读取错误*/
-	public static final int TRIGGER_TEMPLATE_NOT_EXIST = -50091;
+	public static final int TRIGGER_TEMPLATE_NOT_EXIST 	= -50091;
 	
-	public static final int TRIGGER_NOT_EXIST = -50092;
+	public static final int TRIGGER_NOT_EXIST 			= -50092;
 	
-	public static final int TRIGGER_OBSOLETE = -50093;
+	public static final int TRIGGER_OBSOLETE 			= -50093;	
 	
+	public static final int LANGUAGE_NOT_EXIST 			= -50094;
+	
+	public static final int MONINTOR_STATUS_NOT_EXIST 	= -50095;
 
 	/***********************   resource needed   ************************/	
 	static Logger log= Logger.getLogger(LogicControl.class);
 	static Configure config=null;
 	static MySqlClass mysql=null;
 	SocketClient msgSock=null;
-	Jedis jedis=null;// new Jedis("172.16.35.170", 6379,200);
+	JedisUtil jedis=null; 
 	public static ProfileMap profileMap =null;
 	//public static ProfileSetMap profileSetMap =null;
 	public static DeviceMap deviceMap=null;
@@ -435,14 +463,16 @@ public class LogicControl {
 	TimeOutMap to;
 	String ir_file_dir;//=new File(cf.getValue("ir_file_path"));
 	IRMatch2 im=new IRMatch2();
-	public final static String currentProfile=    "currentProfile:";
-	public final static String currentProfileSet= "currentProfileSet:";
-	public final static String currentDeviceState= "currentDeviceState:";	
-	public final static String roomBind= "roomBind:";	
-	public final static String roomList= "roomList:";
-	public final static String triggerState= "triggerState:";
-	public final static String houseState= "houseState:";
-    //public LogicControl() {}
+	List<FactorDict> factorDicList;
+	public final static String currentProfile		= "currentProfile:";
+	public final static String currentProfileSet	= "currentProfileSet:";
+	public final static String currentDeviceState	= "currentDeviceState:";	
+	public final static String roomBind				= "roomBind:";	
+	public final static String roomList				= "roomList:";
+	public final static String triggerState			= "triggerState:";
+	public final static String houseState			= "houseState:";
+	public final static String language				= "language:";
+	public final static String monitorStatus		= "monitorStatus:";
     
     public LogicControl(Configure cf) {
     	log.info("Starting logic control module ... ");
@@ -459,11 +489,10 @@ public class LogicControl {
 		int cluster_id          =Integer.parseInt(cf.getValue("cluster_id"));
 		int server_id           =Integer.parseInt(cf.getValue("server_id"));
 		
-		ir_file_dir=cf.getValue("ir_file_path");
-		
-		
+		ir_file_dir=cf.getValue("ir_file_path");		
 		mysql=new MySqlClass(mysql_ip, mysql_port, mysql_database, mysql_user, mysql_password);
-		this.jedis= new Jedis(redis_ip, redis_port,5000);
+		//this.jedis= new JedisUtil(redis_ip, redis_port,5000);	
+		this.jedis=new JedisUtil(redis_ip, redis_port,9);
 		jedis.select(9);
 		try{
 	 	
@@ -473,6 +502,7 @@ public class LogicControl {
 			this.profileTemplateList=ProfileTemplate.getAllFromDB(mysql);
 			this.triggerTemplateMap=new  TriggerTemplateMap(mysql);
 			this.roomMap=new RoomMap(mysql,jedis);
+			factorDicList=FactorDict.getDeviceDictList(mysql);
 			this.to=new TimeOutMap();			
 			Thread timerMapTread=new Thread(to);
 			timerMapTread.setName("timerMapTread");
@@ -605,6 +635,9 @@ public class LogicControl {
 		case SET_DEVICE_LIST:	
 			set_device_list(msg);
 			break;
+		case GET_DEVICE_DICTIONARY:	
+			get_device_dictionary(msg);
+			break;	
 		case GET_ONE_ROOM:	
 			get_one_room(msg);
 			break;
@@ -623,14 +656,8 @@ public class LogicControl {
 		case GET_ROOM_LIST:	
 			get_room_list(msg);
 			break;
-		case WARNING_MSG:	
-			warning_msg(msg);
-			break;
 		case REPORT_CONTROL_MSG:	
 			report_control_msg(msg);
-			break;
-		case WARNING_MSG_ACK:	
-			warning_msg_ack(msg);
 			break;
 		case GET_TRIGGER_TEMPLATE:	
 			get_trigger_template(msg);
@@ -674,8 +701,32 @@ public class LogicControl {
 		case GET_ENVIROMENT_STATE:
 			get_enviroment_state(msg);
 			break;
+		case GET_LANGUAGE:	
+			get_language(msg);
+			break;
+		case GET_LANGUAGE_ACK:	
+			get_language_ack(msg);
+			break;
+		case WARNING_MSG:	
+			warning_msg(msg);
+			break;
+		case WARNING_MSG_ACK:	
+			warning_msg_ack(msg);
+			break;
 		case DO_NOTHING:
 			break;
+		case GET_MONITOR_STATUS:	
+			get_monitor_status(msg);
+			break;
+		case GET_MONITOR_STATUS_ACK:	
+			get_monitor_status_ack(msg);
+			break;
+		case SET_MONITOR_STATUS:	
+			set_monitor_status(msg);
+			break;
+		case SET_MONITOR_STATUS_ACK:	
+			set_monitor_status_ack(msg);
+			break;	
 		default:
 			int sender=0;
 			if(msg.getJson().has("sender")){
@@ -839,31 +890,30 @@ public class LogicControl {
 			//if(msgProfile.getFactorList()==null || msgProfile.getFactorList().size()==0){
 			//	json.put("errorCode",PROFILE_FACTORLIST_IS_EMPTY); 
 			//}else{
-		    	Profile dbProfile;
-		    	int ctrolID=msgProfile.getCtrolID();
-		    	int profileID=msgProfile.getProfileID();
-		    	Date msgModifyTime=msgProfile.getModifyTime();
-		    	String key=ctrolID+"_"+profileID;
-		    	Profile pr = this.profileMap.remove(key);
-
+	    	Profile dbProfile;
+	    	int ctrolID=msgProfile.getCtrolID();
+	    	int profileID=msgProfile.getProfileID();
+	    	Date msgModifyTime=msgProfile.getModifyTime();
+	    	String key=ctrolID+"_"+profileID;
+	    	
+	    	if( (dbProfile=this.profileMap.get(key))!=null && dbProfile.getModifyTime().after(msgModifyTime)){	//云端较新  
+				json.put("errorCode",PROFILE_OBSOLETE);    	
+				log.error("Profile in Cloud is newer than from user, ctrolID:"+ctrolID+" profileID:"+profileID+",cookieID="+msg.getCookie());
+	    	}else { //云端较旧  或者 不存在，则保存
 	    		Profile p=this.profileMap.put(key, msgProfile);
 				if(p!=null){
 					json.put("errorCode",SUCCESS); 
 				}else{
 					json.put("errorCode",SQL_ERROR); 
 				}
-              
-		    	/*if( (dbProfile=this.profileMap.get(key))!=null && dbProfile.getModifyTime().after(msgModifyTime)){	//云端较新  
-					json.put("errorCode",OBSOLETE);    	
-					log.error("Profile in Cloud is newer than from profile from user, ctrolID:"+ctrolID+" profileID:"+profileID+".");
-		    	}else { //云端较旧  或者 不存在，则保存
-		    		Profile p=this.profileMap.put(key, msgProfile);
-					if(p!=null){
-						json.put("errorCode",SUCCESS); 
-					}else{
-						json.put("errorCode",SQL_ERROR); 
-					}
-				}*/
+			}
+	    	/*Profile pr = this.profileMap.remove(key);
+    		Profile p=this.profileMap.put(key, msgProfile);
+			if(p!=null){
+				json.put("errorCode",SUCCESS); 
+			}else{
+				json.put("errorCode",SQL_ERROR); 
+			}*/
 			//}
 		} catch (JSONException e1) {
 			e1.printStackTrace();
@@ -901,8 +951,7 @@ public class LogicControl {
      * }
      * @throws JSONException 
      * @return message 的json格式：
-     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50002}
-           
+     *   （1）如果查询的情景模式不存在，返回jason： {"errorCode":-50002}           
      */
     public void delete_room_profile(Message msg) {
     	JSONObject json=new JSONObject();
@@ -978,10 +1027,9 @@ public class LogicControl {
 	    	}
 			json.put("sender",2);	
 			json.put("receiver",sender);
-			json.put("switchTime",sdf.format(new Date()));
 	    	String key=ctrolID+"_"+profileID;
 			profile=profileMap.getProfileByRoomIDTemplateID(ctrolID, roomID, profileID);  //注意此处profileID 的值是templateID
-	    	if(profile!=null /*|| (profile=Profile.getFromDBByProfileID(mysql, ctrolID, profileID))!=null*/){
+	    	if(profile!=null /*|| (profile=Profile.getFromDBByProfileID(mysql, ctrolID, profileID))!=null*/){				
 	    		for (Factor factor : profile.getFactorList()) {   //将情景中家电的每一个开关记录到redis中
 	    			String key2=currentDeviceState+ctrolID;
 	    			JSONObject stateJson= new JSONObject();
@@ -989,9 +1037,15 @@ public class LogicControl {
 	    			stateJson.put("time", sdf.format(new Date()));
 	    			//stateJson.put("tempID", profileID);  //情景模板ID
 					stateJson.put("devType", factor.getFactorID());
-	    			
+					String stateStr=null;
 					if (factor.getFactorID()==541) {
-						String stateStr=jedis.hget(key2, factor.getDeviceID()+"");
+						try {
+							stateStr=jedis.hget(key2, factor.getDeviceID()+"");
+						} catch (Exception e) {
+							stateStr=null;
+							e.printStackTrace();
+						}
+						
 						DeviceState state=null;
 						int onOff=factor.getMinValue()>0 ? 1: 0;
 						if (stateStr!=null) {
@@ -1006,8 +1060,12 @@ public class LogicControl {
 							state=new DeviceState(onOff, 0, 0, 0, factor.getMinValue(), 0, factor.getMinValue());
 						}
 						stateJson.put("state", state.toJson());
-						jedis.hset(key2, factor.getDeviceID()+"", stateJson.toString());
-					}else{
+						try{
+							jedis.hset(key2, factor.getDeviceID()+"", stateJson.toString());
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						}else{
 						int keyType=factor.getMinValue()==1?501:502;
 						stateJson.put("keyType", keyType);
 						jedis.hset(key2, factor.getDeviceID()+"", stateJson.toString());
@@ -1056,16 +1114,17 @@ public class LogicControl {
 						}
 	    			}
 				}*/
-	        	String key2=LogicControl.currentProfile+ctrolID;
+	    		Device.batchSwitchRoleByRoomID(jedis, ctrolID, Role.PROFILE_SWITCH, roomID);
+	    		
+	        	String key3=LogicControl.currentProfile+ctrolID;
 	        	JSONObject pjSON=profile.toJsonObj();
-	        	pjSON.put("time", sdf.format(new Date()));
-	    		jedis.hset(key2, roomID+"", pjSON.toString());
-
+	        	pjSON.put("switchTime", sdf.format(new Date()));
+	    		jedis.hset(key3, roomID+"", pjSON.toString());
 				
 	    		if(sender==0  /*||profile.isEmpty()*/){   //来自中控，或者情景详情为空
 	    			json.put("errorCode",SUCCESS);
 	    		}else {
-	    			to.put(msg.getCookie(),msg);
+	    			to.put(msg.getCookie(),new Message(msg));
 	    			
 	    			Message msg2=new Message(msg);
 	    			msg2.setServerID(1);           //将主服务器接收此消息
@@ -1767,14 +1826,14 @@ public class LogicControl {
 	    	}  
 			json.put("sender",2);
 			List<Profile> profileList=profileMap.getProfileSetByTemplateID(ctrolID, profileSetID);
-			boolean all_profile_is_empty=true;
+			//boolean all_profile_is_empty=true;
 			if(profileList!=null){
 				for (Profile profile : profileList) {
-		    		if(profile.getProfileSetID()>=1  ){  //如果该情景和 情景集联动，setID==1
+		    		if(profile.getProfileSetID()>=1 ||profileSetID==5 ){  //如果该情景和 情景集联动，setID==1 或者 是手动模式
 		        	 JSONObject pjSON=profile.toJsonObj();
 		        	 pjSON.put("switchTime", sdf.format(new Date()));
 	    			 jedis.hset(currentProfile+ctrolID, profile.getRoomID()+"", pjSON.toString());
-	    			 all_profile_is_empty = false; //判断是否所有的情景都不联动 
+	    			 //all_profile_is_empty = false; //判断是否所有的情景都不联动 
 	    			 
 	 	    		for (Factor factor : profile.getFactorList()) {   //将情景中家电的每一个开关记录到redis中
 		    			String key2=currentDeviceState+ctrolID;
@@ -1800,14 +1859,15 @@ public class LogicControl {
 								state=new DeviceState(onOff, 0, 0, 0, factor.getMinValue(), 0, factor.getMinValue());
 							}
 							stateJson.put("state", state.toJson());
-							jedis.hset(key2, factor.getDeviceID()+"", stateJson.toString());
+							jedis.hset(key2, factor.getDeviceID()+"", stateJson.toString());  //标记操作家电的是 7
 						}else{
 							int keyType=factor.getMinValue()==1?501:502;
 							stateJson.put("keyType", keyType);
 							jedis.hset(key2, factor.getDeviceID()+"", stateJson.toString());
 						}
 					}
-	    					 
+	    			Device.batchSwitchRole(jedis, ctrolID, Role.PROFILE_SWITCH); //将加电的操作者批量改为7
+	    			
 	 	    		if (profile.getProfileTemplateID()==2) {      // 观影模式关窗帘
 		    			List<Device> devList=deviceMap.getDevicesByroomIDDevType(ctrolID, profile.getRoomID(), 421);
 		    			double value=EnviromentState.getFactorStateByRoomIDfactorID(ctrolID, profile.getRoomID(), 2501, jedis);  //光强度
@@ -1824,7 +1884,7 @@ public class LogicControl {
 								json3.put("receiver",0); 
 								json3.put("keyType", 502);
 								//long cookieNo = ((System.currentTimeMillis()/1000)%(24*3600))*10000;
-			    				Message msg3=new Message((short) (LogicControl.SWITCH_SIMPLE_DEVICE_STATE), (cookieNo++)+"_2",json3 );
+			    				Message msg3=new Message((short) (LogicControl.SWITCH_RROFILE_SET_ACK), (cookieNo++)+"_2",json3 );
 			    				msg3.setServerID(1);
 			    				CtrolSocketServer.sendCommandQueue.offer(msg3, 100, TimeUnit.MILLISECONDS);//转发给中控
 							}
@@ -1859,13 +1919,13 @@ public class LogicControl {
 		    		json.put("errorCode",SUCCESS);	
 					json.put("receiver",sender); 	//原路返回				
 	    		}else {   //命令来自手机且不为空，则需要转给中控来执行
-	    			to.put(msg.getCookie(),msg);
+	    			to.put(msg.getCookie(),new Message(msg));
 	    			
 	    			Message msg2=new Message(msg);
 	    			msg2.setServerID(1);           //将主服务器接收此消息
-	    			json.put("receiver",0);	//转发给中控
-        			json.put("sender",2); 
-	    			msg2.setJson(json);
+        			msg2.getJson().put("receiver",0); 
+        			msg2.getJson().put("sender",2); 
+        			msg2.setJson(msg2.getJson());
 	    			CtrolSocketServer.sendCommandQueue.offer(msg2, 100, TimeUnit.MILLISECONDS);//转发给中控
 
 	    			return;  //这里先返回，等待超时线程去处理
@@ -2653,32 +2713,29 @@ public class LogicControl {
 	    	}
 			json.put("sender",2);
 			json.put("receiver",sender); 
-			//dbDevice=this.deviceMap.get(key);
-			//boolean flag=dbDevice.modifyTime.before(msgModifyTime);
-	    	//if((dbDevice)==null  /*|| (dbDevice!=null && dbDevice.modifyTime.before(msgModifyTime))*/){	 //不存在或者云端较旧
+			dbDevice=this.deviceMap.get(key);
+	    	if((dbDevice)==null  || (dbDevice!=null && dbDevice.modifyTime.before(msgModifyTime))){	 //不存在或者云端较旧
 	    		Device d=this.deviceMap.put(key, msgDevice);
 				if(d!=null){
 					json.put("errorCode",SUCCESS); 
 				}else{
 					json.put("errorCode",SQL_ERROR); 
-				}
-	
+				}	
 				String key2=LogicControl.roomBind+ctrolID;
 	    		jedis.hset(key2, deviceID+"", msgDevice.toJsonObj().toString());
 
-	    	//}
-	    		/*else if(dbDevice.modifyTime.after(msgModifyTime)){ //云端较新  
-	    		log.error("device in Cloud is newer than from profile from user, ctrolID:"+ctrolID+" deviceID:"+deviceID+".");
+	    	}else if(dbDevice.modifyTime.after(msgModifyTime)){ //云端较新  
+	    		log.error("device in Cloud is newer than from user, ctrolID:"+ctrolID+" deviceID:"+deviceID+",cookie="+msg.getCookie());
 				json.put("errorCode",DEVICE_OBSOLETE);   
-			}*/
+			}
 	    	
 	    	if(changeFlag==1){
 	    		JSONObject json2= new JSONObject();
 	    		int warnType=0;
 	    		if(msgDevice.getState()==1){        //由坏变好了
-	    			warnType=3017;
+	    			warnType=WarnID.SENSOR_ONLINE;//3017;
 	    		}else if(msgDevice.getState()==0){  //由好变坏
-	    			warnType=3016;
+	    			warnType=WarnID.SENSOR_OFFLINE;//3016;
 	    		}	  
 	    		Room room=roomMap.get(ctrolID+"_"+roomID);
 	    		if(room!=null){
@@ -2829,11 +2886,6 @@ public class LogicControl {
 				
 
     			String oldStateStr=jedis.hget(key2, deviceID+"");   //之前的 设备状态    			
-    			/* int profileTemplateID=-1;
-    			   if (oldStateStr!=null && oldStateStr.contains("tempID")) {
-            		profileTemplateID=new JSONObject(oldStateStr).optInt("tempID");
-				}
-        		stateJson.put("tempID", profileTemplateID);  //情景模板ID*/
         		
         		int keyType=-1;
         		switch (deviceType) {
@@ -2918,7 +2970,7 @@ public class LogicControl {
 				}
         		
         		if(sender!=0){
-	    			to.put(msg.getCookie(),msg);  //放入超时队列
+	    			to.put(msg.getCookie(),new Message(msg));  //放入超时队列
 	    			
         			Message msg2=new Message(msg);
         			msg2.setServerID(1); //转给主服务器
@@ -3104,7 +3156,7 @@ public class LogicControl {
 				String key=device.getCtrolID()+"_"+device.getDeviceID();
 				if(!msgDeviceList.contains(key)){  //不存在则删除
 					deviceMap.remove(key);
-					jedis.hdel(LogicControl.roomBind+ctrolID,device.getDeviceID()+"");
+					//jedis.hdel(LogicControl.roomBind+ctrolID,device.getDeviceID()+"");
 					jedis.hdel(LogicControl.currentDeviceState+ctrolID,device.getDeviceID()+"");
 				}			
 			}
@@ -3244,7 +3296,7 @@ public class LogicControl {
 	    		for (Device device : deviceList) {
 	    			if(!msgDeviceList.contains(device.getDeviceID())){  //上报不存在，而数据存在，则删除
 	    				deviceMap.remove(ctrolID+"_"+device.getDeviceID());
-	    				jedis.hdel(LogicControl.roomBind+ctrolID,device.getDeviceID()+"");  //redis也删除
+	    				//jedis.hdel(LogicControl.roomBind+ctrolID,device.getDeviceID()+"");  //redis也删除
 	    				jedis.hdel(LogicControl.currentDeviceState+ctrolID,device.getDeviceID()+"");  //redis也删除
 	    			}
 				}
@@ -3268,7 +3320,63 @@ public class LogicControl {
 		}	
 	}
 	
-	/*** 获取一个房间
+	/** 获取家电字典
+	 * 	 <pre>对应json消息体为：
+	 *   {
+	 *     ctrolID:1234567
+	 *     sender:0
+	 *     receiver:2
+     *   }
+     *   @return language 的jsonArray格式
+     *   {
+     *    errorCode:0,   
+     *	  deviceDictionary: [ deviceDictionary Json列表 ]
+     *   }
+     *  
+	 * @throws JSONException 
+     */
+	public void get_device_dictionary(Message msg){
+    	JSONObject json=new JSONObject();
+    	int ctrolID;
+		try {
+			ctrolID = msg.getJson().getInt("ctrolID");
+	    	int sender=0;
+	    	if(msg.getJson().has("sender")){
+	    		sender=msg.getJson().getInt("sender"); 
+	    	}
+			json.put("sender",2);
+			json.put("receiver",sender);
+			//List<FactorDict> dictionary=FactorDict.getDeviceDictList(mysql);
+	    	if(factorDicList.size()!=0 ){
+	    		JSONArray array=new JSONArray();
+	    		for (FactorDict factorDict : factorDicList) {
+					array.put(factorDict.toJson());
+				}
+				json.put("deviceDictArray", array);  		
+	    		json.put("errorCode",SUCCESS);   
+	    	}else {
+				log.error("Can't language, ctrolID:"+ctrolID);
+				json.put("errorCode",DEVICE_NOT_EXIST)   ;
+	    	}
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			try {
+				json.put("errorCode",JSON_PARSE_ERROR);
+				json.put("errorDescription",e1.toString());
+			} catch (JSONException e) {
+				e.printStackTrace(); logException(e);
+			}
+		}
+    	msg.setCommandID( GET_DEVICE_DICTIONARY_ACK); 
+		msg.setJson(json);
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace(); logException(e);
+		}		
+	}
+	
+	/** 获取一个房间
 	 * 	 <pre>对应json消息体为：
 	 *   {
 	 *     ctrolID:1234567
@@ -3281,7 +3389,7 @@ public class LogicControl {
      *   }
      *  
 	 * @throws JSONException 
-     *   */
+     */
 	public void get_one_room(Message msg) {
     	JSONObject json=new JSONObject();
     	Room room=null;
@@ -3558,7 +3666,7 @@ public class LogicControl {
 		    		}
 
 		    	}else if(dbRoom.getModifyTime().after(msgModifyTime)){ //云端较新  
-		    		log.error("Room in Cloud is newer than from profile from user, ctrolID:"+ctrolID+" roomID:"+roomID+",discard.");
+		    		log.error("Room in Cloud is newer than from user, ctrolID:"+ctrolID+" roomID:"+roomID+",cookieID="+msg.getCookie()+"discard.");
 					json.put("errorCode",ROOM_OBSOLETE);   
 				}
 			}
@@ -3701,15 +3809,12 @@ public class LogicControl {
 		
 	} 	
 	
-	  /*** 取消告警消息
-	  <pre>例如对应json消息体如下格式 ：
+	  /*** 取消告警消息、上报告警消息 等中控产生的消息
+	  <pre> 请求json消息体如下格式 ：
 	  {
-	    "warnContent", "检测你的厨房可燃气体超标，已自动帮你打开厨房的窗户~"  
-	    "warnType",  1  	
-	    "channel",0 
-	    "timeout",30
-	    "createTime","2014-12-25 12:13:14"  
-	    role: 0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务  
+		ctrolID:10003
+		businessType:  1:有害气体告警；     2火警；3漏水；4 闯入告警      ；
+		               501：取消有害气体；2取消火警；3取消漏水；4取消创入告警；
 	  }
 	  */
 	public void report_control_msg(final Message msg){
@@ -3734,7 +3839,6 @@ public class LogicControl {
 			json.put("sender", 6);				
 			int ctrolID=msg.getJson().getInt("ctrolID");
 			int warnType=msg.getJson().getInt("businessType");
-			//int role=msg.getJson().getInt("role");
 			Warn warn=new Warn(ctrolID, 3, 3, 0, new Date(), 2, warnType, 0, senderRole, new JSONObject().put("roomName", "全家").toString());
 			
 			json.put("ctrolID", ctrolID);
@@ -4386,7 +4490,7 @@ public class LogicControl {
 			
 		}
 		msg.setJson(json);
-  		msg.setCommandID(SET_TRIGGER_ACK);
+  		msg.setCommandID(SET_TRIGGER_HEADER_ACK);
     	try {
 			CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
 		} catch (InterruptedException e) {
@@ -4422,10 +4526,8 @@ public class LogicControl {
     	JSONArray ja=null;
     	int sender=0;
 	   try {
-			if(msg.getJson().has("sender")){
-	
-					sender=msg.getJson().getInt("sender");
-	
+			if(msg.getJson().has("sender")){	
+					sender=msg.getJson().getInt("sender");	
 				}
 	    	switch (tableName) {
 			case "profile":
@@ -4646,13 +4748,7 @@ public class LogicControl {
 	    		String subStr=null;
 	    		while(tempSubStr!=null){
 	    			 subStr=tempSubStr;
-	    			 tempSubStr=new StringUtility().getLongestSubStr(tempSubStr);//寻找最长重复子串
-	    			 /*if(tempSubStr!=null){
-		    			im.match(new File(filePath2), tempSubStr);
-						res=im.getTop1();
-						if(res!=null)           //找到了 退出
-								break;
-	    			 }	  */  			 
+	    			 tempSubStr=new StringUtility().getLongestSubStr(tempSubStr);//寻找最长重复子串  			 
 	    		}
 				if(subStr!=null){
 					int count=StringUtility.getSubCount_2(C3code,subStr);  // 重复子串 重复的次数
@@ -4663,7 +4759,18 @@ public class LogicControl {
 						if(res!=null)           //找到了 退出
 							break;
 					}
-				}				
+				}	
+				//将C3code重复2-3次  2015-10-22
+				if (new StringUtility().getLongestSubStr(C3code)==null) {  //没有重复字串
+					String multiC3code=C3code;
+					for (int i = 2; i < 4; i++) {
+						multiC3code=multiC3code+C3code;
+						im.match( multiC3code);
+						res=im.getTop1();
+						if(res!=null)           //找到了 退出
+							break;					
+					}
+				}
 			}
 			if (res!=null) {
 				String [] result=res.split("\\|");//[0];
@@ -4681,10 +4788,7 @@ public class LogicControl {
 
 			if(fileName==null){
 				json.put("errorCode", INFRARED_CODE_NOT_RECOGNIZED);
-			}else{
-				//IRFileDownload irDownload=new IRFileDownload(applianceType,fileName);
-				//String url=irDownload.getURLWithoutExtention();	
-				
+			}else{				
 				int pos=fileName.lastIndexOf('\\');
 				if(pos<0){
 					pos=fileName.lastIndexOf('/');
@@ -4696,7 +4800,6 @@ public class LogicControl {
 					pos2=fileName.indexOf('/');
 				}				
 				String deviceTypeStr=fileName.substring(0,pos2);
-				//System.out.println("TYPE="+deviceTypeStr);
 				int deviceType=-1;
 				switch (deviceTypeStr) {
 				case "AC": //空调
@@ -4777,7 +4880,7 @@ public class LogicControl {
      *   }  
      * */
     public  void upload_remote_control_operation(Message msg) {
-    	DateFormat sdf=new SimpleDateFormat("yyyyMMddHHmmssSSS");
+    	DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		JSONObject json=new JSONObject();
 		Message replyMsg =new Message(msg); 
     	int ctrolID;
@@ -4890,6 +4993,271 @@ public class LogicControl {
     	
     }
     
+	/** 获取一个房间
+	 * 	 <pre>对应json消息体为：
+	 *   {
+	 *     ctrolID:1234567
+	 *     sender:0
+	 *     receiver:2
+     *   }
+     *   @return language 的jsonArray格式
+     *   {
+     *    ctrolID:1234567,   
+     *	  languageid:22
+     *   }
+     *  
+	 * @throws JSONException 
+     */
+	public void get_language(Message msg){
+    	JSONObject json=new JSONObject();
+    	int ctrolID;
+		try {
+			ctrolID = msg.getJson().getInt("ctrolID");
+	    	int sender=0;
+	    	if(msg.getJson().has("sender")){
+	    		sender=msg.getJson().getInt("sender"); 
+	    	}
+			json.put("sender",2);
+			json.put("receiver",sender);
+			Language lan=Language.getLanguage(mysql, ctrolID);
+	    	if(lan!=null ){
+				json.put("ctrolID", lan.ctrolID);
+				json.put("languageID", lan.languageID);
+				json.put("modifyTime", lan.modifyTime);	    		
+	    		json.put("errorCode",SUCCESS);   
+	    	}else {
+				log.error("Can't language, ctrolID:"+ctrolID);
+				json.put("errorCode",LANGUAGE_NOT_EXIST)   ;
+	    	}
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			try {
+				json.put("errorCode",JSON_PARSE_ERROR);
+				json.put("errorDescription",e1.toString());
+			} catch (JSONException e) {
+				e.printStackTrace(); logException(e);
+			}
+		}
+    	msg.setCommandID( GET_LANGUAGE_ACK); 
+		msg.setJson(json);
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace(); logException(e);
+		}		
+	}
+	
+	public void get_language_ack(Message msg){
+		
+	}
+    
+	/** 获取一个房间
+	 * 	 <pre>对应json消息体为：
+	 *   {
+	 *     ctrolID:1234567
+	 *     sender:0
+	 *     receiver:2
+     *   }
+     *   @return language 的jsonArray格式
+     *   {
+     *    ctrolID:1234567,   
+     *	  languageid:22
+     *   }
+     *  
+	 * @throws JSONException 
+     */
+	public void set_language(Message msg){
+    	JSONObject json=new JSONObject();
+    	int ctrolID;
+		try {
+			ctrolID = msg.getJson().getInt("ctrolID");
+			int languageID=msg.getJson().getInt("languageID");
+	    	int sender=0;
+	    	if(msg.getJson().has("sender")){
+	    		sender=msg.getJson().getInt("sender"); 
+	    	}
+			json.put("sender",2);
+			json.put("receiver",sender);
+			Language lan=new Language(ctrolID, languageID, new Date());
+			jedis.hset(LogicControl.language,ctrolID+"", languageID+"");
+    		int res=lan.saveLanguage(mysql);
+	    	if(res>0 ){	    		
+	    		json.put("errorCode",SUCCESS);   
+	    	}else {
+				json.put("errorCode",SQL_ERROR)   ;
+	    	}
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			try {
+				json.put("errorCode",JSON_PARSE_ERROR);
+				json.put("errorDescription",e1.toString());
+			} catch (JSONException e) {
+				e.printStackTrace(); logException(e);
+			}
+		}
+    	msg.setCommandID( SET_LANGUAGE_ACK); 
+		msg.setJson(json);
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace(); logException(e);
+		}		
+	}
+	public void set_language_ack(Message msg){
+		
+	}
+	
+	/** 获取布防状态
+	 * 	 <pre>对应json消息体为：
+	 *   {
+	 *     ctrolID:1234567
+	 *     sender:0    
+	 *     receiver:2
+     *   }
+     *   @return language 的jsonArray格式
+     *   {
+     *    errorCode:0   
+     *	  		monitorStatus:    0:没有布防； 1：正在输入密码(60秒输入时间);  2:布防  
+     *    		time:"2015-10-26 12:13:14"
+     *    		sender:最后一次操作布防的角色   0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务； 7 情景模式； 8遥控器；
+     *   }
+     *  
+	 * @throws JSONException 
+     */
+	public void get_monitor_status(Message msg){
+		DateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    	JSONObject json=new JSONObject();
+    	int ctrolID;
+		try {
+			ctrolID = msg.getJson().getInt("ctrolID");
+	    	int sender=0;
+	    	if(msg.getJson().has("sender")){
+	    		sender=msg.getJson().getInt("sender"); 
+	    	}
+			json.put("sender",2);
+			json.put("receiver",sender);
+			String str=jedis.hget(LogicControl.monitorStatus,ctrolID+"");			
+	    	if(str!=null ){	
+	    		MonitorStatus status=new MonitorStatus(new JSONObject(str));
+	    		json.put("monitorStatus",status.getMonitorStatus()); 
+	    		json.put("time",sdf.format(status.getTime())); 
+	    		json.put("errorCode",SUCCESS);   
+	    	}else {
+				json.put("errorCode",SQL_ERROR)   ;
+	    	}
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			try {
+				json.put("errorCode",JSON_PARSE_ERROR);
+				json.put("errorDescription",e1.toString());
+			} catch (JSONException e) {
+				e.printStackTrace(); logException(e);
+			}
+		}
+    	msg.setCommandID( GET_MONITOR_STATUS_ACK); 
+		msg.setJson(json);
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(msg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace(); logException(e);
+		}
+	}
+	public void get_monitor_status_ack(Message msg){
+		
+	}
+	/** 上报布防状态
+	 * 	 * 	 <pre>对应json消息体为：
+     *   {
+	 *     sender:0    
+	 *     receiver:2
+     *    status:{
+     *	  		monitorStatus:    0:没有布防； 1：正在输入密码(60秒输入时间);  2:布防  
+     *    		time:"2015-10-26 12:13:14"
+     *    		sender:最后一次操作布防的角色   0: 中控;1: 手机 ; 2:设备控制服务器; 3:web端; 4 :主服务; 5:	分析服务; 6:消息服务； 7 情景模式； 8遥控器；
+     *    	   }
+     *   }
+     *   
+	 *   @return  的json格式
+	 *   {
+	 *     sender:0    
+	 *     receiver:2
+	 *     errorCode:0
+     *   }  
+	 * @throws JSONException 
+     */
+	public void set_monitor_status(Message msg){
+		Message replyMsg=new Message(msg);
+    	JSONObject json=new JSONObject();
+    	int ctrolID;
+    	int sender=0;
+
+		try {
+			ctrolID = msg.getJson().getInt("ctrolID");
+	    	if(msg.getJson().has("sender")){
+	    		sender=msg.getJson().getInt("sender"); 
+	    	}
+			json.put("sender",2);
+			json.put("receiver",sender);
+			//JSONObject jsonTemp=msg.getJson().getJSONObject("status");
+			MonitorStatus status=new MonitorStatus(msg.getJson());
+	    	if(status!=null ){	
+				jedis.hset(LogicControl.monitorStatus,ctrolID+"",status.toJson().toString()); 	
+        		switch (status.getMonitorStatus()) {
+				case 0:  //没有布防	
+					status.stopMonitor();
+					break;
+				case 1:  //正在输入密码
+					status.enterPassword();
+					break;
+				case 2:  //布防成功，发送通知
+					status.SendWarnMsg(WarnID.START_MONITOR);
+					break;
+				default:
+					break;
+				}
+
+        		if(sender==Role.PHONE){
+        			msg.setTimeOut(60);
+        			to.put(msg.getCookie(),msg);
+        			
+            		Message msg2=new Message(msg);            		
+        			msg2.getJson().put("receiver",0);
+        			msg2.setServerID(1); //转给主服务器        
+        			msg2.getJson().put("sender",2);       
+        			msg2.setJson(msg2.getJson());
+        			CtrolSocketServer.sendCommandQueue.offer(msg2, 100, TimeUnit.MILLISECONDS);
+        			return;	
+        		}else if(sender==Role.CONTROL){
+        			json.put("errorCode",SUCCESS);
+        		}else{
+        			log.error("unknow Sender:"+sender+",ctrolID="+ctrolID);
+        		}
+	    	}
+		} catch (JSONException e1) {
+			e1.printStackTrace();
+			try {
+				json.put("errorCode",JSON_PARSE_ERROR);
+				json.put("errorDescription",e1.toString());
+			} catch (JSONException e) {
+				e.printStackTrace(); logException(e);
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		replyMsg.setCommandID( SET_MONITOR_STATUS_ACK); 
+		replyMsg.setJson(json);
+    	try {
+    		CtrolSocketServer.sendCommandQueue.offer(replyMsg, 100, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException e) {
+			e.printStackTrace(); logException(e);
+		}
+		
+	}
+	public void set_monitor_status_ack(Message msg){
+		
+	}
+	
     public static void logException(Exception e){
     	   StringWriter sw = new StringWriter();
     	   e.printStackTrace(new PrintWriter(sw, true));
@@ -4898,11 +5266,6 @@ public class LogicControl {
     }
     
 
-	public static void main(String[] args)  {		
-		Configure cf= new Configure();
-		LogicControl lc= new LogicControl(cf);		
-		System.out.println("lc="+lc);
-		
 
-	}		
+	
 }

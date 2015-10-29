@@ -24,8 +24,7 @@ import cooxm.devicecontrol.control.MainEntry;
 import cooxm.devicecontrol.device.Profile;
 import cooxm.devicecontrol.socket.CtrolSocketServer;
 import cooxm.devicecontrol.util.MySqlClass;
-import cooxm.devicecontrol.util.RedisClient;
-import redis.clients.jedis.Jedis;
+import cooxm.devicecontrol.util.JedisUtil;
 
 
 /***情景模式集：
@@ -518,7 +517,7 @@ public class ProfileSet {
 			return res;
 		}
 		
-	public static void deleteProfileSetByRoomIDFromRedis(Jedis jedis,int ctrolID,int roomID) throws JSONException, ParseException{
+	public static void deleteProfileSetByRoomIDFromRedis(JedisUtil jedis,int ctrolID,int roomID) throws JSONException, ParseException{
 		Map<String, String> profileSetMap = jedis.hgetAll(LogicControl.currentProfileSet+ctrolID);
 		for (Map.Entry<String, String> entry:profileSetMap.entrySet()) {
 			ProfileSet p=new ProfileSet(new JSONObject(entry.getValue()));

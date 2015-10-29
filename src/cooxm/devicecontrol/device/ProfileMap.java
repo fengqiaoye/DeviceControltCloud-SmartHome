@@ -184,13 +184,15 @@ public class ProfileMap extends HashMap<String, Profile>{
 	 * */
 	public void deleteProfilesByRoomID(int ctrolID,int roomID){			
 		Iterator<Map.Entry<String, Profile>> it = this.entrySet().iterator();  
-        while(it.hasNext()){  
-            Map.Entry<String, Profile> entry=it.next();  
-			Profile profile=entry.getValue();
-			if(profile.getCtrolID()==ctrolID && profile.getRoomID()==roomID){
-				it.remove();
-				Profile.deleteFromDB(mysql, ctrolID, profile.getProfileID());
-			}	
+		synchronized (it){   //多线程同事删除时会出问题  2015-10-26
+	        while(it.hasNext()){  
+	            Map.Entry<String, Profile> entry=it.next();  
+				Profile profile=entry.getValue();
+				if(profile.getCtrolID()==ctrolID && profile.getRoomID()==roomID){
+					it.remove();
+					Profile.deleteFromDB(mysql, ctrolID, profile.getProfileID());
+				}	
+			}
 		}
 	}
 	

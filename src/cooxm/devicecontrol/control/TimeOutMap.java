@@ -37,7 +37,6 @@ public class TimeOutMap extends HashMap<String,Message> implements Runnable {
     public TimeOutMap(){
     	Configure cf=MainEntry.getConfig();
     	timeOut          =Integer.parseInt(cf.getValue("msg_timeout"));
-    	//new Thread(new TimeOut(this)).start();
     }
     
 	@Override
@@ -93,17 +92,12 @@ public class TimeOutMap extends HashMap<String,Message> implements Runnable {
 				long nowTime=new Date().getTime();
 				long createTime=entry.getValue().getCreateTime().getTime();
 				int  time_diff =(int) ((nowTime-createTime)/(1000));
-				if(time_diff>=timeOut){      //超时，返回超时错误
+				long timeOutMax=Math.max(timeOut, entry.getValue().getTimeOut());  //取默认timeOut 和Message timeout较大者
+				if(time_diff>=timeOutMax){      //超时，返回超时错误
                     Message msg=entry.getValue();
-
 					JSONObject json=msg.getJson();
 					try {
-						/*int sender=0;
-						if(msg.getJson().has("sender")){
-							   sender=msg.getJson().optInt("sender");
-						}
-						json.put("sender",2);
-						json.put("receiver",sender);*/
+
 						json.put("errorCode", LogicControl.TIME_OUT);
 						log.error("Timeout, havn't received ACK for msg: "+msg.toString());
 					} catch (JSONException e) {

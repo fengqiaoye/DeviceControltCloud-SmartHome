@@ -12,6 +12,8 @@ import org.apache.log4j.Logger;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.hp.hpl.sparta.xpath.ThisNodeTest;
+
 import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.util.BytesUtil;
 
@@ -19,7 +21,7 @@ import cooxm.devicecontrol.util.BytesUtil;
  * @author Chen Guanghua E-mail: richard@cooxm.com
  * @version Created：22 Dec 2014 16:58:28 
  */
-public class Message extends Header {
+public class Message extends Header implements Cloneable {
 	public static final short COMMAND_ACK_OFFSET       		   =  0x4000;
 	static Logger log= Logger.getLogger(Message.class);
 	 //public Header header;
@@ -27,10 +29,17 @@ public class Message extends Header {
 	 private JSONObject json;
 	 int serverID;
 	 Date createTime;
+	 long timeOut=-1;
      
 	 
 
 	 
+	public long getTimeOut() {
+		return timeOut;
+	}
+	public void setTimeOut(long timeOut) {
+		this.timeOut = timeOut;
+	}
 	public Date getCreateTime() {
 		return createTime;
 	}
@@ -70,9 +79,9 @@ public class Message extends Header {
 		this.msgLen=(short) (a+b);
 		this.commandID=commandID;
 		this.sequeeceNo=(int) (System.currentTimeMillis()/1000);
-		this.encType=1; 
+		this.encType=0; 
 		this.cookieLen=(short) cookie.length();
-		this.reserve=-1;
+		this.reserve=0;
 		this.cookie=cookie;
 		this.json=json;
 	}
@@ -90,9 +99,9 @@ public class Message extends Header {
 		this.msgLen=(short) (a+b);
 		this.commandID=commandID;
 		this.sequeeceNo=(int) (System.currentTimeMillis()/1000);
-		this.encType=1; 
+		this.encType=0; 
 		this.cookieLen=(short) cookie.length();
-		this.reserve=-1;
+		this.reserve=0;
 		this.cookie=cookie;
 		this.json=new JSONObject(str);
  	   
@@ -120,6 +129,7 @@ public class Message extends Header {
 		this.cookie=msg.cookie;
 		this.json=msg.json;
 		this.serverID=msg.serverID;
+		this.createTime=msg.createTime;
 	}
 	
 	Message(Header header,String cookie,  byte[] command) {
@@ -291,13 +301,14 @@ public String toString(){
 		}    	
     }*/
     
-    public synchronized void writeBytesToSock2(Socket sock) throws IOException{
+    public  void writeBytesToSock2(Socket sock) throws IOException{
+    	synchronized (sock) {
 			DataOutputStream dataout= new DataOutputStream(sock.getOutputStream());
 			dataout.write(this.toBytes());
 			dataout.flush();
+		}
 			// 2015-05-04
-			//dataout.close();
-    	
+			//dataout.close();    	
     }
     
    /*public void writeToSock(Socket sock){
@@ -334,7 +345,7 @@ public String toString(){
 		byte mainVersion=1;
 		byte subVersion=1;
 		int sequeeceNo=(int) (System.currentTimeMillis()/1000);
-		byte encType=1; 
+		byte encType=0; 
 		short cookieLen=0;
 		int reserve=0;
 		short msgLen=cookieLen;
@@ -350,7 +361,7 @@ public String toString(){
     	short msgLen=15;
     	short commandID=0x1601;
     	int sequeeceNo=(int) (System.currentTimeMillis()/1000);
-    	byte encType=1;
+    	byte encType=0;
     	
     	int reserve=0;
     	int timeStamp=(int) (System.currentTimeMillis()/1000);
@@ -379,7 +390,7 @@ public String toString(){
     	short msgLen=15;
     	short commandID=LogicControl.DO_NOTHING;
     	int sequeeceNo=(int) (System.currentTimeMillis()/1000);
-    	byte encType=1;
+    	byte encType=0;
     	
     	int reserve=0;
     	int timeStamp=(int) (System.currentTimeMillis()/1000);
@@ -412,6 +423,13 @@ public String toString(){
         }  
         return length;            
     }  
+    
+    @Override  
+    public Object clone(){ 
+    	return this.clone();
+		
+    }
+    
 	    
 	public static void main(String[] args)   {
 //		JSONObject jo;
@@ -422,7 +440,7 @@ public String toString(){
 //			e.printStackTrace();
 //		}
 		
-//		Message msg= Message.getOneMsg();
+		Message msg= Message.getOneMsg();
 //        byte[] x=msg.toBytesSmallEnd();
 //        byte[] y=BytesUtil.subByte(x, 23+msg.cookieLen, msg.msgLen-msg.cookieLen);
 //        

@@ -1,8 +1,167 @@
-2015-10-08 15:16:55[INFO ][main] getID (IRMatch.java:226):
-getid rets = 
-58_1-2330 - 三星3-615
-59_1-2330 - 三星3-617
-60_1-2330 - 三星3-618
-61_1-2330 - 三星3-621
-62_1-2330 - 三星3-622
+2015-10-28 10:18:09[INFO ][main] <init> (Configure.java:35):Starting reading system config file : ./conf/control.conf...
+2015-10-28 10:18:09[INFO ][main] <init> (Configure.java:61):System config finished. 
+2015-10-28 10:18:09[INFO ][main] main (MainEntry.java:26):Starting from main entry...
+2015-10-28 10:18:09[INFO ][main] <init> (CtrolSocketServer.java:69):starting device control socket server...
+2015-10-28 10:18:13[INFO ][main] <init> (LogicControl.java:477):Starting logic control module ... 
+2015-10-28 10:18:14[INFO ][main] getProfileMapFromDB (ProfileMap.java:57):Start to initialize profileMap....
+2015-10-28 10:18:26[INFO ][main] getProfileMapFromDB (ProfileMap.java:104):Initialize profileMap finished !
+2015-10-28 10:18:26[INFO ][main] getDeviceMapFromDB (DeviceMap.java:55):Start to initialize deviceMap....
+2015-10-28 10:18:26[INFO ][main] getDeviceMapFromDB (DeviceMap.java:110):Initialize deviceMap finished !
+2015-10-28 10:18:28[INFO ][main] getRoomMapFromDB (RoomMap.java:60):Start to initialize roomMap....
+2015-10-28 10:18:28[INFO ][main] getRoomMapFromDB (RoomMap.java:98):Initialize deviceMap finished !
+2015-10-28 10:18:28[INFO ][main] <init> (LogicControl.java:515):Initialization of map successful :  profileMap size=415; deviceMap size=243; roomMap size=84
+2015-10-28 10:18:28[INFO ][main] <init> (LogicControl.java:520):Initialization of Logic control module finished. 
+2015-10-28 10:18:29[INFO ][main] <init> (CtrolSocketServer.java:81):device control socket server started, finish.
+2015-10-28 10:18:29[INFO ][main] listen (CtrolSocketServer.java:101):Connecting to msg server,IP:172.16.35.16:10790
+2015-10-28 10:18:29[INFO ][connectMsgServer] sendAuth (SocketClient.java:72):Send Auth 172.16.35.16:10790:#XRPC#,1,1,63,1101,1445998709,0,12,0,1445998709_6,{"usServerType":201,"uiServerID":6,"uiClusterID":1}
+2015-10-28 10:18:29[INFO ][connectMsgServer] printSocketMap (CtrolSocketServer.java:694):sockMap,ID:4,sock:/172.16.35.16:10790
+2015-10-28 10:18:29[INFO ][connectMsgServer] sendAuth (SocketClient.java:80):succefull connect to  server,IP:172.16.35.16 port: 10790
+2015-10-28 10:18:29[INFO ][main] listen (CtrolSocketServer.java:129): Listening at port:20190...
+2015-10-28 10:33:25[ERROR][mesgServer_ReadThread] readFromClient (CtrolSocketServer.java:814): IOException socket:/172.16.35.16:10790 , socket will be closed.
+2015-10-28 10:33:25[INFO ][mesgServer_ReadThread] run (CtrolSocketServer.java:298):socket has been closed :/172.16.35.16:10790,serverID: 4
+2015-10-28 10:33:25[INFO ][mesgServer_ReadThread] run (CtrolSocketServer.java:303):Socket has been removed from SockMap : /172.16.35.16:10790 , serverID : 4
+2015-10-28 10:33:25[ERROR][mesgServer_WritThread] run (CtrolSocketServer.java:455):can't find THIS sock in SockMap,THIS sock:/172.16.35.16:10790,socket closed!
+2015-10-28 10:33:26[INFO ][connectMsgServer] run (SocketClient.java:155):socket closed:waiting for 5 seconds .Reconnect to  message server,IP:172.16.35.16 port: 10790
+2015-10-28 10:33:31[INFO ][connectMsgServer] run (SocketClient.java:155):socket closed:waiting for 5 seconds .Reconnect to  message server,IP:172.16.35.16 port: 10790
+2015-10-28 10:33:32[INFO ][main] listen (CtrolSocketServer.java:133): Accept the 1th connection from client:/172.16.35.16:51147
+2015-10-28 10:33:32[INFO ][main] listen (CtrolSocketServer.java:138): Create ReadThread for socket:/172.16.35.16:51147,threadID=17,threadName=172.16.35.16:51147_Rd,state=RUNNABLE
+2015-10-28 10:33:32[ERROR][172.16.35.16:51147_Rd] select (MySqlClass.java:91):com.mysql.jdbc.exceptions.jdbc4.CommunicationsException: Communications link failure
 
+The last packet successfully received from the server was 902,710 milliseconds ago.  The last packet sent successfully to the server was 902,710 milliseconds ago.
+com.mysql.jdbc.exceptions.jdbc4.CommunicationsException: Communications link failure
+
+The last packet successfully received from the server was 902,710 milliseconds ago.  The last packet sent successfully to the server was 902,710 milliseconds ago.
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at sun.reflect.NativeConstructorAccessorImpl.newInstance(Unknown Source)
+	at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(Unknown Source)
+	at java.lang.reflect.Constructor.newInstance(Unknown Source)
+	at com.mysql.jdbc.Util.handleNewInstance(Util.java:411)
+	at com.mysql.jdbc.SQLError.createCommunicationsException(SQLError.java:1121)
+	at com.mysql.jdbc.MysqlIO.send(MysqlIO.java:3941)
+	at com.mysql.jdbc.MysqlIO.sendCommand(MysqlIO.java:2551)
+	at com.mysql.jdbc.MysqlIO.sqlQueryDirect(MysqlIO.java:2731)
+	at com.mysql.jdbc.ConnectionImpl.execSQL(ConnectionImpl.java:2812)
+	at com.mysql.jdbc.ConnectionImpl.execSQL(ConnectionImpl.java:2761)
+	at com.mysql.jdbc.StatementImpl.executeQuery(StatementImpl.java:1612)
+	at cooxm.devicecontrol.util.MySqlClass.select(MySqlClass.java:70)
+	at cooxm.devicecontrol.socket.CtrolSocketServer.getServerInfo(CtrolSocketServer.java:710)
+	at cooxm.devicecontrol.socket.CtrolSocketServer.authenrize(CtrolSocketServer.java:660)
+	at cooxm.devicecontrol.socket.CtrolSocketServer$ReadThread.run(CtrolSocketServer.java:228)
+Caused by: java.net.SocketException: Connection reset by peer: socket write error
+	at java.net.SocketOutputStream.socketWrite0(Native Method)
+	at java.net.SocketOutputStream.socketWrite(Unknown Source)
+	at java.net.SocketOutputStream.write(Unknown Source)
+	at java.io.BufferedOutputStream.flushBuffer(Unknown Source)
+	at java.io.BufferedOutputStream.flush(Unknown Source)
+	at com.mysql.jdbc.MysqlIO.send(MysqlIO.java:3922)
+	... 9 more
+2015-10-28 10:33:32[ERROR][172.16.35.16:51147_Rd] getServerInfo (CtrolSocketServer.java:712):ERROR:exception happened: select   serverid  ,serverip ,serverport ,servertype ,clusterid   from info_server where serverid= 1;
+2015-10-28 10:33:32[ERROR][172.16.35.16:51147_Rd] authenrize (CtrolSocketServer.java:681):Authenrize failed,serverType not match: /172.16.35.16:51147:51147,serverID: 
+2015-10-28 10:33:32[INFO ][main] listen (CtrolSocketServer.java:146): Create WriteThread for socket:/172.16.35.16:51147,threadID=18,threadName=172.16.35.16:51147_Wt,state=RUNNABLE
+2015-10-28 10:33:32[INFO ][main] listen (CtrolSocketServer.java:129): Listening at port:20190...
+2015-10-28 10:33:32[ERROR][172.16.35.16:51147_Wt] run (CtrolSocketServer.java:455):can't find THIS sock in SockMap,THIS sock:/172.16.35.16:51147,socket closed!
+2015-10-28 10:33:32[ERROR][172.16.35.16:51147_Rd] readFromClient (CtrolSocketServer.java:814): IOException socket:/172.16.35.16:51147 , socket will be closed.
+2015-10-28 10:33:32[INFO ][172.16.35.16:51147_Rd] run (CtrolSocketServer.java:298):socket has been closed :/172.16.35.16:51147,serverID: 1
+2015-10-28 10:33:33[INFO ][main] listen (CtrolSocketServer.java:133): Accept the 1th connection from client:/172.16.35.16:51148
+2015-10-28 10:33:33[INFO ][main] listen (CtrolSocketServer.java:138): Create ReadThread for socket:/172.16.35.16:51148,threadID=19,threadName=172.16.35.16:51148_Rd,state=RUNNABLE
+2015-10-28 10:33:34[INFO ][172.16.35.16:51148_Rd] printSocketMap (CtrolSocketServer.java:694):sockMap,ID:1,sock:/172.16.35.16:51148
+2015-10-28 10:33:34[INFO ][main] listen (CtrolSocketServer.java:146): Create WriteThread for socket:/172.16.35.16:51148,threadID=20,threadName=172.16.35.16:51148_Wt,state=RUNNABLE
+2015-10-28 10:33:34[INFO ][main] listen (CtrolSocketServer.java:129): Listening at port:20190...
+2015-10-28 10:33:36[INFO ][connectMsgServer] sendAuth (SocketClient.java:72):Send Auth 172.16.35.16:10790:#XRPC#,1,1,63,1101,1445999616,0,12,0,1445999616_6,{"usServerType":201,"uiServerID":6,"uiClusterID":1}
+2015-10-28 10:33:36[INFO ][connectMsgServer] printSocketMap (CtrolSocketServer.java:694):sockMap,ID:1,sock:/172.16.35.16:51148
+2015-10-28 10:33:36[INFO ][connectMsgServer] printSocketMap (CtrolSocketServer.java:694):sockMap,ID:4,sock:/172.16.35.16:10790
+2015-10-28 10:33:36[INFO ][connectMsgServer] sendAuth (SocketClient.java:80):succefull connect to  server,IP:172.16.35.16 port: 10790
+2015-10-28 10:33:48[INFO ][main] <init> (Configure.java:35):Starting reading system config file : ./conf/control.conf...
+2015-10-28 10:33:48[INFO ][main] <init> (Configure.java:61):System config finished. 
+2015-10-28 10:33:48[INFO ][main] main (MainEntry.java:26):Starting from main entry...
+2015-10-28 10:33:48[INFO ][main] <init> (CtrolSocketServer.java:69):starting device control socket server...
+2015-10-28 10:33:51[INFO ][main] <init> (LogicControl.java:477):Starting logic control module ... 
+2015-10-28 10:33:52[INFO ][main] getProfileMapFromDB (ProfileMap.java:57):Start to initialize profileMap....
+2015-10-28 10:34:05[INFO ][main] getProfileMapFromDB (ProfileMap.java:104):Initialize profileMap finished !
+2015-10-28 10:34:05[INFO ][main] getDeviceMapFromDB (DeviceMap.java:55):Start to initialize deviceMap....
+2015-10-28 10:34:05[INFO ][main] getDeviceMapFromDB (DeviceMap.java:110):Initialize deviceMap finished !
+2015-10-28 10:34:06[INFO ][main] getRoomMapFromDB (RoomMap.java:60):Start to initialize roomMap....
+2015-10-28 10:34:06[INFO ][main] getRoomMapFromDB (RoomMap.java:98):Initialize deviceMap finished !
+2015-10-28 10:34:06[INFO ][main] <init> (LogicControl.java:515):Initialization of map successful :  profileMap size=415; deviceMap size=243; roomMap size=84
+2015-10-28 10:34:06[INFO ][main] <init> (LogicControl.java:520):Initialization of Logic control module finished. 
+2015-10-28 10:34:06[INFO ][main] <init> (CtrolSocketServer.java:81):device control socket server started, finish.
+2015-10-28 10:34:06[INFO ][main] listen (CtrolSocketServer.java:101):Connecting to msg server,IP:172.16.35.16:10790
+2015-10-28 10:34:06[INFO ][connectMsgServer] sendAuth (SocketClient.java:72):Send Auth 172.16.35.16:10790:#XRPC#,1,1,63,1101,1445999646,0,12,0,1445999646_6,{"usServerType":201,"uiServerID":6,"uiClusterID":1}
+2015-10-28 10:34:06[INFO ][connectMsgServer] printSocketMap (CtrolSocketServer.java:694):sockMap,ID:4,sock:/172.16.35.16:10790
+2015-10-28 10:34:06[INFO ][connectMsgServer] sendAuth (SocketClient.java:80):succefull connect to  server,IP:172.16.35.16 port: 10790
+2015-10-28 10:34:06[INFO ][main] listen (CtrolSocketServer.java:129): Listening at port:20190...
+2015-10-28 10:34:06[INFO ][main] listen (CtrolSocketServer.java:133): Accept the 2th connection from client:/172.16.35.16:51172
+2015-10-28 10:34:06[INFO ][main] listen (CtrolSocketServer.java:138): Create ReadThread for socket:/172.16.35.16:51172,threadID=17,threadName=172.16.35.16:51172_Rd,state=RUNNABLE
+2015-10-28 10:34:06[INFO ][172.16.35.16:51172_Rd] printSocketMap (CtrolSocketServer.java:694):sockMap,ID:1,sock:/172.16.35.16:51172
+2015-10-28 10:34:06[INFO ][172.16.35.16:51172_Rd] printSocketMap (CtrolSocketServer.java:694):sockMap,ID:4,sock:/172.16.35.16:10790
+2015-10-28 10:34:07[INFO ][main] listen (CtrolSocketServer.java:146): Create WriteThread for socket:/172.16.35.16:51172,threadID=18,threadName=172.16.35.16:51172_Wt,state=RUNNABLE
+2015-10-28 10:34:07[INFO ][main] listen (CtrolSocketServer.java:129): Listening at port:20190...
+2015-10-28 10:35:49[ERROR][pool-2-thread-1] set_room_profile (LogicControl.java:901):Profile in Cloud is newer than from user, ctrolID:10015 profileID:2,cookieID=339620781_1
+2015-10-28 10:35:49[ERROR][pool-2-thread-3] set_room_profile (LogicControl.java:901):Profile in Cloud is newer than from user, ctrolID:10015 profileID:6,cookieID=339620785_1
+2015-10-28 10:35:49[ERROR][pool-2-thread-3] set_room_profile (LogicControl.java:901):Profile in Cloud is newer than from user, ctrolID:10015 profileID:8,cookieID=339620787_1
+2015-10-28 10:35:49[ERROR][pool-2-thread-2] set_room_profile (LogicControl.java:901):Profile in Cloud is newer than from user, ctrolID:10015 profileID:9,cookieID=339620788_1
+2015-10-28 10:35:49[ERROR][pool-2-thread-5] set_room_profile (LogicControl.java:901):Profile in Cloud is newer than from user, ctrolID:10015 profileID:11,cookieID=339620790_1
+2015-10-28 10:35:49[ERROR][pool-2-thread-2] set_room_profile (LogicControl.java:901):Profile in Cloud is newer than from user, ctrolID:10015 profileID:13,cookieID=339620792_1
+2015-10-28 10:35:49[ERROR][pool-2-thread-5] set_room_profile (LogicControl.java:901):Profile in Cloud is newer than from user, ctrolID:10015 profileID:14,cookieID=339620793_1
+2015-10-28 10:35:49[ERROR][pool-2-thread-2] set_room_profile (LogicControl.java:901):Profile in Cloud is newer than from user, ctrolID:10015 profileID:16,cookieID=339620795_1
+2015-10-28 10:35:50[ERROR][pool-2-thread-1] set_room_profile (LogicControl.java:901):Profile in Cloud is newer than from user, ctrolID:10015 profileID:18,cookieID=339620797_1
+2015-10-28 10:35:50[ERROR][pool-2-thread-1] set_room_profile (LogicControl.java:901):Profile in Cloud is newer than from user, ctrolID:10015 profileID:19,cookieID=339620798_1
+2015-10-28 10:37:39[INFO ][Timer-2] run (MonitorStatus.java:103):Break in warn: user didn't input correct password in 60 seconds
+2015-10-28 10:49:49[INFO ][main] <init> (Configure.java:35):Starting reading system config file : ./conf/control.conf...
+2015-10-28 10:49:49[INFO ][main] <init> (Configure.java:61):System config finished. 
+2015-10-28 10:49:49[INFO ][main] main (MainEntry.java:26):Starting from main entry...
+2015-10-28 10:49:49[INFO ][main] <init> (CtrolSocketServer.java:69):starting device control socket server...
+2015-10-28 10:49:51[INFO ][main] <init> (LogicControl.java:477):Starting logic control module ... 
+2015-10-28 10:49:52[INFO ][main] getProfileMapFromDB (ProfileMap.java:57):Start to initialize profileMap....
+2015-10-28 10:49:58[INFO ][main] getProfileMapFromDB (ProfileMap.java:104):Initialize profileMap finished !
+2015-10-28 10:49:58[INFO ][main] getDeviceMapFromDB (DeviceMap.java:55):Start to initialize deviceMap....
+2015-10-28 10:49:58[INFO ][main] getDeviceMapFromDB (DeviceMap.java:110):Initialize deviceMap finished !
+2015-10-28 10:50:00[INFO ][main] getRoomMapFromDB (RoomMap.java:60):Start to initialize roomMap....
+2015-10-28 10:50:00[INFO ][main] getRoomMapFromDB (RoomMap.java:98):Initialize deviceMap finished !
+2015-10-28 10:50:00[INFO ][main] <init> (LogicControl.java:515):Initialization of map successful :  profileMap size=415; deviceMap size=243; roomMap size=84
+2015-10-28 10:50:00[INFO ][main] <init> (LogicControl.java:520):Initialization of Logic control module finished. 
+2015-10-28 10:50:00[INFO ][main] <init> (CtrolSocketServer.java:81):device control socket server started, finish.
+2015-10-28 10:50:00[INFO ][main] listen (CtrolSocketServer.java:101):Connecting to msg server,IP:172.16.35.16:10790
+2015-10-28 10:50:00[INFO ][connectMsgServer] sendAuth (SocketClient.java:72):Send Auth 172.16.35.16:10790:#XRPC#,1,1,63,1101,1446000600,0,12,0,1446000600_6,{"usServerType":201,"uiServerID":6,"uiClusterID":1}
+2015-10-28 10:50:00[INFO ][connectMsgServer] printSocketMap (CtrolSocketServer.java:694):sockMap,ID:4,sock:/172.16.35.16:10790
+2015-10-28 10:50:00[INFO ][connectMsgServer] sendAuth (SocketClient.java:80):succefull connect to  server,IP:172.16.35.16 port: 10790
+2015-10-28 10:50:00[INFO ][main] listen (CtrolSocketServer.java:129): Listening at port:20190...
+2015-10-28 10:50:00[INFO ][main] listen (CtrolSocketServer.java:133): Accept the 2th connection from client:/172.16.35.16:51430
+2015-10-28 10:50:00[INFO ][main] listen (CtrolSocketServer.java:138): Create ReadThread for socket:/172.16.35.16:51430,threadID=17,threadName=172.16.35.16:51430_Rd,state=RUNNABLE
+2015-10-28 10:50:00[INFO ][172.16.35.16:51430_Rd] printSocketMap (CtrolSocketServer.java:694):sockMap,ID:1,sock:/172.16.35.16:51430
+2015-10-28 10:50:00[INFO ][172.16.35.16:51430_Rd] printSocketMap (CtrolSocketServer.java:694):sockMap,ID:4,sock:/172.16.35.16:10790
+2015-10-28 10:50:01[INFO ][main] listen (CtrolSocketServer.java:146): Create WriteThread for socket:/172.16.35.16:51430,threadID=18,threadName=172.16.35.16:51430_Wt,state=RUNNABLE
+2015-10-28 10:50:01[INFO ][main] listen (CtrolSocketServer.java:129): Listening at port:20190...
+2015-10-28 10:57:54[INFO ][Timer-2] run (MonitorStatus.java:103):Break in warn: user didn't input correct password in 60 seconds
+2015-10-28 11:15:44[INFO ][main] <init> (Configure.java:35):Starting reading system config file : ./conf/control.conf...
+2015-10-28 11:15:44[INFO ][main] <init> (Configure.java:61):System config finished. 
+2015-10-28 11:15:44[INFO ][main] main (MainEntry.java:26):Starting from main entry...
+2015-10-28 11:15:44[INFO ][main] <init> (CtrolSocketServer.java:69):starting device control socket server...
+2015-10-28 11:29:58[INFO ][main] <init> (Configure.java:35):Starting reading system config file : ./conf/control.conf...
+2015-10-28 11:29:58[INFO ][main] <init> (Configure.java:61):System config finished. 
+2015-10-28 11:29:58[INFO ][main] main (MainEntry.java:26):Starting from main entry...
+2015-10-28 11:29:58[INFO ][main] <init> (CtrolSocketServer.java:69):starting device control socket server...
+2015-10-28 11:30:01[INFO ][main] <init> (LogicControl.java:477):Starting logic control module ... 
+2015-10-28 11:30:02[INFO ][main] getProfileMapFromDB (ProfileMap.java:57):Start to initialize profileMap....
+2015-10-28 11:30:12[INFO ][main] getProfileMapFromDB (ProfileMap.java:104):Initialize profileMap finished !
+2015-10-28 11:30:12[INFO ][main] getDeviceMapFromDB (DeviceMap.java:55):Start to initialize deviceMap....
+2015-10-28 11:30:12[INFO ][main] getDeviceMapFromDB (DeviceMap.java:110):Initialize deviceMap finished !
+2015-10-28 11:30:13[INFO ][main] getRoomMapFromDB (RoomMap.java:60):Start to initialize roomMap....
+2015-10-28 11:30:13[INFO ][main] getRoomMapFromDB (RoomMap.java:98):Initialize deviceMap finished !
+2015-10-28 11:30:13[INFO ][main] <init> (LogicControl.java:515):Initialization of map successful :  profileMap size=415; deviceMap size=243; roomMap size=84
+2015-10-28 11:30:13[INFO ][main] <init> (LogicControl.java:520):Initialization of Logic control module finished. 
+2015-10-28 11:30:13[INFO ][main] <init> (CtrolSocketServer.java:81):device control socket server started, finish.
+2015-10-28 11:30:13[INFO ][main] listen (CtrolSocketServer.java:101):Connecting to msg server,IP:172.16.35.16:10790
+2015-10-28 11:30:13[INFO ][connectMsgServer] sendAuth (SocketClient.java:72):Send Auth 172.16.35.16:10790:#XRPC#,1,1,63,1101,1446003013,0,12,0,1446003013_6,{"usServerType":201,"uiServerID":6,"uiClusterID":1}
+2015-10-28 11:30:13[INFO ][connectMsgServer] printSocketMap (CtrolSocketServer.java:694):sockMap,ID:4,sock:/172.16.35.16:10790
+2015-10-28 11:30:13[INFO ][connectMsgServer] sendAuth (SocketClient.java:80):succefull connect to  server,IP:172.16.35.16 port: 10790
+2015-10-28 11:30:13[INFO ][main] listen (CtrolSocketServer.java:129): Listening at port:20190...
+2015-10-28 11:30:14[INFO ][main] listen (CtrolSocketServer.java:133): Accept the 2th connection from client:/172.16.35.16:53547
+2015-10-28 11:30:14[INFO ][main] listen (CtrolSocketServer.java:138): Create ReadThread for socket:/172.16.35.16:53547,threadID=17,threadName=172.16.35.16:53547_Rd,state=RUNNABLE
+2015-10-28 11:30:14[INFO ][172.16.35.16:53547_Rd] printSocketMap (CtrolSocketServer.java:694):sockMap,ID:1,sock:/172.16.35.16:53547
+2015-10-28 11:30:14[INFO ][172.16.35.16:53547_Rd] printSocketMap (CtrolSocketServer.java:694):sockMap,ID:4,sock:/172.16.35.16:10790
+2015-10-28 11:30:15[INFO ][main] listen (CtrolSocketServer.java:146): Create WriteThread for socket:/172.16.35.16:53547,threadID=18,threadName=172.16.35.16:53547_Wt,state=RUNNABLE
+2015-10-28 11:30:15[INFO ][main] listen (CtrolSocketServer.java:129): Listening at port:20190...
+2015-10-28 14:17:05[INFO ][main] <init> (Configure.java:35):Starting reading system config file : ./conf/control.conf...
+2015-10-28 14:17:05[INFO ][main] <init> (Configure.java:61):System config finished. 
+2015-10-28 14:17:10[INFO ][main] recursiveMatch (IRMatch2.java:447):infraRed code match failed !!

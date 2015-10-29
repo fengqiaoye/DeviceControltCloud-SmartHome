@@ -27,7 +27,7 @@ import cooxm.devicecontrol.control.LogicControl;
 import cooxm.devicecontrol.control.MainEntry;
 import cooxm.devicecontrol.synchronize.IRMatch2;
 import cooxm.devicecontrol.util.MySqlClass;
-import redis.clients.jedis.Jedis;
+import cooxm.devicecontrol.util.JedisUtil;
 
 
 /***
@@ -680,7 +680,7 @@ public class Profile  {
 			return 1;			
 		}
 		
-		/*public static void deleteCurrentProfileByRoomIDFromRedis(Jedis jedis,int ctrolID,int roomID) throws JSONException, ParseException{
+		/*public static void deleteCurrentProfileByRoomIDFromRedis(JedisUtil jedis,int ctrolID,int roomID) throws JSONException, ParseException{
 			Map<String, String> profileMap = jedis.hgetAll(LogicControl.currentProfile+ctrolID);
 			for (Map.Entry<String, String> entry:profileMap.entrySet()) {
 				Profile p=new Profile(new JSONObject(entry.getValue()));
@@ -691,7 +691,7 @@ public class Profile  {
 			
 		}*/
 		
-		public static void deleteFactorByDeviceIDFromRedis(Jedis jedis,int ctrolID,int deviceID) throws JSONException, ParseException{
+		public static void deleteFactorByDeviceIDFromRedis(JedisUtil jedis,int ctrolID,int deviceID) throws JSONException, ParseException{
 			Map<String, String> profileMap = jedis.hgetAll(LogicControl.currentProfile+ctrolID);
 			for (Map.Entry<String, String> entry:profileMap.entrySet()) {
 				Profile p=new Profile(new JSONObject(entry.getValue()));
@@ -842,7 +842,7 @@ public class Profile  {
 		
 	}
 	
-	public static Map<Integer, Set<Integer>> getCurrentProfileTemplateID(Jedis jedis,int ctrolID) throws JSONException{
+	public static Map<Integer, Set<Integer>> getCurrentProfileTemplateID(JedisUtil jedis,int ctrolID) throws JSONException{
 		Map<Integer, Set<Integer>> currentProfile=new HashMap<Integer, Set<Integer>>();
 		Map<String, String> x = jedis.hgetAll(LogicControl.currentProfile+ctrolID);
 		if(x==null){
@@ -865,7 +865,7 @@ public class Profile  {
 	}
 	
 	
-	public static String getOneProfile(Jedis jedis,int ctrolID){
+	public static String getOneProfile(JedisUtil jedis,int ctrolID){
 		Map<String, String> x = jedis.hgetAll(LogicControl.currentProfile+ctrolID);
 		if(x==null){
 			return null;
@@ -907,7 +907,7 @@ public class Profile  {
 		//System.out.println(p.toJsonObj().toString());
 	    //JSONObject jo=p.toJsonObj();
 		
-//		Jedis jedis =new Jedis("120.24.81.226",6379, 5000);
+//		JedisUtil jedis =new JedisUtil("120.24.81.226",6379, 5000);
 //		jedis.select(9);
 //		Map<Integer, Set<Integer>> x = getCurrentProfileTemplateID(jedis,10002);
 //		String x2=getOneProfile(jedis,10002);
